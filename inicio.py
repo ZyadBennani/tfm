@@ -20,4 +20,5 @@ if x:
 
 st.metric(label="Estadísticas", value="Pases", delta="+10%")
 
-st.selectbox("Selecciona un jugador", ["EL 10", "EL 9", "EL 8", "EL 7", "EL 6", "EL 5", "EL 4", "EL 3", "EL 2", "EL 1"])
+
+st.data_input("Nombre del jugador", key="nombre_jugador")
