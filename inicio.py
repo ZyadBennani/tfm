@@ -1,5 +1,7 @@
 import streamlit as st
 import os
+from PIL import Image
+import base64
 
 # Configuración de la página
 st.set_page_config(
@@ -48,6 +50,25 @@ ligas_y_equipos = {
     ]
 }
 
+# Función para cargar imágenes
+def load_image(image_path):
+    try:
+        return Image.open(image_path)
+    except:
+        return None
+
+# Función para obtener la ruta de la imagen del equipo
+def get_team_logo_path(team_name):
+    # Normalizar el nombre del equipo para el nombre del archivo
+    filename = team_name.lower().replace(" ", "_") + ".png"
+    return os.path.join("static", "logos", filename)
+
+# Función para obtener la ruta del logo de la liga
+def get_league_logo_path(league_name):
+    # Normalizar el nombre de la liga para el nombre del archivo
+    filename = league_name.lower().replace(" ", "_") + ".png"
+    return os.path.join("static", "leagues", filename)
+
 # Función para mostrar equipos de una liga
 def mostrar_equipos(liga):
     st.markdown(f"<h2 style='text-align: center; color: #1e3c72;'>Equipos de {liga}</h2>", unsafe_allow_html=True)
@@ -66,113 +87,187 @@ def mostrar_equipos(liga):
             if i + j < len(equipos):
                 equipo = equipos[i + j]
                 with col:
-                    st.markdown(f"""
-                        <div class="equipo-card">
+                    st.markdown('<div class="team-card">', unsafe_allow_html=True)
+                    logo_path = get_team_logo_path(equipo)
+                    if os.path.exists(logo_path):
+                        st.markdown(f'<img src="data:image/png;base64,{get_image_base64(logo_path)}" class="team-logo" alt="{equipo}"/>', unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"""
                             <div class="placeholder-image">Logo {equipo}</div>
-                            <h3 style='margin-top: 10px; font-size: 1.2em;'>{equipo}</h3>
-                        </div>
-                    """, unsafe_allow_html=True)
+                        """, unsafe_allow_html=True)
+                    st.markdown(f'<div class="team-name">{equipo}</div>', unsafe_allow_html=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
                     if st.button(f"Ver {equipo}", key=f"btn_{equipo}"):
                         st.session_state.equipo_seleccionado = equipo
                         st.rerun()
 
+# Función para convertir imagen a base64
+def get_image_base64(image_path):
+    try:
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode()
+    except Exception as e:
+        print(f"Error loading image {image_path}: {str(e)}")
+        return ""
+
 # Estilos CSS personalizados
 st.markdown("""
     <style>
+    /* Variables de color para tema consistente */
+    :root {
+        --background-dark: #1E1E1E;
+        --text-light: #FFFFFF;
+        --text-dark: #333333;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --transition-speed: 0.3s;
+        --barca-primary: #004D98;
+        --barca-secondary: #A50044;
+    }
+
+    /* Estilos generales y animaciones */
+    * {
+        transition: all var(--transition-speed) ease;
+    }
+
+    .main-content {
+        margin-top: 80px;
+        padding: 20px;
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Tarjetas mejoradas */
     .liga-card {
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        padding: 20px;
-        text-align: center;
-        background-color: white;
-        margin: 10px;
-        cursor: pointer;
-    }
-    .liga-card:hover {
-        transform: scale(1.02);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .liga-title {
-        font-size: 1.5em;
-        margin-top: 10px;
-        font-weight: bold;
-        color: #1e3c72;
-    }
-    .centered-header {
-        text-align: center;
-        padding: 20px;
-        background: linear-gradient(45deg, #1e3c72, #2a5298);
-        color: white;
-        border-radius: 10px;
-        margin-bottom: 30px;
-    }
-    .barca-section {
-        text-align: center;
-        margin: 20px 0;
-        padding: 20px;
-        cursor: pointer;
-    }
-    .barca-section img {
-        max-width: 150px;
-        transition: transform 0.3s ease;
-    }
-    .barca-section:hover img {
-        transform: scale(1.05);
-    }
-    .analysis-card {
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        padding: 30px;
+        border: none;
+        border-radius: 15px;
+        padding: 25px;
         text-align: center;
         background: white;
-        margin: 10px;
+        margin: 15px;
         cursor: pointer;
-        transition: transform 0.3s ease;
+        transition: all var(--transition-speed) ease;
+        box-shadow: var(--card-shadow);
     }
-    .analysis-card:hover {
-        transform: scale(1.02);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+
+    .liga-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
     }
-    .analysis-title {
-        font-size: 1.3em;
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: #1e3c72;
-    }
-    .analysis-description {
-        color: #666;
-        font-size: 0.9em;
-    }
-    .equipo-card {
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 15px;
+
+    .team-card {
+        border: none;
+        border-radius: 15px;
+        padding: 20px;
         text-align: center;
-        margin: 5px;
-        background-color: white;
+        background: white;
+        margin: 15px;
+        transition: all var(--transition-speed) ease;
+        box-shadow: var(--card-shadow);
     }
-    .placeholder-image {
-        width: 150px;
-        height: 150px;
-        background-color: #f0f0f0;
-        border-radius: 10px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #666;
+
+    .team-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
     }
+
+    .team-logo {
+        width: 120px;
+        height: auto;
+        margin-bottom: 10px;
+    }
+
+    .team-name {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: var(--text-dark);
+        margin-top: 10px;
+    }
+
+    .centered-header {
+        text-align: center;
+        padding: 30px;
+        background: linear-gradient(135deg, var(--barca-primary), var(--barca-secondary));
+        color: var(--text-light);
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .centered-header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .centered-header p {
+        font-size: 1.2em;
+        opacity: 0.9;
+    }
+
+    /* Botones mejorados */
     .stButton button {
-        width: 100%;
-        background-color: #1e3c72;
+        background: linear-gradient(135deg, var(--barca-primary), var(--barca-secondary));
         color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 10px 20px;
+        font-weight: 500;
+        transition: all var(--transition-speed) ease;
     }
+
     .stButton button:hover {
-        background-color: #2a5298;
-        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Navbar mejorada */
+    .navbar {
+        background: linear-gradient(90deg, #1e3c72, #2a5298);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-link {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: white;
+        transform: translateX(-100%);
+        transition: transform var(--transition-speed) ease;
+    }
+
+    .nav-link:hover::after {
+        transform: translateX(0);
     }
     </style>
 """, unsafe_allow_html=True)
+
+# Barra de navegación
+st.markdown("""
+    <div class="navbar">
+        <a href="#" class="navbar-logo">⚽ ScoutVision</a>
+        <div class="navbar-links">
+            <a href="#" class="nav-link active">Inicio</a>
+            <a href="#" class="nav-link">Análisis</a>
+            <a href="#" class="nav-link">Comparación</a>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
+# Contenedor principal
+st.markdown('<div class="main-content">', unsafe_allow_html=True)
 
 # Inicializar variables de estado
 if 'pagina_actual' not in st.session_state:
@@ -188,75 +283,18 @@ st.markdown('<div class="centered-header"><h1>⚽ ScoutVision</h1><p>Análisis y
 # Sección del Barça
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
-    st.markdown("""
-        <div class="barca-section">
-            <div class="placeholder-image" style="width: 150px; height: 150px; margin: 0 auto;">
-                Logo FC Barcelona
-            </div>
-            <h3 style="margin-top: 10px; color: #1e3c72;">FC Barcelona</h3>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="team-card">', unsafe_allow_html=True)
+    barca_logo = get_team_logo_path("Barcelona")
+    if os.path.exists(barca_logo):
+        st.markdown(f'<img src="data:image/png;base64,{get_image_base64(barca_logo)}" class="team-logo" alt="FC Barcelona"/>', unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <div class="placeholder-image">Logo FC Barcelona</div>
+        """, unsafe_allow_html=True)
+    st.markdown('<div class="team-name">FC Barcelona</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
     if st.button("Análisis Detallado del FC Barcelona"):
-        st.session_state.pagina_actual = 'barca'
-        st.rerun()
-
-# Página de análisis del Barça
-if st.session_state.pagina_actual == 'barca':
-    st.markdown("<h2 style='text-align: center; color: #1e3c72;'>Análisis FC Barcelona</h2>", unsafe_allow_html=True)
-    
-    # Botón para volver
-    if st.button("← Volver al inicio"):
-        st.session_state.pagina_actual = 'inicio'
-        st.rerun()
-    
-    # Mostrar las diferentes opciones de análisis
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("""
-            <div class="analysis-card">
-                <div class="analysis-title">Comparación Flick's Barça vs Flick's Bayern</div>
-                <div class="analysis-description">
-                    Análisis comparativo detallado entre los sistemas tácticos y rendimiento de ambos equipos
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-        if st.button("Ver Comparación", key="btn_comparacion"):
-            st.switch_page("pages/PAGINA2.py")
-    
-    with col2:
-        st.markdown("""
-            <div class="analysis-card">
-                <div class="analysis-title">Análisis Propio</div>
-                <div class="analysis-description">
-                    Estudio detallado del sistema de juego y estadísticas del FC Barcelona
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-        if st.button("Ver Análisis", key="btn_analisis"):
-            st.switch_page("pages/pagina3.py")
-
-    col3, col4 = st.columns(2)
-    
-    with col3:
-        st.markdown("""
-            <div class="analysis-card">
-                <div class="analysis-title">Evolución Táctica</div>
-                <div class="analysis-description">
-                    Análisis de la evolución del sistema de juego y adaptaciones tácticas
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-    
-    with col4:
-        st.markdown("""
-            <div class="analysis-card">
-                <div class="analysis-title">Análisis por Posiciones</div>
-                <div class="analysis-description">
-                    Estudio detallado del rendimiento por posiciones y roles tácticos
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+        st.switch_page("pages/PAGINA2.py")
 
 # Si estamos en la página de inicio, mostrar el contenido normal
 if st.session_state.pagina_actual == 'inicio':
@@ -269,12 +307,16 @@ if st.session_state.pagina_actual == 'inicio':
             if i + j < len(ligas_y_equipos):
                 liga_nombre = list(ligas_y_equipos.keys())[i + j]
                 with col:
-                    st.markdown(f"""
-                        <div class="liga-card">
+                    st.markdown('<div class="liga-card">', unsafe_allow_html=True)
+                    logo_path = get_league_logo_path(liga_nombre)
+                    if os.path.exists(logo_path):
+                        st.markdown(f'<img src="data:image/png;base64,{get_image_base64(logo_path)}" class="team-logo" alt="{liga_nombre}"/>', unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"""
                             <div class="placeholder-image">Logo {liga_nombre}</div>
-                            <div class="liga-title">{liga_nombre}</div>
-                        </div>
-                    """, unsafe_allow_html=True)
+                        """, unsafe_allow_html=True)
+                    st.markdown(f'<div class="liga-title">{liga_nombre}</div>', unsafe_allow_html=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
                     if st.button(f"Ver {liga_nombre}", key=f"btn_{liga_nombre}"):
                         st.session_state.liga_seleccionada = liga_nombre
                         st.rerun()
@@ -286,3 +328,6 @@ if st.session_state.pagina_actual == 'inicio':
     # Si hay un equipo seleccionado, mostrar su información
     if st.session_state.equipo_seleccionado:
         st.markdown(f"<h2>Información de {st.session_state.equipo_seleccionado}</h2>", unsafe_allow_html=True)
+
+# Cerrar el contenedor principal
+st.markdown('</div>', unsafe_allow_html=True)
