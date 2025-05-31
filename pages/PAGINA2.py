@@ -9,13 +9,43 @@ from PIL import Image
 from matplotlib.colors import LinearSegmentedColormap
 import io
 
+# Cargar datos del CSV
+@st.cache_data
+def load_player_data():
+    return pd.read_csv('Datos/radares_bar_bay.csv', sep=';')
+
+# Función para obtener métricas de un jugador
+def get_player_metrics(df, player_name, team):
+    try:
+        player_data = df[(df['Jugador'].str.strip() == player_name) & 
+                        (df['Equipo'] == team)]
+        
+        if len(player_data) == 0:
+            st.error(f"No se encontraron datos para {player_name} en {team}")
+            return None
+            
+        player_data = player_data.iloc[0]
+        metrics = {}
+        for i in range(1, 10):  # 9 métricas posibles
+            metric_name = player_data[f'Metrica {i}']
+            metric_value = player_data[f'Datos Metrica {i}']
+            if pd.notna(metric_name) and pd.notna(metric_value):
+                try:
+                    metrics[metric_name] = round(float(str(metric_value).replace(',', '.')), 2)
+                except:
+                    continue
+        return metrics
+    except Exception as e:
+        st.error(f"Error al obtener métricas para {player_name}: {str(e)}")
+        return None
+
 # Definición de jugadores y posiciones
 barca_players = [
-    "Marc-André ter Stegen",      # GK
-    "Iñigo Martínez", "Pau Cubarsí",  # CB-L, CB-R
+    "Wojciech Szczesny",      # GK
+    "Inigo Martinez", "Pau Cubarsi",  # CB-L, CB-R
     "Alejandro Balde",            # LB
-    "Jules Koundé",               # RB
-    "Frenkie de Jong",            # DM
+    "Jules Kounde",               # RB
+    "Frenkie De Jong",            # DM
     "Pedri",                      # CM
     "Dani Olmo",                  # AM
     "Raphinha", "Lamine Yamal",   # Wingers
@@ -29,7 +59,7 @@ bayern_players = [
     "Benjamin Pavard",            # RB
     "Joshua Kimmich",             # DM
     "Leon Goretzka",              # CM
-    "Thomas Müller",              # AM
+    "Thomas Muller",              # AM
     "Kingsley Coman", "Serge Gnabry", # Wingers
     "Robert Lewandowski"          # ST
 ]
@@ -40,12 +70,12 @@ positions = [
 
 # Posiciones de los jugadores
 barca_positions = {
-    "Marc-André ter Stegen": (4, 32.5),
-    "Pau Cubarsí": (20, 21),
-    "Iñigo Martínez": (20, 43),
-    "Jules Koundé": (35, 5),
+    "Wojciech Szczesny": (4, 32.5),
+    "Pau Cubarsi": (20, 21),
+    "Inigo Martinez": (20, 43),
+    "Jules Kounde": (35, 5),
     "Alejandro Balde": (35, 60),
-    "Frenkie de Jong": (47, 20),
+    "Frenkie De Jong": (47, 20),
     "Pedri": (47, 45),
     "Dani Olmo": (66, 32.5),
     "Lamine Yamal": (77, 5),
@@ -61,146 +91,69 @@ bayern_positions = {
     "Alphonso Davies": (35, 60),
     "Joshua Kimmich": (47, 20),
     "Leon Goretzka": (47, 45),
-    "Thomas Müller": (66, 32.5),
+    "Thomas Muller": (66, 32.5),
     "Serge Gnabry": (77, 5),
     "Kingsley Coman": (77, 60),
     "Robert Lewandowski": (85, 32.5),
 }
 
-# Función para generar métricas ficticias según la posición
-def get_fake_metrics(position: str) -> dict:
-    import random
-    
-    metrics = {
-        "GK": {
-            "Paradas": (50, 100),
-            "Juego aéreo": (1, 10),
-            "Pases precisos": (50, 100),
-            "Salidas": (1, 10),
-            "Reflejos": (1, 10),
-            "Posicionamiento": (1, 10)
-        },
-        "CB-L": {
-            "Duelos ganados": (50, 100),
-            "Intercepciones": (1, 10),
-            "Pases largos": (50, 100),
-            "Despeje": (1, 10),
-            "Tackle": (1, 10),
-            "Anticipación": (1, 10)
-        },
-        "CB-R": {
-            "Duelos ganados": (50, 100),
-            "Intercepciones": (1, 10),
-            "Pases largos": (50, 100),
-            "Despeje": (1, 10),
-            "Tackle": (1, 10),
-            "Anticipación": (1, 10)
-        },
-        "LB": {
-            "Velocidad": (1, 10),
-            "Centros": (1, 10),
-            "Regate": (1, 10),
-            "Resistencia": (1, 10),
-            "Tackle": (1, 10),
-            "Pases": (50, 100)
-        },
-        "RB": {
-            "Velocidad": (1, 10),
-            "Centros": (1, 10),
-            "Regate": (1, 10),
-            "Resistencia": (1, 10),
-            "Tackle": (1, 10),
-            "Pases": (50, 100)
-        },
-        "DM": {
-            "Pases": (50, 100),
-            "Intercepciones": (1, 10),
-            "Presión": (1, 10),
-            "Visión": (1, 10),
-            "Control": (1, 10),
-            "Resistencia": (1, 10)
-        },
-        "CM": {
-            "Pases clave": (1, 10),
-            "Control": (1, 10),
-            "Regate": (1, 10),
-            "Visión": (1, 10),
-            "Tiro": (1, 10),
-            "Resistencia": (1, 10)
-        },
-        "AM": {
-            "Pases clave": (1, 10),
-            "Regate": (1, 10),
-            "Tiro": (1, 10),
-            "Visión": (1, 10),
-            "Creatividad": (1, 10),
-            "Velocidad": (1, 10)
-        },
-        "ST": {
-            "Definición": (1, 10),
-            "Remate cabeza": (1, 10),
-            "Posicionamiento": (1, 10),
-            "Control": (1, 10),
-            "Velocidad": (1, 10),
-            "Fuerza": (1, 10)
-        }
-    }
-    
-    if position not in metrics:
-        return {
-            "Velocidad": random.uniform(1, 10),
-            "Control": random.uniform(1, 10),
-            "Pases": random.uniform(50, 100),
-            "Resistencia": random.uniform(1, 10),
-            "Técnica": random.uniform(1, 10),
-            "Visión": random.uniform(1, 10)
-        }
-    
-    return {k: random.uniform(v[0], v[1]) for k, v in metrics[position].items()}
-
 # Función para crear gráfico radar
-def create_radar_chart(barca_player: str, bayern_player: str, position: str):
-    metrics_barca = get_fake_metrics(position)
-    metrics_bayern = get_fake_metrics(position)
+def create_radar_chart(barca_player: str, bayern_player: str, position: str, chart_id: str = None):
+    df = load_player_data()
     
-    categories = list(metrics_barca.keys())
-    
-    fig = go.Figure()
-    
-    # Datos Barcelona
-    fig.add_trace(go.Scatterpolar(
-        r=list(metrics_barca.values()),
-        theta=categories,
-        fill='toself',
-        name=barca_player,
-        line_color='#004D98',  # Azul Barça
-        fillcolor='rgba(0, 77, 152, 0.3)'
-    ))
-    
-    # Datos Bayern
-    fig.add_trace(go.Scatterpolar(
-        r=list(metrics_bayern.values()),
-        theta=categories,
-        fill='toself',
-        name=bayern_player,
-        line_color='#DC052D',  # Rojo Bayern
-        fillcolor='rgba(220, 5, 45, 0.3)'
-    ))
-    
-    # Actualizar layout
-    fig.update_layout(
-        polar=dict(
-            radialaxis=dict(
-                visible=True,
-                range=[0, 100]
-            )
-        ),
-        showlegend=True,
-        title=f"{position}: {barca_player} vs {bayern_player}",
-        height=400
-    )
-    
-    return fig
+    try:
+        # Obtener métricas reales
+        metrics_barca = get_player_metrics(df, barca_player, 'Barcelona')
+        metrics_bayern = get_player_metrics(df, bayern_player, 'Bayern')
+        
+        if not metrics_barca or not metrics_bayern:
+            st.error(f"No se pudieron obtener métricas para la comparación {barca_player} vs {bayern_player}")
+            st.write("Datos disponibles en el CSV:")
+            st.write(df[['Jugador', 'Equipo']].to_dict('records'))
+            return None
+            
+        categories = list(metrics_barca.keys())
+        
+        fig = go.Figure()
+        
+        # Datos Barcelona
+        fig.add_trace(go.Scatterpolar(
+            r=list(metrics_barca.values()),
+            theta=categories,
+            fill='toself',
+            name=barca_player,
+            line_color='#004D98',  # Azul Barça
+            fillcolor='rgba(0, 77, 152, 0.3)'
+        ))
+        
+        # Datos Bayern
+        fig.add_trace(go.Scatterpolar(
+            r=list(metrics_bayern.values()),
+            theta=categories,
+            fill='toself',
+            name=bayern_player,
+            line_color='#DC052D',  # Rojo Bayern
+            fillcolor='rgba(220, 5, 45, 0.3)'
+        ))
+        
+        # Actualizar layout
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, max(max(metrics_barca.values()), max(metrics_bayern.values())) * 1.1]
+                )
+            ),
+            showlegend=True,
+            title=f"{position}: {barca_player} vs {bayern_player}",
+            height=400,
+            polar_angularaxis_rotation=90  # Rotar las etiquetas para mejor legibilidad
+        )
+        
+        return fig
+    except Exception as e:
+        st.error(f"Error al crear el gráfico para {barca_player} vs {bayern_player}: {str(e)}")
+        return None
 
 # Función para crear un degradado blaugrana
 def create_blaugrana_gradient(ax):
@@ -263,40 +216,10 @@ def draw_pitch(team="barcelona"):
     return fig, ax
 
 # Configuración de la página
-st.set_page_config(page_title="Flick's Barça vs Flick's Bayern", page_icon="⚽", layout="wide")
+st.set_page_config(page_title="Análisis del FC Barcelona", page_icon="⚽", layout="wide")
 
-# Estilo CSS personalizado
-st.markdown("""
-<style>
-    .team-header {
-        text-align: center;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-    .barca-header {
-        background: linear-gradient(45deg, #004D98, #A50044);
-        color: white;
-    }
-    .bayern-header {
-        background: linear-gradient(45deg, #DC052D, #8B0000);
-        color: white;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# Encabezados
-col1_header, col2_header, col3_header = st.columns([1, 0.2, 1])
-
-with col1_header:
-    st.markdown('<div class="team-header barca-header">', unsafe_allow_html=True)
-    st.markdown("<h2>Flick's Barcelona</h2>", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-with col3_header:
-    st.markdown('<div class="team-header bayern-header">', unsafe_allow_html=True)
-    st.markdown("<h2>Flick's Bayern</h2>", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+# Título
+st.title("Análisis Comparativo: FC Barcelona vs Bayern Munich")
 
 # Métricas generales en una fila
 with st.container():
@@ -348,21 +271,26 @@ with col3_campo:
     st.image(buf, use_container_width=True)
     plt.close(fig_bayern)
 
-# Comparaciones por posición
+# Definición de las comparaciones
+comparisons = [
+    ("GK", "Wojciech Szczesny", "Manuel Neuer"),
+    ("CB-L", "Inigo Martinez", "David Alaba"),
+    ("CB-R", "Pau Cubarsi", "Jerome Boateng"),
+    ("LB", "Alejandro Balde", "Alphonso Davies"),
+    ("RB", "Jules Kounde", "Benjamin Pavard"),
+    ("CDM", "Frenkie De Jong", "Joshua Kimmich"),
+    ("CM", "Pedri", "Leon Goretzka"),
+    ("CAM", "Dani Olmo", "Thomas Muller"),
+    ("LW", "Raphinha", "Kingsley Coman"),
+    ("RW", "Lamine Yamal", "Serge Gnabry"),
+    ("ST", "Robert Lewandowski", "Robert Lewandowski"),
+]
+
+# Comparaciones Individuales
 st.markdown("### Comparaciones Individuales")
 
-# Iterar sobre las posiciones y crear gráficos
-for i, pos in enumerate(positions):
-    if pos in ["LW", "RW"]:  # Saltar estas posiciones ya que están incluidas en la lista
-        continue
-        
-    idx = i if i < 8 else i-1  # Ajustar índice para wingers
-    barca_idx = idx if pos != "RW" else 9
-    bayern_idx = idx if pos != "RW" else 9
-    
-    barca_player = barca_players[barca_idx]
-    bayern_player = bayern_players[bayern_idx]
-    
+# Iterar sobre las comparaciones definidas
+for pos, barca_player, bayern_player in comparisons:
     # Crear columnas para cada comparación
     col1, col2, col3 = st.columns([1, 2, 1])
     
@@ -373,7 +301,8 @@ for i, pos in enumerate(positions):
     with col2:
         try:
             fig = create_radar_chart(barca_player, bayern_player, pos)
-            st.plotly_chart(fig, use_container_width=True)
+            if fig:
+                st.plotly_chart(fig, use_container_width=True)
         except Exception as e:
             st.error(f"Error al crear el gráfico radar: {str(e)}")
         
