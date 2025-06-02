@@ -280,21 +280,65 @@ if 'equipo_seleccionado' not in st.session_state:
 # Título principal
 st.markdown('<div class="centered-header"><h1>⚽ ScoutVision</h1><p>Análisis y Comparación de Equipos y Jugadores</p></div>', unsafe_allow_html=True)
 
-# Sección del Barça
+# Sección del Barça (centrada)
+st.markdown("""
+    <div style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+        margin-bottom: 40px;
+        max-width: 400px;
+    ">
+        <div class="team-card" style="
+            width: 100%;
+            margin: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+        ">
+""", unsafe_allow_html=True)
+
+barca_logo = get_team_logo_path("Barcelona")
+if os.path.exists(barca_logo):
+    st.markdown(f"""
+        <img 
+            src="data:image/png;base64,{get_image_base64(barca_logo)}" 
+            alt="FC Barcelona"
+            style="
+                width: 180px;
+                height: auto;
+                margin: 0 auto;
+                display: block;
+            "
+        />
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+        <div class="placeholder-image">Logo FC Barcelona</div>
+    """, unsafe_allow_html=True)
+
+st.markdown("""
+            <div style="
+                font-size: 1.4em;
+                font-weight: bold;
+                color: #333;
+                margin: 15px 0;
+            ">FC Barcelona</div>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
+# Botón centrado
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
-    st.markdown('<div class="team-card">', unsafe_allow_html=True)
-    barca_logo = get_team_logo_path("Barcelona")
-    if os.path.exists(barca_logo):
-        st.markdown(f'<img src="data:image/png;base64,{get_image_base64(barca_logo)}" class="team-logo" alt="FC Barcelona"/>', unsafe_allow_html=True)
-    else:
-        st.markdown("""
-            <div class="placeholder-image">Logo FC Barcelona</div>
-        """, unsafe_allow_html=True)
-    st.markdown('<div class="team-name">FC Barcelona</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-    if st.button("Análisis Detallado del FC Barcelona"):
+    if st.button("Análisis Detallado del FC Barcelona", key="barca_analysis", use_container_width=True):
         st.switch_page("pages/PAGINA2.py")
+
+# Separador visual
+st.markdown("<hr style='margin: 30px 0; opacity: 0.2;'>", unsafe_allow_html=True)
 
 # Si estamos en la página de inicio, mostrar el contenido normal
 if st.session_state.pagina_actual == 'inicio':

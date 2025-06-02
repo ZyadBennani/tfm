@@ -12,7 +12,7 @@ import io
 # Cargar datos del CSV
 @st.cache_data
 def load_player_data():
-    return pd.read_csv('Datos/radares_bar_bay.csv', sep=';')
+    return pd.read_csv('Datos/radares_normalizados.csv', sep=';')
 
 # Función para obtener métricas de un jugador
 def get_player_metrics(df, player_name, team):
@@ -28,10 +28,13 @@ def get_player_metrics(df, player_name, team):
         metrics = {}
         for i in range(1, 10):  # 9 métricas posibles
             metric_name = player_data[f'Metrica {i}']
-            metric_value = player_data[f'Datos Metrica {i}']
+            metric_value = player_data[f'Valor Normalizado {i}']
             if pd.notna(metric_name) and pd.notna(metric_value):
                 try:
-                    metrics[metric_name] = round(float(str(metric_value).replace(',', '.')), 2)
+                    # Convert to float and ensure value is between 0 and 100
+                    value = float(str(metric_value).replace(',', '.'))
+                    value = max(0, min(100, value))  # Clamp value between 0 and 100
+                    metrics[metric_name] = value
                 except:
                     continue
         return metrics
@@ -141,7 +144,7 @@ def create_radar_chart(barca_player: str, bayern_player: str, position: str, cha
             polar=dict(
                 radialaxis=dict(
                     visible=True,
-                    range=[0, max(max(metrics_barca.values()), max(metrics_bayern.values())) * 1.1]
+                    range=[0, 100]  # Fijamos el rango máximo a 100 para todos los gráficos
                 )
             ),
             showlegend=True,
