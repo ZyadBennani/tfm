@@ -3,6 +3,11 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+from matplotlib.colors import LinearSegmentedColormap
+import io
 
 # Configuración de la página
 st.set_page_config(
@@ -79,6 +84,84 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# Posiciones de los jugadores del Barcelona
+barca_positions = {
+    "Wojciech Szczesny": (4, 32.5),
+    "Pau Cubarsi": (20, 21),
+    "Inigo Martinez": (20, 43),
+    "Jules Kounde": (35, 5),
+    "Alejandro Balde": (35, 60),
+    "Frenkie De Jong": (47, 20),
+    "Pedri": (47, 45),
+    "Dani Olmo": (66, 32.5),
+    "Lamine Yamal": (77, 5),
+    "Raphinha": (77, 60),
+    "Robert Lewandowski": (85, 32.5),
+}
+
+# Función para crear un degradado blaugrana
+def create_blaugrana_gradient(ax):
+    colors = ['#132976', '#ae1515']
+    n_bins = 100
+    cm = LinearSegmentedColormap.from_list('blaugrana', colors, N=n_bins)
+    gradient = np.linspace(10, 256).reshape(1, -1)
+    gradient = np.vstack((gradient, gradient))
+    ax.imshow(gradient, aspect='auto', cmap=cm, extent=[-5, 105, -5, 70], alpha=0.8)
+
+# Función para dibujar el campo
+def draw_pitch(team="barcelona"):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    
+    create_blaugrana_gradient(ax)
+    
+    # Límites del campo
+    ax.plot([0, 100, 100, 0, 0], [0, 0, 65, 65, 0], color="white", linewidth=2)
+    ax.plot([50, 50], [0, 65], color="white", linewidth=2)
+
+    # Círculo central
+    centre_circle = patches.Circle((50, 32.5), 9.15, color="white", fill=False, linewidth=2)
+    ax.add_patch(centre_circle)
+
+    # Áreas de penalti
+    ax.plot([0, 16.5, 16.5, 0], [20, 20, 45, 45], color="white", linewidth=2)
+    ax.plot([100, 83.5, 83.5, 100], [20, 20, 45, 45], color="white", linewidth=2)
+
+    # Áreas pequeñas
+    ax.plot([0, 5.5, 5.5, 0], [27, 27, 38, 38], color="white", linewidth=2)
+    ax.plot([100, 94.5, 94.5, 100], [27, 27, 38, 38], color="white", linewidth=2)
+
+    # Puntos de penalti
+    ax.scatter([11, 89], [32.5, 32.5], color="white", s=30)
+
+    # Arcos de área
+    ax.add_patch(patches.Arc((11, 32.5), 20, 20, angle=0, theta1=300, theta2=60, color="white", linewidth=2))
+    ax.add_patch(patches.Arc((89, 32.5), 20, 20, angle=0, theta1=120, theta2=240, color="white", linewidth=2))
+
+    # Ajustes visuales
+    ax.set_xlim(-5, 105)
+    ax.set_ylim(-5, 70)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_frame_on(False)
+
+    return fig, ax
+
+# Dibujar el campograma en el centro
+st.markdown("### Alineación Base del FC Barcelona")
+col1, col2, col3 = st.columns([1, 1., 1])
+with col2:
+    fig_barca, ax_barca = draw_pitch("barcelona")
+    for player, (x, y) in barca_positions.items():
+        ax_barca.text(x, y, "●", fontsize=18, color="white", ha='center', va='center')
+        ax_barca.text(x, y - 5, player, fontsize=7, color="white", ha='center', 
+                     fontweight='bold', bbox=dict(facecolor='black', alpha=0.5, edgecolor='none'))
+    
+    buf = io.BytesIO()
+    fig_barca.savefig(buf, format='png', bbox_inches='tight', transparent=True)
+    buf.seek(0)
+    st.image(buf, use_container_width=True)
+    plt.close(fig_barca)
+
 # Funciones helper (placeholders)
 def create_sample_radar_chart(title, metrics):
     """Crea un gráfico radar de ejemplo con datos aleatorios"""
@@ -125,32 +208,6 @@ def create_sample_bar_chart(title, metrics):
         height=400
     )
     return fig
-
-# Sidebar con filtros
-with st.sidebar:
-    st.markdown("""
-        <div style='background-color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;'>
-            <h3 style='color: #0E1117; margin-bottom: 15px;'>Filtros de Análisis</h3>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    season = st.selectbox(
-        "Temporada",
-        ["2023/24"],
-        key="season_filter"
-    )
-    
-    competition = st.selectbox(
-        "Competición",
-        ["LaLiga", "Champions League"],
-        key="competition_filter"
-    )
-    
-    opponent = st.selectbox(
-        "Rival",
-        ["Todos", "Real Madrid", "Atlético Madrid"],
-        key="opponent_filter"
-    )
 
 # Crear tabs para las diferentes fases
 tabs = st.tabs([
