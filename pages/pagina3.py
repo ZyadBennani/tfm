@@ -147,7 +147,7 @@ def draw_pitch(team="barcelona"):
     return fig, ax
 
 # Dibujar el campograma en el centro
-st.markdown("### Alineación Base del FC Barcelona")
+st.markdown("### 11 más utilizado por Flick")
 col1, col2, col3 = st.columns([1, 1., 1])
 with col2:
     fig_barca, ax_barca = draw_pitch("barcelona")
@@ -256,12 +256,12 @@ with tabs[0]:
     # Gráficos
     col1, col2 = st.columns(2)
     with col1:
-        metrics_offensive = ['Posesión', 'xG/90', 'Tiros/90', 'Pases %', 'Centros/90', 'Toques área/90', 'Duelos Of. %', 'Regates/90']
+        metrics_offensive = ['Posesión', 'xG/90', 'Tiros/90', 'Pases %', 'Centros/90', 'Toques área/90', 'Duelos Of. %']
         fig_radar = create_sample_radar_chart("Métricas Ofensivas", metrics_offensive)
         st.plotly_chart(fig_radar, use_container_width=True, key="offensive_radar")
     
     with col2:
-        fig_bar = create_sample_bar_chart("Distribución de Acciones Ofensivas", ['Pases', 'Centros', 'Regates', 'Tiros'])
+        fig_bar = create_sample_bar_chart("Distribución de Acciones Ofensivas", ['Pases', 'Centros', 'Duelos ofensivos', 'Tiros'])
         st.plotly_chart(fig_bar, use_container_width=True, key="offensive_bar")
 
 # 2. Fase Defensiva
@@ -281,7 +281,7 @@ with tabs[1]:
         st.markdown("""
             <div class='metric-card'>
                 <h3 style='margin:0;color:#0E1117;'>0.8</h3>
-                <p style='margin:0;color:#666666;'>xG Concedido/90</p>
+                <p style='margin:0;color:#666666;'>PSxGA/90</p>
             </div>
         """, unsafe_allow_html=True)
     with col3:
@@ -302,7 +302,7 @@ with tabs[1]:
     # Gráficos
     col1, col2 = st.columns(2)
     with col1:
-        metrics_defensive = ['Tiros Conc./90', 'xG Conc./90', 'Duelos Def. %', 'Interc./90', 'Despejes/90', 'Entradas %', 'Presión %', 'Duelos Aéreos %']
+        metrics_defensive = ['Tiros Conc./90', 'PSxGA/90', 'Duelos Def. %', 'Interc./90', 'Despejes/90', 'Entradas %', 'Duelos Aéreos %']
         fig_radar = create_sample_radar_chart("Métricas Defensivas", metrics_defensive)
         st.plotly_chart(fig_radar, use_container_width=True, key="defensive_radar")
     
