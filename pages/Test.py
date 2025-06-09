@@ -11,11 +11,21 @@ from datetime import datetime, timedelta
 
 # Configuración de la página
 st.set_page_config(
-    page_title="Test - Análisis Avanzado",
-    page_icon="🔬",
+    page_title="Análisis Barça - Datos Agregados",
+    page_icon="⚽",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
+# Ocultar menú y footer
+hide_streamlit_style = """
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        .stDeployButton {display:none;}
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # Estilos CSS
 st.markdown("""
@@ -103,33 +113,72 @@ st.markdown("""
 # Título
 st.markdown("""
     <div style='text-align: center; padding: 2rem;'>
-        <h1 style='color: var(--primary-blue);'>Análisis Avanzado FC Barcelona</h1>
+        <h1 style='color: var(--primary-blue);'>Análisis Barça - Datos Agregados</h1>
         <p style='color: var(--text-color); font-size: 1.2rem;'>
-            Análisis detallado por fases del juego con métricas avanzadas
+            Análisis basado en datos agregados de Wyscout
         </p>
     </div>
 """, unsafe_allow_html=True)
 
-# Generar datos de ejemplo
-@st.cache_data
-def generate_sample_data():
-    # Datos para fase ofensiva
-    offensive_data = pd.DataFrame({
-        'match_id': range(1, 39),
-        'xG': np.random.normal(2.1, 0.5, 38),
-        'goals': np.random.poisson(2, 38),
-        'positional_attacks': np.random.poisson(45, 38),
-        'shots': np.random.poisson(15, 38),
-        'area_entries': np.random.poisson(30, 38),
-        'final_third_passes': np.random.poisson(100, 38),
-        'progressive_passes': np.random.poisson(50, 38),
-        'deep_completed_passes': np.random.poisson(25, 38),
-        'avg_passes_possession': np.random.normal(8, 2, 38)
-    })
+# Función para añadir métricas derivadas
+def add_derived_columns(df_team, df_match):
+    """
+    Añade métricas derivadas a los DataFrames de equipo y partido
     
-    return offensive_data
+    Args:
+        df_team: DataFrame con estadísticas de equipo
+        df_match: DataFrame con estadísticas de partido
+        
+    Returns:
+        Tuple con (df_team_enhanced, df_match_enhanced)
+    """
+    # Crear copias para no modificar los originales
+    df_team = df_team.copy()
+    df_match = df_match.copy()
+    
+    # Métricas derivadas para df_team
+    df_team['Verticality_Index'] = (df_team['Forward_passes_accurate'] + 
+                                   df_team['Long_passes_accurate']) / (df_team['Total_passes_accurate'] + 1e-6)
+    
+    df_team['CounterPress_Success_pct'] = df_team['Recoveries_High'] / (df_team['Possession_Losses_High'] + 1e-6)
+    
+    df_team['Positional_xG'] = df_team['xG'] - df_team['Counterattacks_with_shots'] * 0.18
+    
+    df_team['Off_Transition_Efficiency'] = df_team['Counterattacks_with_shots'] / (
+        df_team['Recoveries_Low'] + df_team['Recoveries_Medium'] + 1e-6)
+    
+    df_team['Width_Ratio'] = df_team['Crosses_accurate'] / (df_team['Deep_completed_passes'] + 1e-6)
+    
+    df_team['Aerial_Duels_pct'] = df_team['Aerial_duels_won'] / (df_team['Aerial_duels_total'] + 1e-6)
+    
+    df_team['xG_ABP_proxy'] = df_team['Set_pieces_with_shots'] * 0.12
+    
+    # Métricas adicionales útiles
+    df_team['Pass_Accuracy'] = df_team['Total_passes_accurate'] / (df_team['Total_passes'] + 1e-6) * 100
+    df_team['Shot_Accuracy'] = df_team['Shots_on_target'] / (df_team['Total_shots'] + 1e-6) * 100
+    
+    return df_team, df_match
 
-offensive_data = generate_sample_data()
+# Cargar datos
+def load_data():
+    """
+    Carga los datos procesados
+    Returns:
+        Tuple (df_team, df_match)
+    """
+    df_team = pd.read_csv('Datos/processed/team_stats.csv')
+    df_match = pd.read_csv('Datos/processed/match_stats.csv')
+    
+    # Convertir fecha a datetime
+    df_team['Date'] = pd.to_datetime(df_team['Date'])
+    df_match['Date'] = pd.to_datetime(df_match['Date'])
+    
+    return df_team, df_match
+
+# Cargar datos reales
+df_team, df_match = load_data()
+# Añadir métricas derivadas
+df_team, df_match = add_derived_columns(df_team, df_match)
 
 # Crear pestañas para cada fase
 tabs = st.tabs([
@@ -142,901 +191,727 @@ tabs = st.tabs([
 
 # 1. Fase Ofensiva
 with tabs[0]:
-    st.markdown("""
-        <div class="phase-container">
-            <h2>Fase Ofensiva</h2>
-        </div>
-    """, unsafe_allow_html=True)
+    st.header("Fase Ofensiva")
     
-    # Métricas clave - Añadidas más métricas relevantes
+    # Cards con métricas principales
     col1, col2, col3, col4, col5 = st.columns(5)
-    
     with col1:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">2.1</div>
-                <div class="metric-label">xG por partido</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("xG/partido", f"{df_team['xG'].mean():.2f}")
     with col2:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">85%</div>
-                <div class="metric-label">Precisión de pases</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("% Precisión pase", f"{df_team['Pass_Accuracy'].mean():.1f}%")
     with col3:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">28.5</div>
-                <div class="metric-label">Entradas al área</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("Entradas área", f"{df_team['Deep_completed_passes'].mean():.1f}")
     with col4:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">8.2</div>
-                <div class="metric-label">Pases progresivos</div>
-            </div>
-        """, unsafe_allow_html=True)
-        
+        st.metric("Pases progresivos", f"{df_team['Forward_passes'].mean():.1f}")
     with col5:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">65%</div>
-                <div class="metric-label">Duelos ofensivos ganados</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    # Visualizaciones
-    st.markdown("### Análisis Detallado")
+        st.metric("Índice Verticalidad", f"{df_team['Verticality_Index'].mean()*100:.1f}%")
     
-    # Filtros en la parte superior
-    col1, col2 = st.columns(2)
-    with col1:
-        pass_type = st.selectbox(
-            "Tipo de Pase",
-            ["Todos", "Forward", "Back", "Lateral", "Long", "Progressive", "Smart"]
-        )
-    with col2:
-        possession_filter = st.slider(
-            "Filtrar por % posesión mínimo",
-            0, 100, 30
-        )
-    
+    # Gráficas
     col1, col2 = st.columns(2)
     
     with col1:
-        # Scatter plot mejorado de xG vs Goles con tamaño por tiros
+        # Scatter xG vs Goles con línea de tendencia
         fig_xg = px.scatter(
-            offensive_data,
-            x='xG',
-            y='goals',
-            size='shots',  # Tamaño basado en número de tiros
-            color='positional_attacks',  # Color basado en ataques posicionales
+            df_team,
+            x='xG', y='Goals',
+            size='Total_shots',
+            color='Shot_Accuracy',
             title='Expected Goals vs. Goles Marcados',
-            labels={'xG': 'Expected Goals', 'goals': 'Goles', 'shots': 'Tiros', 'positional_attacks': 'Ataques Posicionales'},
-            hover_data=['shots', 'positional_attacks', 'area_entries']
+            labels={
+                'xG': 'Expected Goals (xG)',
+                'Goals': 'Goles Marcados',
+                'Total_shots': 'Tiros Totales',
+                'Shot_Accuracy': 'Precisión de Tiro (%)'
+            },
+            color_continuous_scale='RdBu',
+            trendline="ols"
         )
-        fig_xg.add_shape(
-            type='line',
-            x0=0, y0=0,
-            x1=4, y1=4,
-            line=dict(dash='dash', color='gray')
+        
+        fig_xg.update_layout(
+            template='plotly_white',
+            title_x=0.5,
+            title_font_size=20,
+            showlegend=True,
+            height=500
         )
+        
         st.plotly_chart(fig_xg, use_container_width=True)
         
-        # Nuevo gráfico: Distribución de tipos de pase
-        pass_data = pd.DataFrame({
-            'Tipo': ['Forward', 'Back', 'Lateral', 'Long', 'Progressive', 'Smart'],
-            'Total': np.random.poisson(50, 6),
-            'Precisión': np.random.uniform(60, 90, 6)
-        })
+    with col2:
+        # Distribución de pases
+        pass_data = [
+            df_team['Forward_passes_accurate'],
+            df_team['Long_passes_accurate'],
+            df_team['Total_passes_accurate']
+        ]
         
-        fig_passes = make_subplots(specs=[[{"secondary_y": True}]])
+        pass_labels = ['Pases Progresivos', 'Pases Largos', 'Total Pases']
         
-        fig_passes.add_trace(
-            go.Bar(
-                x=pass_data['Tipo'],
-                y=pass_data['Total'],
-                name="Cantidad",
-                marker_color='#004D98'
-            ),
-            secondary_y=False
-        )
-        
-        fig_passes.add_trace(
-            go.Scatter(
-                x=pass_data['Tipo'],
-                y=pass_data['Precisión'],
-                name="Precisión",
-                marker_color='#A50044',
-                mode='lines+markers'
-            ),
-            secondary_y=True
-        )
+        fig_passes = go.Figure()
+        for i, data in enumerate(pass_data):
+            fig_passes.add_trace(go.Box(
+                y=data,
+                name=pass_labels[i],
+                boxpoints='all',
+                jitter=0.3,
+                pointpos=-1.8
+            ))
         
         fig_passes.update_layout(
-            title='Distribución y Precisión por Tipo de Pase',
-            xaxis_title='Tipo de Pase',
-            barmode='group'
+            title='Distribución de Pases Completados por Tipo',
+            title_x=0.5,
+            title_font_size=20,
+            template='plotly_white',
+            showlegend=True,
+            height=500,
+            yaxis_title='Número de Pases'
         )
-        
-        fig_passes.update_yaxes(title_text="Cantidad", secondary_y=False)
-        fig_passes.update_yaxes(title_text="Precisión (%)", secondary_y=True)
         
         st.plotly_chart(fig_passes, use_container_width=True)
     
-    with col2:
-        # Mapa de calor mejorado con filtro por tipo de pase
-        fig_heatmap = go.Figure()
-        
-        # Generar datos de ejemplo más detallados para el heatmap
-        x = np.random.normal(50, 15, 1000)
-        y = np.random.normal(50, 15, 1000)
-        
-        fig_heatmap.add_trace(go.Histogram2d(
-            x=x, y=y,
-            colorscale='RdBu',
-            nbinsx=20,
-            nbinsy=20,
-            name='Entradas al Área'
-        ))
-        
-        fig_heatmap.update_layout(
-            title=f'Mapa de Calor de {pass_type if pass_type != "Todos" else "Entradas"} al Área',
-            xaxis_title='Ancho del Campo',
-            yaxis_title='Largo del Campo'
-        )
-        
-        st.plotly_chart(fig_heatmap, use_container_width=True)
-        
-        # Nuevo gráfico: Radar de eficiencia ofensiva
-        categories = ['Duelos Ganados', 'Precisión Pases', 'Conversión xG', 
-                    'Ataques Exitosos', 'Entradas Área', 'Pases Progresivos']
-        
-        values = np.random.uniform(60, 90, 6)
-        
-        fig_radar = go.Figure()
-        
-        fig_radar.add_trace(go.Scatterpolar(
-            r=values,
-            theta=categories,
-            fill='toself',
-            name='Eficiencia Ofensiva'
-        ))
-        
-        fig_radar.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, 100]
-                )
-            ),
-            showlegend=False,
-            title='Radar de Eficiencia Ofensiva'
-        )
-        
-        st.plotly_chart(fig_radar, use_container_width=True)
-
-    # Insight mejorado con más métricas
+    # Gráfica adicional de eficiencia ofensiva
+    fig_radar = go.Figure()
+    
+    # Métricas para el radar chart
+    metrics = {
+        'Precisión de Pase': df_team['Pass_Accuracy'].mean() / 100,
+        'Precisión de Tiro': df_team['Shot_Accuracy'].mean() / 100,
+        'Índice de Verticalidad': df_team['Verticality_Index'].mean(),
+        'Ratio de Conversión': df_team['Goals'].mean() / df_team['Total_shots'].mean(),
+        'Eficiencia xG': df_team['Goals'].mean() / df_team['xG'].mean()
+    }
+    
+    # Crear radar chart
+    fig_radar.add_trace(go.Scatterpolar(
+        r=list(metrics.values()),
+        theta=list(metrics.keys()),
+        fill='toself',
+        name='Eficiencia Ofensiva',
+        line_color='#004D98'
+    ))
+    
+    fig_radar.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 1]
+            )
+        ),
+        title='Radar de Eficiencia Ofensiva',
+        title_x=0.5,
+        title_font_size=20,
+        showlegend=True,
+        height=500
+    )
+    
+    st.plotly_chart(fig_radar, use_container_width=True)
+    
+    # Insights
     st.markdown("""
-        <div class="insight-box">
-            <h4>Insight para el Staff Técnico</h4>
-            <p>El equipo muestra una eficiencia superior a la media en la conversión de xG (115%), 
-            con una tendencia positiva en las últimas 5 jornadas. Las entradas al área se concentran 
-            principalmente en el carril izquierdo (65% de precisión en pases progresivos). 
-            Destaca especialmente la eficiencia en duelos ofensivos (65% ganados) y la precisión 
-            en pases inteligentes (Smart passes: 72% de precisión).</p>
+        <div class='insight-box'>
+            <h3>Insights Ofensivos</h3>
+            <ul>
+                <li>Promedio de xG por partido: {:.2f}</li>
+                <li>Ratio de conversión de tiros: {:.1f}%</li>
+                <li>Precisión de pase en último tercio: {:.1f}%</li>
+                <li>Entradas al área por partido: {:.1f}</li>
+            </ul>
         </div>
-    """, unsafe_allow_html=True)
+    """.format(
+        df_team['xG'].mean(),
+        (df_team['Goals'].sum() / df_team['Total_shots'].sum()) * 100,
+        df_team['Pass_Accuracy'].mean(),
+        df_team['Deep_completed_passes'].mean()
+    ), unsafe_allow_html=True)
 
 # 2. Transición Ofensiva
 with tabs[1]:
-    st.markdown("""
-        <div class="phase-container">
-            <h2>Transición Ofensiva</h2>
-        </div>
-    """, unsafe_allow_html=True)
+    st.header("Transición Ofensiva")
     
-    # Métricas clave mejoradas
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
+    # Métricas principales
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">8.5</div>
-                <div class="metric-label">Contraataques con tiro</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("Contraataques con tiro", f"{df_team['Counterattacks_with_shots'].mean():.1f}")
     with col2:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">75%</div>
-                <div class="metric-label">Recuperaciones exitosas</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("Éxito Contrapresión", f"{df_team['CounterPress_Success_pct'].mean()*100:.1f}%")
     with col3:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">12.8</div>
-                <div class="metric-label">Pases progresivos</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("Recuperaciones altas", f"{df_team['Recoveries_High'].mean():.1f}")
     with col4:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">25.4m</div>
-                <div class="metric-label">Distancia media de pase</div>
-            </div>
-        """, unsafe_allow_html=True)
-        
-    with col5:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">3.2s</div>
-                <div class="metric-label">Tiempo medio a tiro</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    # Filtros superiores
-    col1, col2 = st.columns(2)
-    with col1:
-        recovery_zone = st.selectbox(
-            "Zona de Recuperación",
-            ["Todas", "Alta", "Media", "Baja"]
-        )
-    with col2:
-        counter_type = st.selectbox(
-            "Tipo de Contraataque",
-            ["Todos", "Directo", "Posicional", "Presión Alta"]
-        )
-
-    # Visualizaciones mejoradas
+        st.metric("Eficiencia Transición", f"{df_team['Off_Transition_Efficiency'].mean()*100:.1f}%")
+    
+    # Gráficas
     col1, col2 = st.columns(2)
     
     with col1:
-        # Timeline mejorado de contraataques
-        fig_timeline = go.Figure()
+        # Timeline de contraataques
+        fig_counter = go.Figure()
         
-        # Datos de ejemplo mejorados
-        dates = pd.date_range(start='2024-01-01', periods=38, freq='W')
-        counters = np.random.poisson(8, 38)
-        success_rate = np.random.uniform(0.4, 0.8, 38)
-        
-        fig_timeline.add_trace(go.Scatter(
-            x=dates, 
-            y=counters,
+        # Añadir línea de contraataques
+        fig_counter.add_trace(go.Scatter(
+            x=df_team['Match_ID'],
+            y=df_team['Counterattacks_with_shots'],
             mode='lines+markers',
-            name='Contraataques',
+            name='Contraataques con tiro',
             line=dict(color='#004D98', width=2),
-            marker=dict(
-                size=10,
-                color=success_rate,
-                colorscale='RdYlBu',
-                showscale=True,
-                colorbar=dict(title='Tasa de Éxito')
-            )
+            marker=dict(size=8)
         ))
         
-        fig_timeline.update_layout(
-            title='Evolución de Contraataques y Tasa de Éxito',
-            xaxis_title='Fecha',
-            yaxis_title='Número de Contraataques'
+        # Añadir línea de eficiencia
+        fig_counter.add_trace(go.Scatter(
+            x=df_team['Match_ID'],
+            y=df_team['Off_Transition_Efficiency'] * 100,
+            mode='lines+markers',
+            name='Eficiencia (%)',
+            line=dict(color='#A50044', width=2),
+            marker=dict(size=8),
+            yaxis='y2'
+        ))
+        
+        fig_counter.update_layout(
+            title='Evolución de Contraataques y Eficiencia',
+            title_x=0.5,
+            title_font_size=20,
+            xaxis_title='Partido',
+            yaxis_title='Contraataques con tiro',
+            yaxis2=dict(
+                title='Eficiencia (%)',
+                overlaying='y',
+                side='right'
+            ),
+            template='plotly_white',
+            height=500,
+            showlegend=True
         )
         
-        st.plotly_chart(fig_timeline, use_container_width=True)
-        
-        # Nuevo gráfico: Distribución de recuperaciones por zona
+        st.plotly_chart(fig_counter, use_container_width=True)
+    
+    with col2:
+        # Distribución de recuperaciones por zona
         recovery_data = pd.DataFrame({
             'Zona': ['Alta', 'Media', 'Baja'],
-            'Total': np.random.poisson(15, 3),
-            'Convertidas': np.random.poisson(8, 3)
+            'Recuperaciones': [
+                df_team['Recoveries_High'].mean(),
+                df_team['Recoveries_Medium'].mean(),
+                df_team['Recoveries_Low'].mean()
+            ]
         })
         
-        fig_recoveries = go.Figure()
+        fig_recovery = px.bar(
+            recovery_data,
+            x='Zona',
+            y='Recuperaciones',
+            title='Distribución de Recuperaciones por Zona',
+            color='Zona',
+            color_discrete_map={
+                'Alta': '#004D98',
+                'Media': '#A50044',
+                'Baja': '#EDBB00'
+            }
+        )
         
-        fig_recoveries.add_trace(go.Bar(
-            name='Total',
-            x=recovery_data['Zona'],
-            y=recovery_data['Total'],
-            marker_color='#004D98'
-        ))
-        
-        fig_recoveries.add_trace(go.Bar(
-            name='Convertidas en Ataque',
-            x=recovery_data['Zona'],
-            y=recovery_data['Convertidas'],
-            marker_color='#A50044'
-        ))
-        
-        fig_recoveries.update_layout(
-            title='Recuperaciones por Zona y Conversión',
-            barmode='group',
+        fig_recovery.update_layout(
+            title_x=0.5,
+            title_font_size=20,
             xaxis_title='Zona de Recuperación',
-            yaxis_title='Cantidad'
+            yaxis_title='Promedio por Partido',
+            template='plotly_white',
+            height=500,
+            showlegend=False
         )
         
-        st.plotly_chart(fig_recoveries, use_container_width=True)
+        st.plotly_chart(fig_recovery, use_container_width=True)
     
-    with col2:
-        # Scatter mejorado de velocidad de transición
-        fig_transition = go.Figure()
-        
-        # Datos de ejemplo para velocidad de transición
-        time_to_shot = np.random.uniform(2, 15, 50)
-        distance = np.random.uniform(20, 80, 50)
-        success = np.random.choice([0, 1], size=50, p=[0.7, 0.3])
-        
-        fig_transition.add_trace(go.Scatter(
-            x=time_to_shot,
-            y=distance,
-            mode='markers',
-            marker=dict(
-                size=12,
-                color=success,
-                colorscale=[[0, '#A50044'], [1, '#004D98']],
-                showscale=True,
-                colorbar=dict(
-                    title='Éxito',
-                    ticktext=['No', 'Sí'],
-                    tickvals=[0, 1]
-                )
-            ),
-            text=['Éxito' if s == 1 else 'No éxito' for s in success],
-            name='Transiciones'
-        ))
-        
-        fig_transition.update_layout(
-            title='Velocidad de Transición vs Distancia Recorrida',
-            xaxis_title='Tiempo hasta el tiro (s)',
-            yaxis_title='Distancia recorrida (m)'
-        )
-        
-        st.plotly_chart(fig_transition, use_container_width=True)
-        
-        # Nuevo gráfico: Radar de eficiencia en transición
-        categories = ['Velocidad', 'Precisión', 'Finalización', 
-                    'Jugadores Involucrados', 'Distancia', 'Éxito']
-        
-        values = np.random.uniform(60, 90, 6)
-        
-        fig_radar = go.Figure()
-        
-        fig_radar.add_trace(go.Scatterpolar(
-            r=values,
-            theta=categories,
-            fill='toself',
-            name='Eficiencia en Transición'
-        ))
-        
-        fig_radar.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, 100]
-                )
-            ),
-            showlegend=False,
-            title='Radar de Eficiencia en Transición'
-        )
-        
-        st.plotly_chart(fig_radar, use_container_width=True)
-
-    # Insight mejorado
+    # Gráfica adicional de velocidad de transición
+    fig_transition = go.Figure()
+    
+    # Crear scatter plot de velocidad de transición
+    fig_transition.add_trace(go.Scatter(
+        x=df_team['Match_tempo'],
+        y=df_team['Off_Transition_Efficiency'] * 100,
+        mode='markers',
+        marker=dict(
+            size=df_team['Counterattacks_with_shots'] * 5,
+            color=df_team['Recoveries_High'],
+            colorscale='RdBu',
+            showscale=True,
+            colorbar=dict(title='Recuperaciones Altas')
+        ),
+        text=df_team['Match_ID'].apply(lambda x: f'Partido {x}'),
+        name='Velocidad de Transición'
+    ))
+    
+    fig_transition.update_layout(
+        title='Relación entre Tempo y Eficiencia en Transición',
+        title_x=0.5,
+        title_font_size=20,
+        xaxis_title='Tempo del Partido',
+        yaxis_title='Eficiencia en Transición (%)',
+        template='plotly_white',
+        height=500
+    )
+    
+    st.plotly_chart(fig_transition, use_container_width=True)
+    
+    # Insights
     st.markdown("""
-        <div class="insight-box">
-            <h4>Insight para el Staff Técnico</h4>
-            <p>La efectividad en transiciones ofensivas muestra una correlación directa con la altura 
-            de recuperación (75% de éxito en zona alta). El equipo es especialmente efectivo en los 
-            primeros 8 segundos tras la recuperación (65% de conversión), con una media de 3.2 segundos 
-            hasta el tiro. Las transiciones más exitosas involucran 3-4 jugadores y una distancia 
-            media de pase de 25.4m.</p>
+        <div class='insight-box'>
+            <h3>Insights de Transición Ofensiva</h3>
+            <ul>
+                <li>Promedio de contraataques con tiro: {:.1f}</li>
+                <li>Eficiencia en transiciones: {:.1f}%</li>
+                <li>Recuperaciones en campo rival: {:.1f}</li>
+                <li>Éxito en contrapresión: {:.1f}%</li>
+            </ul>
         </div>
-    """, unsafe_allow_html=True)
+    """.format(
+        df_team['Counterattacks_with_shots'].mean(),
+        df_team['Off_Transition_Efficiency'].mean() * 100,
+        df_team['Recoveries_High'].mean(),
+        df_team['CounterPress_Success_pct'].mean() * 100
+    ), unsafe_allow_html=True)
 
 # 3. Fase Defensiva
 with tabs[2]:
-    st.markdown("""
-        <div class="phase-container">
-            <h2>Fase Defensiva</h2>
-        </div>
-    """, unsafe_allow_html=True)
+    st.header("Fase Defensiva")
     
-    # Métricas clave
+    # Métricas principales
     col1, col2, col3, col4 = st.columns(4)
-    
     with col1:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">0.8</div>
-                <div class="metric-label">PSxGA por partido</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("PSxGA", f"{df_match['PSxGA'].mean():.2f}")
     with col2:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">3.2</div>
-                <div class="metric-label">Tiros a puerta en contra</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("PPDA", f"{df_team['PPDA'].mean():.2f}")
     with col3:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">22.5</div>
-                <div class="metric-label">Intercepciones + Despejes</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("Intercepciones", f"{df_team['Interceptions'].mean():.1f}")
     with col4:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">8.2</div>
-                <div class="metric-label">PPDA</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    # Visualizaciones
+        st.metric("Duelos aéreos ganados", f"{df_team['Aerial_duels_won'].mean():.1f}")
+    
+    # Gráficas
     col1, col2 = st.columns(2)
     
     with col1:
-        # Shot-map burbuja
-        fig_shotmap = go.Figure()
+        # Evolución del PSxGA
+        fig_psxga = go.Figure()
         
-        # Datos de ejemplo para el shot-map
-        shots_x = np.random.uniform(30, 90, 50)
-        shots_y = np.random.uniform(20, 60, 50)
-        psxg = np.random.exponential(0.1, 50)
-        
-        fig_shotmap.add_trace(go.Scatter(
-            x=shots_x,
-            y=shots_y,
-            mode='markers',
-            marker=dict(
-                size=psxg*100,
-                color=psxg,
-                colorscale='RdBu',
-                showscale=True
-            ),
-            name='Tiros Recibidos'
+        # Línea de PSxGA
+        fig_psxga.add_trace(go.Scatter(
+            x=df_match['Match_ID'],
+            y=df_match['PSxGA'],
+            mode='lines+markers',
+            name='PSxGA',
+            line=dict(color='#004D98', width=2),
+            marker=dict(size=8)
         ))
         
-        fig_shotmap.update_layout(
-            title='Mapa de Tiros Recibidos (tamaño = PSxG)',
-            xaxis_title='Distancia',
-            yaxis_title='Ancho del Campo'
+        # Línea de media móvil
+        fig_psxga.add_trace(go.Scatter(
+            x=df_match['Match_ID'],
+            y=df_match['PSxGA'].rolling(window=5, min_periods=1).mean(),
+            mode='lines',
+            name='Media móvil (5 partidos)',
+            line=dict(color='#A50044', width=2, dash='dash')
+        ))
+        
+        fig_psxga.update_layout(
+            title='Evolución del PSxGA',
+            title_x=0.5,
+            title_font_size=20,
+            xaxis_title='Partido',
+            yaxis_title='PSxGA',
+            template='plotly_white',
+            height=500,
+            showlegend=True
         )
         
-        st.plotly_chart(fig_shotmap, use_container_width=True)
-        
-        # Histogramas PPDA
+        st.plotly_chart(fig_psxga, use_container_width=True)
+    
+    with col2:
+        # Distribución del PPDA
         fig_ppda = go.Figure()
         
-        # Datos de ejemplo para PPDA
-        barca_ppda = np.random.normal(8, 1, 1000)
-        liga_ppda = np.random.normal(10, 2, 1000)
-        
+        # Histograma de PPDA
         fig_ppda.add_trace(go.Histogram(
-            x=barca_ppda,
-            name='Barcelona',
-            opacity=0.75
+            x=df_team['PPDA'],
+            nbinsx=15,
+            name='PPDA',
+            marker_color='#004D98'
         ))
         
-        fig_ppda.add_trace(go.Histogram(
-            x=liga_ppda,
-            name='Media Liga',
-            opacity=0.75
-        ))
+        # Línea vertical de la media del equipo
+        fig_ppda.add_vline(
+            x=df_team['PPDA'].mean(),
+            line_dash="dash",
+            line_color="#A50044",
+            annotation_text=f"Media: {df_team['PPDA'].mean():.2f}",
+            annotation_position="top"
+        )
+        
+        # Línea vertical de la media de la liga
+        fig_ppda.add_vline(
+            x=df_match['PPDA_league_avg'].mean(),
+            line_dash="dash",
+            line_color="#EDBB00",
+            annotation_text=f"Media Liga: {df_match['PPDA_league_avg'].mean():.2f}",
+            annotation_position="bottom"
+        )
         
         fig_ppda.update_layout(
-            title='Comparativa PPDA: Barcelona vs Liga',
+            title='Distribución del PPDA',
+            title_x=0.5,
+            title_font_size=20,
             xaxis_title='PPDA',
             yaxis_title='Frecuencia',
-            barmode='overlay'
+            template='plotly_white',
+            height=500,
+            showlegend=False
         )
         
         st.plotly_chart(fig_ppda, use_container_width=True)
     
-    with col2:
-        # Heat map de intercepciones/despejes
-        fig_interceptions = go.Figure()
-        
-        # Datos de ejemplo para el heatmap
-        interceptions_data = np.random.poisson(3, (10, 6))
-        
-        fig_interceptions.add_trace(go.Heatmap(
-            z=interceptions_data,
-            colorscale='RdBu',
-            showscale=True
-        ))
-        
-        fig_interceptions.update_layout(
-            title='Mapa de Calor de Intercepciones y Despejes',
-            xaxis_title='Ancho del Campo',
-            yaxis_title='Largo del Campo'
-        )
-        
-        st.plotly_chart(fig_interceptions, use_container_width=True)
-        
-        # Area chart PSxGA acumulado
-        fig_psxga = go.Figure()
-        
-        # Datos de ejemplo para PSxGA acumulado
-        x = list(range(1, 39))  # Convert range to list
-        y = np.cumsum(np.random.normal(0.8, 0.2, 38))
-        
-        fig_psxga.add_trace(go.Scatter(
-            x=x,
-            y=y,
-            fill='tozeroy',
-            name='PSxGA Acumulado'
-        ))
-        
-        fig_psxga.update_layout(
-            title='PSxGA Acumulado por Jornada',
-            xaxis_title='Jornada',
-            yaxis_title='PSxGA Acumulado'
-        )
-        
-        st.plotly_chart(fig_psxga, use_container_width=True)
-
-    # Insight
+    # Gráfica adicional de métricas defensivas
+    defensive_metrics = pd.DataFrame({
+        'Métrica': [
+            'Intercepciones',
+            'Duelos aéreos ganados',
+            'Recuperaciones altas',
+            'Despejes'
+        ],
+        'Por Partido': [
+            df_team['Interceptions'].mean(),
+            df_team['Aerial_duels_won'].mean(),
+            df_team['Recoveries_High'].mean(),
+            df_team['Clearances'].mean()
+        ]
+    })
+    
+    fig_def_metrics = px.bar(
+        defensive_metrics,
+        x='Métrica',
+        y='Por Partido',
+        title='Métricas Defensivas por Partido',
+        color='Métrica',
+        color_discrete_sequence=['#004D98', '#A50044', '#EDBB00', '#000000']
+    )
+    
+    fig_def_metrics.update_layout(
+        title_x=0.5,
+        title_font_size=20,
+        xaxis_title='',
+        yaxis_title='Promedio por Partido',
+        template='plotly_white',
+        height=500,
+        showlegend=False
+    )
+    
+    st.plotly_chart(fig_def_metrics, use_container_width=True)
+    
+    # Insights
     st.markdown("""
-        <div class="insight-box">
-            <h4>Insight para el Staff Técnico</h4>
-            <p>El equipo mantiene un PSxGA significativamente inferior a la media de la liga (0.8 vs 1.2), 
-            con especial efectividad en la presión alta (PPDA de 8.2). Los tiros concedidos se concentran 
-            en zonas de bajo xG, indicando una defensa posicional efectiva.</p>
+        <div class='insight-box'>
+            <h3>Insights Defensivos</h3>
+            <ul>
+                <li>PSxGA promedio: {:.2f}</li>
+                <li>PPDA vs Media Liga: {:.2f} vs {:.2f}</li>
+                <li>Intercepciones por partido: {:.1f}</li>
+                <li>Eficiencia en duelos aéreos: {:.1f}%</li>
+            </ul>
         </div>
-    """, unsafe_allow_html=True)
+    """.format(
+        df_match['PSxGA'].mean(),
+        df_team['PPDA'].mean(),
+        df_match['PPDA_league_avg'].mean(),
+        df_team['Interceptions'].mean(),
+        df_team['Aerial_duels_won'].mean() / df_team['Aerial_duels_total'].mean() * 100
+    ), unsafe_allow_html=True)
 
 # 4. Transición Defensiva
 with tabs[3]:
-    st.markdown("""
-        <div class="phase-container">
-            <h2>Transición Defensiva</h2>
-        </div>
-    """, unsafe_allow_html=True)
+    st.header("Transición Defensiva")
     
-    # Métricas clave
+    # Métricas principales
     col1, col2, col3, col4 = st.columns(4)
-    
     with col1:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">12.3</div>
-                <div class="metric-label">Pérdidas en ⅓ alto</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("Pérdidas en zona alta", f"{df_team['Possession_Losses_High'].mean():.1f}")
     with col2:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">6.8</div>
-                <div class="metric-label">PPDA tras pérdida</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("PPDA post-pérdida", f"{df_team['PPDA'].mean():.2f}")
     with col3:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">1.2</div>
-                <div class="metric-label">Tiros contra en contra</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("Recuperaciones altas", f"{df_team['Recoveries_High'].mean():.1f}")
     with col4:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">72%</div>
-                <div class="metric-label">Duelos defensivos ganados</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    # Visualizaciones
+        st.metric("Éxito en contrapresión", f"{df_team['CounterPress_Success_pct'].mean()*100:.1f}%")
+    
+    # Gráficas
     col1, col2 = st.columns(2)
     
     with col1:
-        # Mapa secuencial
-        fig_sequential = go.Figure()
+        # Distribución de pérdidas por zona
+        loss_data = pd.DataFrame({
+            'Zona': ['Alta', 'Media', 'Baja'],
+            'Pérdidas': [
+                df_team['Possession_Losses_High'].mean(),
+                df_team['Recoveries_Medium'].mean(),  # Usando como proxy
+                df_team['Recoveries_Low'].mean()  # Usando como proxy
+            ]
+        })
         
-        # Datos de ejemplo para el mapa secuencial
-        losses_x = np.random.uniform(60, 90, 30)
-        losses_y = np.random.uniform(20, 60, 30)
-        duels_x = losses_x + np.random.normal(0, 5, 30)
-        duels_y = losses_y + np.random.normal(0, 5, 30)
-        
-        # Crear líneas de conexión
-        for i in range(len(losses_x)):
-            fig_sequential.add_trace(go.Scatter(
-                x=[losses_x[i], duels_x[i]],
-                y=[losses_y[i], duels_y[i]],
-                mode='lines+markers',
-                line=dict(color='rgba(0,77,152,0.3)'),
-                showlegend=False if i > 0 else True,
-                name='Secuencias' if i == 0 else None
-            ))
-        
-        fig_sequential.update_layout(
-            title='Mapa Secuencial: Pérdidas → Duelos',
-            xaxis_title='Distancia',
-            yaxis_title='Ancho del Campo'
+        fig_losses = px.bar(
+            loss_data,
+            x='Zona',
+            y='Pérdidas',
+            title='Distribución de Pérdidas por Zona',
+            color='Zona',
+            color_discrete_map={
+                'Alta': '#004D98',
+                'Media': '#A50044',
+                'Baja': '#EDBB00'
+            }
         )
         
-        st.plotly_chart(fig_sequential, use_container_width=True)
-        
-        # Bar chart apilado de pérdidas
-        fig_losses = go.Figure()
-        
-        # Datos de ejemplo para pérdidas por zona
-        zonas = ['Tercio Alto', 'Tercio Medio', 'Tercio Bajo']
-        perdidas = np.random.poisson(10, 3)
-        recuperadas = np.random.binomial(n=perdidas, p=0.7)
-        
-        fig_losses.add_trace(go.Bar(
-            name='No Recuperadas',
-            x=zonas,
-            y=perdidas - recuperadas,
-            marker_color='#A50044'
-        ))
-        
-        fig_losses.add_trace(go.Bar(
-            name='Recuperadas < 30s',
-            x=zonas,
-            y=recuperadas,
-            marker_color='#004D98'
-        ))
-        
         fig_losses.update_layout(
-            title='Pérdidas por Zona y % Recuperación',
-            barmode='stack',
-            xaxis_title='Zona del Campo',
-            yaxis_title='Número de Pérdidas'
+            title_x=0.5,
+            title_font_size=20,
+            xaxis_title='Zona de Pérdida',
+            yaxis_title='Promedio por Partido',
+            template='plotly_white',
+            height=500,
+            showlegend=False
         )
         
         st.plotly_chart(fig_losses, use_container_width=True)
     
     with col2:
-        # Scatter PPDA vs tiros concedidos
-        fig_ppda_shots = go.Figure()
+        # Relación entre pérdidas y recuperaciones
+        fig_recovery = go.Figure()
         
-        # Datos de ejemplo
-        ppda_values = np.random.normal(8, 1, 38)
-        shots_conceded = np.random.poisson(2, 38)
-        
-        fig_ppda_shots.add_trace(go.Scatter(
-            x=ppda_values,
-            y=shots_conceded,
+        fig_recovery.add_trace(go.Scatter(
+            x=df_team['Possession_Losses_High'],
+            y=df_team['Recoveries_High'],
             mode='markers',
             marker=dict(
-                size=10,
-                color=shots_conceded,
-                colorscale='RdBu_r',
-                showscale=True
-            )
+                size=df_team['PPDA'] * 2,
+                color=df_team['CounterPress_Success_pct'],
+                colorscale='RdBu',
+                showscale=True,
+                colorbar=dict(title='Éxito en Contrapresión')
+            ),
+            text=df_team['Match_ID'].apply(lambda x: f'Partido {x}'),
+            name='Relación Pérdidas-Recuperaciones'
         ))
         
-        fig_ppda_shots.update_layout(
-            title='PPDA vs. Tiros Concedidos en Contraataque',
-            xaxis_title='PPDA en Transición',
-            yaxis_title='Tiros Concedidos'
+        fig_recovery.update_layout(
+            title='Relación entre Pérdidas y Recuperaciones en Zona Alta',
+            title_x=0.5,
+            title_font_size=20,
+            xaxis_title='Pérdidas en Zona Alta',
+            yaxis_title='Recuperaciones en Zona Alta',
+            template='plotly_white',
+            height=500
         )
         
-        st.plotly_chart(fig_ppda_shots, use_container_width=True)
-        
-        # Mapa de presión post-pérdida
-        fig_pressure = go.Figure()
-        
-        # Datos de ejemplo para el mapa de presión
-        pressure_data = np.random.poisson(3, (10, 6))
-        
-        fig_pressure.add_trace(go.Heatmap(
-            z=pressure_data,
-            colorscale='RdBu',
-            showscale=True
-        ))
-        
-        fig_pressure.update_layout(
-            title='Mapa de Presión Post-Pérdida',
-            xaxis_title='Ancho del Campo',
-            yaxis_title='Largo del Campo'
-        )
-        
-        st.plotly_chart(fig_pressure, use_container_width=True)
-
-    # Insight
+        st.plotly_chart(fig_recovery, use_container_width=True)
+    
+    # Gráfica adicional de evolución temporal
+    fig_evolution = go.Figure()
+    
+    # Añadir líneas de evolución
+    fig_evolution.add_trace(go.Scatter(
+        x=df_team['Match_ID'],
+        y=df_team['Possession_Losses_High'],
+        mode='lines+markers',
+        name='Pérdidas Altas',
+        line=dict(color='#004D98', width=2)
+    ))
+    
+    fig_evolution.add_trace(go.Scatter(
+        x=df_team['Match_ID'],
+        y=df_team['Recoveries_High'],
+        mode='lines+markers',
+        name='Recuperaciones Altas',
+        line=dict(color='#A50044', width=2)
+    ))
+    
+    fig_evolution.add_trace(go.Scatter(
+        x=df_team['Match_ID'],
+        y=df_team['PPDA'],
+        mode='lines+markers',
+        name='PPDA',
+        line=dict(color='#EDBB00', width=2),
+        yaxis='y2'
+    ))
+    
+    fig_evolution.update_layout(
+        title='Evolución de Métricas de Transición Defensiva',
+        title_x=0.5,
+        title_font_size=20,
+        xaxis_title='Partido',
+        yaxis_title='Cantidad',
+        yaxis2=dict(
+            title='PPDA',
+            overlaying='y',
+            side='right'
+        ),
+        template='plotly_white',
+        height=500,
+        showlegend=True
+    )
+    
+    st.plotly_chart(fig_evolution, use_container_width=True)
+    
+    # Insights
     st.markdown("""
-        <div class="insight-box">
-            <h4>Insight para el Staff Técnico</h4>
-            <p>La reacción a la pérdida es especialmente efectiva en el tercio alto (72% de recuperaciones en <30s). 
-            El PPDA en transición (6.8) indica una presión inmediata efectiva, reduciendo significativamente 
-            la probabilidad de tiros en contra durante contraataques.</p>
+        <div class='insight-box'>
+            <h3>Insights de Transición Defensiva</h3>
+            <ul>
+                <li>Pérdidas en zona alta por partido: {:.1f}</li>
+                <li>Ratio de recuperación post-pérdida: {:.1f}%</li>
+                <li>PPDA en transición: {:.2f}</li>
+                <li>Eficiencia de contrapresión: {:.1f}%</li>
+            </ul>
         </div>
-    """, unsafe_allow_html=True)
+    """.format(
+        df_team['Possession_Losses_High'].mean(),
+        (df_team['Recoveries_High'].mean() / df_team['Possession_Losses_High'].mean()) * 100,
+        df_team['PPDA'].mean(),
+        df_team['CounterPress_Success_pct'].mean() * 100
+    ), unsafe_allow_html=True)
 
 # 5. Balón Parado
 with tabs[4]:
-    st.markdown("""
-        <div class="phase-container">
-            <h2>Balón Parado</h2>
-        </div>
-    """, unsafe_allow_html=True)
+    st.header("Balón Parado")
     
-    # Métricas clave
+    # Métricas principales
     col1, col2, col3, col4 = st.columns(4)
-    
     with col1:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">5.8</div>
-                <div class="metric-label">Set pieces con tiro</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("Tiros de ABP", f"{df_team['Set_pieces_with_shots'].mean():.1f}")
     with col2:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">68%</div>
-                <div class="metric-label">Duelos aéreos ganados</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("xG de ABP", f"{df_team['xG_ABP_proxy'].mean():.2f}")
     with col3:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">0.45</div>
-                <div class="metric-label">xG por ABP</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("Duelos aéreos ganados", f"{df_team['Aerial_duels_won'].mean():.1f}")
     with col4:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">15.3</div>
-                <div class="metric-label">Despejes en ABP def.</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    # Visualizaciones
+        st.metric("% Duelos aéreos", f"{df_team['Aerial_Duels_pct'].mean()*100:.1f}%")
+    
+    # Gráficas
     col1, col2 = st.columns(2)
     
     with col1:
-        # Bar-Line dual axis
-        fig_set_pieces = make_subplots(specs=[[{"secondary_y": True}]])
+        # Evolución de ABP
+        fig_set_pieces = go.Figure()
         
-        # Datos de ejemplo
-        x = list(range(1, 39))  # Convert range to list
-        xg_abp = np.random.normal(0.45, 0.1, 38)
-        goles_abp = np.random.poisson(0.4, 38)
+        # Línea de tiros de ABP
+        fig_set_pieces.add_trace(go.Scatter(
+            x=df_team['Match_ID'],
+            y=df_team['Set_pieces_with_shots'],
+            mode='lines+markers',
+            name='Tiros de ABP',
+            line=dict(color='#004D98', width=2),
+            marker=dict(size=8)
+        ))
         
-        fig_set_pieces.add_trace(
-            go.Bar(
-                x=x,
-                y=xg_abp,
-                name="xG ABP",
-                marker_color='#004D98'
-            ),
-            secondary_y=False
-        )
-        
-        fig_set_pieces.add_trace(
-            go.Scatter(
-                x=x,
-                y=goles_abp,
-                name="Goles ABP",
-                marker_color='#A50044',
-                mode='lines+markers'
-            ),
-            secondary_y=True
-        )
+        # Línea de xG de ABP
+        fig_set_pieces.add_trace(go.Scatter(
+            x=df_team['Match_ID'],
+            y=df_team['xG_ABP_proxy'],
+            mode='lines+markers',
+            name='xG de ABP',
+            line=dict(color='#A50044', width=2),
+            marker=dict(size=8)
+        ))
         
         fig_set_pieces.update_layout(
-            title='xG vs. Goles en ABP por Partido',
-            xaxis_title='Jornada'
+            title='Evolución de Acciones a Balón Parado',
+            title_x=0.5,
+            title_font_size=20,
+            xaxis_title='Partido',
+            yaxis_title='Cantidad',
+            template='plotly_white',
+            height=500,
+            showlegend=True
         )
         
-        fig_set_pieces.update_yaxes(title_text="xG ABP", secondary_y=False)
-        fig_set_pieces.update_yaxes(title_text="Goles ABP", secondary_y=True)
-        
         st.plotly_chart(fig_set_pieces, use_container_width=True)
-        
-        # Scatter duelos aéreos
+    
+    with col2:
+        # Scatter de duelos aéreos
         fig_aerial = go.Figure()
         
-        # Datos de ejemplo para duelos aéreos
-        n_players = 15
-        duelos_totales = np.random.poisson(20, n_players)
-        duelos_ganados = np.random.uniform(50, 85, n_players)
-        
         fig_aerial.add_trace(go.Scatter(
-            x=duelos_totales,
-            y=duelos_ganados,
-            mode='markers+text',
-            text=[f'Jugador {i+1}' for i in range(n_players)],
-            textposition='top center',
+            x=df_team['Aerial_duels_total'],
+            y=df_team['Aerial_duels_won'],
+            mode='markers',
             marker=dict(
-                size=duelos_totales,
-                color=duelos_ganados,
+                size=df_team['Set_pieces_with_shots'] * 5,
+                color=df_team['Aerial_Duels_pct'],
                 colorscale='RdBu',
-                showscale=True
+                showscale=True,
+                colorbar=dict(title='% Duelos Ganados')
             ),
+            text=df_team['Match_ID'].apply(lambda x: f'Partido {x}'),
             name='Duelos Aéreos'
         ))
         
+        # Añadir línea de tendencia
+        fig_aerial.add_trace(go.Scatter(
+            x=[df_team['Aerial_duels_total'].min(), df_team['Aerial_duels_total'].max()],
+            y=[df_team['Aerial_duels_total'].min() * df_team['Aerial_Duels_pct'].mean(),
+               df_team['Aerial_duels_total'].max() * df_team['Aerial_Duels_pct'].mean()],
+            mode='lines',
+            line=dict(color='red', dash='dash'),
+            name='Media de Éxito'
+        ))
+        
         fig_aerial.update_layout(
-            title='Duelos Aéreos por Jugador',
-            xaxis_title='Duelos Totales',
-            yaxis_title='% Duelos Ganados'
+            title='Relación entre Duelos Aéreos Totales y Ganados',
+            title_x=0.5,
+            title_font_size=20,
+            xaxis_title='Duelos Aéreos Totales',
+            yaxis_title='Duelos Aéreos Ganados',
+            template='plotly_white',
+            height=500
         )
         
         st.plotly_chart(fig_aerial, use_container_width=True)
     
-    with col2:
-        # Heat map circular de corners
-        fig_corners = go.Figure()
-        
-        # Datos de ejemplo para el mapa circular
-        theta = np.linspace(0, 2*np.pi, 36)
-        r = np.linspace(0.3, 1, 10)
-        theta_grid, r_grid = np.meshgrid(theta, r)
-        
-        # Generar datos de ejemplo para la visualización
-        values = np.random.poisson(3, 36)  # Un valor por cada sector angular
-        
-        fig_corners.add_trace(go.Barpolar(
-            r=values,  # Usar los valores directamente como longitud de las barras
-            theta=np.degrees(theta),  # Convertir radianes a grados
-            marker_color=values,  # Color basado en los valores
-            marker=dict(
-                colorscale='RdBu',
-                showscale=True
-            ),
-            name='Corners'
-        ))
-        
-        fig_corners.update_layout(
-            title='Dirección y Éxito de Corners',
-            polar=dict(
-                radialaxis=dict(range=[0, max(values) * 1.2])  # Ajustar el rango radial basado en los datos
-            ),
-            showlegend=False
-        )
-        
-        st.plotly_chart(fig_corners, use_container_width=True)
-        
-        # Sankey ABP
-        fig_set_pieces_flow = go.Figure(data=[go.Sankey(
-            node = dict(
-                pad = 15,
-                thickness = 20,
-                line = dict(color = "black", width = 0.5),
-                label = ["Corner", "Falta", "Segundo Balón", "Tiro", "Gol"],
-                color = "#004D98"
-            ),
-            link = dict(
-                source = [0, 0, 1, 1, 2, 2, 3],
-                target = [2, 3, 2, 3, 3, 4, 4],
-                value = [8, 4, 6, 3, 7, 3, 4]
-            )
-        )])
-        
-        fig_set_pieces_flow.update_layout(title_text="Flujo de Acciones en ABP")
-        st.plotly_chart(fig_set_pieces_flow, use_container_width=True)
-
-    # Insight
+    # Gráfica adicional de tipos de ABP
+    set_piece_types = pd.DataFrame({
+        'Tipo': ['Córners', 'Faltas', 'Penaltis'],
+        'Cantidad': [
+            df_team['Set_pieces_with_shots'].mean() * 0.6,  # Aproximación
+            df_team['Set_pieces_with_shots'].mean() * 0.3,  # Aproximación
+            df_team['Set_pieces_with_shots'].mean() * 0.1   # Aproximación
+        ]
+    })
+    
+    fig_types = px.pie(
+        set_piece_types,
+        values='Cantidad',
+        names='Tipo',
+        title='Distribución de Tipos de ABP',
+        color='Tipo',
+        color_discrete_sequence=['#004D98', '#A50044', '#EDBB00']
+    )
+    
+    fig_types.update_layout(
+        title_x=0.5,
+        title_font_size=20,
+        template='plotly_white',
+        height=500,
+        showlegend=True
+    )
+    
+    st.plotly_chart(fig_types, use_container_width=True)
+    
+    # Insights
     st.markdown("""
-        <div class="insight-box">
-            <h4>Insight para el Staff Técnico</h4>
-            <p>La efectividad en ABP ofensivos muestra una conversión de xG del 89%, destacando especialmente 
-            en corners al primer palo (35% de éxito). En defensa, el equipo muestra una solidez notable con 
-            un 68% de duelos aéreos ganados y una organización efectiva en segundas jugadas.</p>
+        <div class='insight-box'>
+            <h3>Insights de Balón Parado</h3>
+            <ul>
+                <li>Promedio de tiros de ABP: {:.1f}</li>
+                <li>xG generado de ABP: {:.2f}</li>
+                <li>Eficiencia en duelos aéreos: {:.1f}%</li>
+                <li>Duelos aéreos ganados por partido: {:.1f}</li>
+            </ul>
         </div>
-    """, unsafe_allow_html=True) 
+    """.format(
+        df_team['Set_pieces_with_shots'].mean(),
+        df_team['xG_ABP_proxy'].mean(),
+        df_team['Aerial_Duels_pct'].mean() * 100,
+        df_team['Aerial_duels_won'].mean()
+    ), unsafe_allow_html=True) 

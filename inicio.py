@@ -326,16 +326,20 @@ st.markdown("""
                 font-weight: bold;
                 color: #333;
                 margin: 15px 0;
+                text-align: center;
             ">FC Barcelona</div>
         </div>
     </div>
 """, unsafe_allow_html=True)
 
 # Botón centrado
-col1, col2, col3 = st.columns([1,2,1])
+col1, col2, col3, col4 = st.columns([1,2,2,1])
 with col2:
-    if st.button("Análisis Detallado del FC Barcelona", key="barca_analysis", use_container_width=True):
-        st.switch_page("pages/PAGINA2.py")
+    if st.button("Analisis Propio", key="barca_analysis", use_container_width=True):
+        st.switch_page("pages/Analisis Propio.py")
+with col3:
+    if st.button("Barça VS Bayern", key="barca_bayern", use_container_width=True):
+        st.switch_page("pages/Barça VS Bayern.py")
 
 # Separador visual
 st.markdown("<hr style='margin: 30px 0; opacity: 0.2;'>", unsafe_allow_html=True)
