@@ -1,0 +1,21 @@
+RL,Equipo,PJ,PG,PE,PP,GF,GC,DG,Pts,Pts/PJ,xG,xGA,xGD,xGD/90,Ultimos 5,Asistencia,Máximo Goleador del Equipo,Portero,Notas,link
+1,Napoli,34,22,8,4,54,25,+29,74,2.18,47.9,28.2,+19.8,+0.58,PGPEPGPGPG,"50,084",Romelu Lukaku-12,Alex Meret,,/es/jugadores/9413b19f/Alex-Meret
+2,Inter,34,21,8,5,72,33,+39,71,2.09,60.5,31.4,+29.2,+0.86,PGPEPGPPPP,"70,570",Marcus Thuram-14,Yann Sommer,,/es/jugadores/420c18a1/Yann-Sommer
+3,Atalanta,34,19,8,7,67,31,+36,65,1.91,57.0,33.3,+23.7,+0.70,PPPPPGPGPE,"22,742",Mateo Retegui-24,Marco Carnesecchi,,/es/jugadores/8ec56e62/Marco-Carnesecchi
+4,Juventus,34,16,14,4,51,31,+20,62,1.82,45.8,30.7,+15.1,+0.44,PGPEPGPPPG,"40,679",Dušan Vlahović-9,Michele Di Gregorio,,/es/jugadores/4e0c8d66/Michele-Di-Gregorio
+5,Bologna,34,16,13,5,52,37,+15,61,1.79,45.1,31.6,+13.4,+0.39,PGPEPPPGPE,"26,383",Riccardo Orsolini-12,Łukasz Skorupski,,/es/jugadores/ab4449d6/Lukasz-Skorupski
+6,Roma,34,17,9,8,49,32,+17,60,1.76,48.6,35.7,+12.9,+0.38,PGPEPEPGPG,"61,367",Artem Dovbyk-11,Mile Svilar,,/es/jugadores/bcf5058a/Mile-Svilar
+7,Lazio,34,17,9,8,57,45,+12,60,1.76,49.8,35.2,+14.7,+0.43,PEPGPEPGPE,"38,776",Valentín Castellanos-10,Ivan Provedel,,/es/jugadores/277da414/Ivan-Provedel
+8,Fiorentina,34,17,8,9,53,34,+19,59,1.74,42.3,36.4,+5.9,+0.17,PGPEPEPGPG,"20,489",Moise Kean-17,David de Gea,,/es/jugadores/7ba6d84e/David-de-Gea
+9,Milan,34,15,9,10,53,38,+15,54,1.59,58.2,38.7,+19.5,+0.57,PPPEPGPPPG,"71,569","Christian Pulisic,Tijjani Reijnders-10",Mike Maignan,,/es/jugadores/fcb38f57/Mike-Maignan
+10,Torino,34,10,13,11,38,39,-1,43,1.26,30.0,44.5,-14.5,-0.43,PEPEPPPGPP,"23,066",Che Adams-9,Vanja Milinković-Savić,,/es/jugadores/9fa26bc2/Vanja-Milinkovic-Savic
+11,Como,34,11,9,14,44,48,-4,42,1.24,40.7,37.4,+3.2,+0.10,PEPGPGPGPG,"10,456",Assane Diao-8,Jean Butez,,/es/jugadores/7f40333d/Jean-Butez
+12,Udinese,34,11,8,15,36,48,-12,41,1.21,33.4,45.6,-12.2,-0.36,PPPPPPPPPE,"20,757",Lorenzo Lucca-10,Maduka Okoye,,/es/jugadores/ab5c36dd/Maduka-Okoye
+13,Genoa,34,9,12,13,29,41,-12,39,1.15,33.9,41.8,-7.9,-0.23,PPPGPEPPPP,"31,268",Andrea Pinamonti-8,Nicola Leali,,/es/jugadores/5f9970a0/Nicola-Leali
+14,Cagliari,34,8,9,17,35,49,-14,33,0.97,39.1,49.0,-9.9,-0.29,PGPEPPPPPG,"16,051",Roberto Piccoli-9,Elia Caprile,,/es/jugadores/97d7afbd/Elia-Caprile
+15,Hellas Verona,34,9,5,20,30,62,-32,32,0.94,31.0,49.3,-18.3,-0.54,PEPEPEPPPP,"25,987",Casper Tengstedt-6,Lorenzo Montipò,,/es/jugadores/c1d95617/Lorenzo-Montipo
+16,Parma,34,6,14,14,40,53,-13,32,0.94,38.1,53.5,-15.4,-0.45,PEPEPEPGPE,"18,811",Ange-Yoan Bonny-6,Zion Suzuki,,/es/jugadores/51e1f4f5/Zion-Suzuki
+17,Lecce,34,6,9,19,24,56,-32,27,0.79,32.0,53.9,-21.9,-0.64,PPPEPPPPPE,"26,157",Nikola Krstović-10,Wladimiro Falcone,,/es/jugadores/9f5a610b/Wladimiro-Falcone
+18,Venezia,34,4,13,17,27,48,-21,25,0.74,31.8,50.8,-19.0,-0.56,PPPEPGPEPP,"10,238",Joel Pohjanpalo-6,Filip Stankovic,,/es/jugadores/d34d8ed2/Filip-Stankovic
+19,Empoli,34,4,13,17,27,54,-27,25,0.74,29.5,46.1,-16.6,-0.49,PEPEPPPEPP,"10,336",Sebastiano Esposito-8,Devis Vásquez,,/es/jugadores/fac1f795/Devis-Vasquez
+20,Monza,34,2,9,23,25,59,-34,15,0.44,26.1,48.0,-21.9,-0.64,PPPPPPPPPP,"11,665",Dany Mota-5,Stefano Turati,,/es/jugadores/bf168004/Stefano-Turati

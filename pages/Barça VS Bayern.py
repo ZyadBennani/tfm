@@ -151,7 +151,7 @@ def create_radar_chart(barca_player: str, bayern_player: str, position: str, cha
             ),
             showlegend=True,
             title=f"{position}: {barca_player} vs {bayern_player}",
-            height=400,
+            height=350,
             polar_angularaxis_rotation=90  # Rotar las etiquetas para mejor legibilidad
         )
         
@@ -417,7 +417,7 @@ for pos, barca_player, bayern_player in comparisons:
         # Añadir imagen del jugador del Barça
         barca_img = get_circular_player_image(barca_player, "Barcelona")
         if barca_img:
-            st.image(barca_img, width=250)  # Aumentado de 220 a 300
+            st.image(barca_img, width=200)  # Aumentado de 220 a 300
         
     with col2:
         try:
@@ -433,6 +433,6 @@ for pos, barca_player, bayern_player in comparisons:
         # Añadir imagen del jugador del Bayern
         bayern_img = get_circular_player_image(bayern_player, "Bayern")
         if bayern_img:
-            st.image(bayern_img, width=250)  # Aumentado de 220 a 300
+            st.image(bayern_img, width=200)  # Aumentado de 220 a 300
     
     st.write("---")  # Separador

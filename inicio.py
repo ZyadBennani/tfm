@@ -2,6 +2,9 @@ import streamlit as st
 import os
 from PIL import Image
 import base64
+import pandas as pd
+import plotly.express as px
+import numpy as np
 
 # Configuración de la página
 st.set_page_config(
@@ -379,3 +382,108 @@ if st.session_state.pagina_actual == 'inicio':
 
 # Cerrar el contenedor principal
 st.markdown('</div>', unsafe_allow_html=True)
+
+def get_laliga_teams_data():
+    equipos = [
+        ("FC Barcelona", "FCB"), ("Real Madrid", "RMA"), ("Atletico Madrid", "ATM"), ("Sevilla", "SEV"),
+        ("Real Sociedad", "RSO"), ("Athletic Club", "ATH"), ("Real Betis", "BET"), ("Valencia", "VAL"),
+        ("Villarreal", "VIL"), ("Osasuna", "OSA"), ("Rayo Vallecano", "RAY"), ("Celta de Vigo", "CEL"),
+        ("Mallorca", "MLL"), ("Girona", "GIR"), ("Almería", "ALM"), ("Cádiz", "CAD"),
+        ("Granada", "GRA"), ("Getafe", "GET"), ("Alavés", "ALA"), ("Las Palmas", "LPA")
+    ]
+    # Datos fijos (puedes ajustar los valores para que sean realistas)
+    np.random.seed(42)
+    data = {
+        "Equipo": [e[0] for e in equipos],
+        "Acr": [e[1] for e in equipos],
+        "PPDA": np.random.uniform(7, 18, 20),
+        "Counterattacks_with_shots_per90": np.random.uniform(0.5, 2.5, 20),
+        "CounterPress_success": np.random.uniform(0.2, 0.7, 20),
+        "Shots_against_on_target_per90": np.random.uniform(2, 6, 20),
+        "Deep_completed_pass_per90": np.random.uniform(5, 18, 20),
+        "PSxGA_per90": np.random.uniform(0.7, 2.2, 20),
+        "Progressive_pass_accurate_per90": np.random.uniform(7, 18, 20),
+        "xG_per90": np.random.uniform(0.7, 2.5, 20),
+    }
+    return pd.DataFrame(data)
+
+def show_league_dashboard():
+    df = get_laliga_teams_data()
+    st.markdown(
+        "<h1 style='text-align:center; font-size:2.7em; margin-bottom: 0.2em;'>"
+        "Liga – Radar de fases de juego"
+        "</h1>",
+        unsafe_allow_html=True
+    )
+    st.markdown("<div style='height: 18px;'></div>", unsafe_allow_html=True)  # Espacio extra
+    # Definir configuraciones de los 4 gráficos
+    plots = [
+        {
+            "title": "Transición ofensiva",
+            "x": "PPDA",
+            "y": "Counterattacks_with_shots_per90",
+            "xlabel": "PPDA (menos es mejor)",
+            "ylabel": "Counterattacks with shots per 90",
+            "invert_x": True,
+            "legend": "Press & Punish"
+        },
+        {
+            "title": "Transición defensiva",
+            "x": "CounterPress_success",
+            "y": "Shots_against_on_target_per90",
+            "xlabel": "CounterPress Success Rate",
+            "ylabel": "Shots against on target per 90",
+            "invert_x": False,
+            "legend": "Recover & Resist"
+        },
+        {
+            "title": "Fase defensiva posicional",
+            "x": "Deep_completed_pass_per90",
+            "y": "PSxGA_per90",
+            "xlabel": "Deep completed passes per 90 (menos es mejor)",
+            "ylabel": "PSxGA per 90",
+            "invert_x": True,
+            "legend": "Block & Save"
+        },
+        {
+            "title": "Fase ofensiva posicional",
+            "x": "Progressive_pass_accurate_per90",
+            "y": "xG_per90",
+            "xlabel": "Progressive pass accurate per 90",
+            "ylabel": "xG per 90",
+            "invert_x": False,
+            "legend": "Create & Threaten"
+        }
+    ]
+    # Crear grid 2x2
+    cols = st.columns(2)
+    for i, plot in enumerate(plots):
+        col = cols[i % 2]
+        with col:
+            x = plot["x"]
+            y = plot["y"]
+            fig = px.scatter(
+                df, x=x, y=y, text="Acr",
+                title=plot["title"],
+                color_discrete_sequence=["#636EFA"],
+                height=400
+            )
+            # Líneas de la mediana
+            x_median = df[x].median()
+            y_median = df[y].median()
+            fig.add_vline(x=x_median, line_dash="dash", line_color="gray")
+            fig.add_hline(y=y_median, line_dash="dash", line_color="gray")
+            # Etiquetas de puntos
+            fig.update_traces(textposition="top center", marker=dict(size=14, line=dict(width=1, color='DarkSlateGrey')))
+            # Leyenda de cuadrantes
+            fig.add_annotation(
+                xref="paper", yref="paper", x=0.01, y=0.99, showarrow=False,
+                text=f"<b>{plot['legend']}</b>", font=dict(size=13, color="#444"), align="left", bgcolor="#f7f7f7"
+            )
+            # Ejes
+            fig.update_xaxes(title=plot["xlabel"], autorange="reversed" if plot["invert_x"] else True)
+            fig.update_yaxes(title=plot["ylabel"])
+            st.plotly_chart(fig, use_container_width=True)
+
+# Para pruebas: descomenta la siguiente línea para ver los gráficos directamente
+# show_league_dashboard()

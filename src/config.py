@@ -1,18 +1,19 @@
+import os
 from pathlib import Path
 
-# Directorios base
-BASE_DIR = Path(__file__).parent.parent
-DATA_DIR = BASE_DIR / 'data'
-LOGS_DIR = BASE_DIR / 'logs'
+# Obtener el directorio raíz del proyecto
+ROOT_DIR = Path(__file__).parent.parent
 
-# Directorios de datos
-RAW_DATA_DIR = DATA_DIR / 'raw'
-PROCESSED_DATA_DIR = DATA_DIR / 'processed'
+# Directorios principales
+DATA_DIR = ROOT_DIR / "Datos"
+LOGS_DIR = ROOT_DIR / "logs"
+OUTPUT_DIR = DATA_DIR / "fbref_data"
 
 # Archivos de entrada/salida
-INPUT_FILE = RAW_DATA_DIR / 'Jugadores.csv'
-FBREF_OUTPUT = PROCESSED_DATA_DIR / 'fbref_stats.json'
+INPUT_FILE = DATA_DIR / "Jugadores.csv"
+FBREF_OUTPUT = DATA_DIR / "fbref_stats.parquet"
 
-# Crear directorios necesarios
-for directory in [LOGS_DIR, RAW_DATA_DIR, PROCESSED_DATA_DIR]:
-    directory.mkdir(parents=True, exist_ok=True) 
+# Crear directorios si no existen
+for directory in [DATA_DIR, LOGS_DIR, OUTPUT_DIR]:
+    if not directory.exists():
+        directory.mkdir(parents=True, exist_ok=True) 

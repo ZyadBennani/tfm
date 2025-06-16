@@ -38,3 +38,378 @@
 2025-06-07 18:26:18,306 - main - INFO - Iniciando scraping de FBref...
 2025-06-07 18:26:18,308 - fbref_scraper - ERROR - Error en el proceso de scraping: 'utf-8' codec can't decode byte 0xe9 in position 15214: invalid continuation byte
 2025-06-07 18:26:18,309 - main - ERROR - Error en el proceso: 'utf-8' codec can't decode byte 0xe9 in position 15214: invalid continuation byte
+2025-06-10 16:09:05,841 - WDM - INFO - ====== WebDriver manager ======
+2025-06-10 16:09:07,389 - WDM - INFO - Get LATEST chromedriver version for google-chrome
+2025-06-10 16:09:07,759 - WDM - INFO - Get LATEST chromedriver version for google-chrome
+2025-06-10 17:39:16,562 - __main__ - INFO - Creado directorio de salida: Datos/fbref_test
+2025-06-10 17:39:16,562 - __main__ - INFO - Inicializando scraper...
+2025-06-10 17:39:16,563 - WDM - INFO - ====== WebDriver manager ======
+2025-06-10 17:39:17,701 - WDM - INFO - Get LATEST chromedriver version for google-chrome
+2025-06-10 17:39:18,099 - WDM - INFO - Get LATEST chromedriver version for google-chrome
+2025-06-10 17:39:18,622 - WDM - INFO - There is no [win64] chromedriver "137.0.7151.68" for browser google-chrome "137.0.7151" in cache
+2025-06-10 17:39:18,623 - WDM - INFO - Get LATEST chromedriver version for google-chrome
+2025-06-10 17:39:18,947 - WDM - INFO - WebDriver version 137.0.7151.68 selected
+2025-06-10 17:39:18,953 - WDM - INFO - Modern chrome version https://storage.googleapis.com/chrome-for-testing-public/137.0.7151.68/win32/chromedriver-win32.zip
+2025-06-10 17:39:18,954 - WDM - INFO - About to download new driver from https://storage.googleapis.com/chrome-for-testing-public/137.0.7151.68/win32/chromedriver-win32.zip
+2025-06-10 17:39:19,132 - WDM - INFO - Driver downloading response is 200
+2025-06-10 17:39:21,961 - WDM - INFO - Get LATEST chromedriver version for google-chrome
+2025-06-10 17:39:23,274 - WDM - INFO - Driver has been saved in cache [C:\Users\zyadb\.wdm\drivers\chromedriver\win64\137.0.7151.68]
+2025-06-10 17:39:25,448 - __main__ - INFO - 
+Procesando jugador: Lewis Baker (ID: 1b278bf5)
+2025-06-10 17:39:25,449 - src.scrapers.fbref_scraper - INFO - Procesando jugador: Lewis Baker (https://fbref.com/en/players/1b278bf5)
+2025-06-10 17:39:39,480 - src.scrapers.fbref_scraper - WARNING - Tabla stats_standard no encontrada para Lewis Baker
+2025-06-10 17:39:49,487 - src.scrapers.fbref_scraper - WARNING - Tabla stats_shooting no encontrada para Lewis Baker
+2025-06-10 17:39:59,542 - src.scrapers.fbref_scraper - WARNING - Tabla stats_passing no encontrada para Lewis Baker
+2025-06-10 17:40:09,564 - src.scrapers.fbref_scraper - WARNING - Tabla stats_passing_types no encontrada para Lewis Baker
+2025-06-10 17:40:19,574 - src.scrapers.fbref_scraper - WARNING - Tabla stats_gca no encontrada para Lewis Baker
+2025-06-10 17:40:29,606 - src.scrapers.fbref_scraper - WARNING - Tabla stats_defense no encontrada para Lewis Baker
+2025-06-10 17:40:39,618 - src.scrapers.fbref_scraper - WARNING - Tabla stats_possession no encontrada para Lewis Baker
+2025-06-10 17:40:49,647 - src.scrapers.fbref_scraper - WARNING - Tabla stats_misc no encontrada para Lewis Baker
+2025-06-10 17:40:59,715 - src.scrapers.fbref_scraper - WARNING - Tabla stats_playing_time no encontrada para Lewis Baker
+2025-06-10 17:41:09,742 - src.scrapers.fbref_scraper - WARNING - Tabla stats_keeper no encontrada para Lewis Baker
+2025-06-10 17:41:19,805 - src.scrapers.fbref_scraper - WARNING - Tabla stats_keeper_adv no encontrada para Lewis Baker
+2025-06-10 17:41:19,806 - __main__ - ERROR - No se obtuvieron datos para Lewis Baker
+2025-06-10 17:41:19,807 - __main__ - INFO - 
+Procesando jugador: Aynsley Pears (ID: dfa084b2)
+2025-06-10 17:41:19,807 - src.scrapers.fbref_scraper - INFO - Procesando jugador: Aynsley Pears (https://fbref.com/en/players/dfa084b2)
+2025-06-10 17:41:33,227 - src.scrapers.fbref_scraper - WARNING - Tabla stats_standard no encontrada para Aynsley Pears
+2025-06-10 17:41:43,499 - src.scrapers.fbref_scraper - ERROR - Error extrayendo tabla stats_shooting para Aynsley Pears: Message: invalid session id: session deleted as the browser has closed the connection
+from disconnected: Unable to receive message from renderer
+  (Session info: chrome=137.0.7151.69)
+Stacktrace:
+	GetHandleVerifier [0x0x11a3763+63299]
+	GetHandleVerifier [0x0x11a37a4+63364]
+	(No symbol) [0x0xfd1113]
+	(No symbol) [0x0xfc1beb]
+	(No symbol) [0x0xfc1921]
+	(No symbol) [0x0xfbf8c4]
+	(No symbol) [0x0xfc038d]
+	(No symbol) [0x0xfd5ca7]
+	(No symbol) [0x0xfd642b]
+	(No symbol) [0x0xfd9c4a]
+	(No symbol) [0x0xfd9cc7]
+	(No symbol) [0x0x1019114]
+	(No symbol) [0x0x1019c1b]
+	(No symbol) [0x0x1062212]
+	(No symbol) [0x0x103e5c4]
+	(No symbol) [0x0x105fa4a]
+	(No symbol) [0x0x103e376]
+	(No symbol) [0x0x100d6e0]
+	(No symbol) [0x0x100e544]
+	GetHandleVerifier [0x0x13fe033+2531347]
+	GetHandleVerifier [0x0x13f9332+2511634]
+	GetHandleVerifier [0x0x11c9eda+220858]
+	GetHandleVerifier [0x0x11ba528+156936]
+	GetHandleVerifier [0x0x11c0c5d+183357]
+	GetHandleVerifier [0x0x11ab6c8+95912]
+	GetHandleVerifier [0x0x11ab870+96336]
+	GetHandleVerifier [0x0x119664a+9770]
+	BaseThreadInitThunk [0x0x76177ba9+25]
+	RtlInitializeExceptionChain [0x0x77dec36b+107]
+	RtlClearBits [0x0x77dec2ef+191]
+
+2025-06-10 17:41:43,691 - src.scrapers.fbref_scraper - ERROR - Error extrayendo tabla stats_passing para Aynsley Pears: Message: invalid session id
+Stacktrace:
+	GetHandleVerifier [0x0x11a3763+63299]
+	GetHandleVerifier [0x0x11a37a4+63364]
+	(No symbol) [0x0xfd0f70]
+	(No symbol) [0x0x100c9a8]
+	(No symbol) [0x0x103e436]
+	(No symbol) [0x0x1039f05]
+	(No symbol) [0x0x1039486]
+	(No symbol) [0x0xfa3a05]
+	(No symbol) [0x0xfa3f5e]
+	(No symbol) [0x0xfa43ed]
+	GetHandleVerifier [0x0x13fe033+2531347]
+	GetHandleVerifier [0x0x13f9332+2511634]
+	GetHandleVerifier [0x0x11c9eda+220858]
+	GetHandleVerifier [0x0x11ba528+156936]
+	GetHandleVerifier [0x0x11c0c5d+183357]
+	(No symbol) [0x0xfa36d0]
+	(No symbol) [0x0xfa2edd]
+	GetHandleVerifier [0x0x1537edc+3817148]
+	BaseThreadInitThunk [0x0x76177ba9+25]
+	RtlInitializeExceptionChain [0x0x77dec36b+107]
+	RtlClearBits [0x0x77dec2ef+191]
+
+2025-06-10 17:41:43,698 - src.scrapers.fbref_scraper - ERROR - Error extrayendo tabla stats_passing_types para Aynsley Pears: Message: invalid session id
+Stacktrace:
+	GetHandleVerifier [0x0x11a3763+63299]
+	GetHandleVerifier [0x0x11a37a4+63364]
+	(No symbol) [0x0xfd0f70]
+	(No symbol) [0x0x100c9a8]
+	(No symbol) [0x0x103e436]
+	(No symbol) [0x0x1039f05]
+	(No symbol) [0x0x1039486]
+	(No symbol) [0x0xfa3a05]
+	(No symbol) [0x0xfa3f5e]
+	(No symbol) [0x0xfa43ed]
+	GetHandleVerifier [0x0x13fe033+2531347]
+	GetHandleVerifier [0x0x13f9332+2511634]
+	GetHandleVerifier [0x0x11c9eda+220858]
+	GetHandleVerifier [0x0x11ba528+156936]
+	GetHandleVerifier [0x0x11c0c5d+183357]
+	(No symbol) [0x0xfa36d0]
+	(No symbol) [0x0xfa2edd]
+	GetHandleVerifier [0x0x1537edc+3817148]
+	BaseThreadInitThunk [0x0x76177ba9+25]
+	RtlInitializeExceptionChain [0x0x77dec36b+107]
+	RtlClearBits [0x0x77dec2ef+191]
+
+2025-06-10 17:41:43,713 - src.scrapers.fbref_scraper - ERROR - Error extrayendo tabla stats_gca para Aynsley Pears: Message: invalid session id
+Stacktrace:
+	GetHandleVerifier [0x0x11a3763+63299]
+	GetHandleVerifier [0x0x11a37a4+63364]
+	(No symbol) [0x0xfd0f70]
+	(No symbol) [0x0x100c9a8]
+	(No symbol) [0x0x103e436]
+	(No symbol) [0x0x1039f05]
+	(No symbol) [0x0x1039486]
+	(No symbol) [0x0xfa3a05]
+	(No symbol) [0x0xfa3f5e]
+	(No symbol) [0x0xfa43ed]
+	GetHandleVerifier [0x0x13fe033+2531347]
+	GetHandleVerifier [0x0x13f9332+2511634]
+	GetHandleVerifier [0x0x11c9eda+220858]
+	GetHandleVerifier [0x0x11ba528+156936]
+	GetHandleVerifier [0x0x11c0c5d+183357]
+	(No symbol) [0x0xfa36d0]
+	(No symbol) [0x0xfa2edd]
+	GetHandleVerifier [0x0x1537edc+3817148]
+	BaseThreadInitThunk [0x0x76177ba9+25]
+	RtlInitializeExceptionChain [0x0x77dec36b+107]
+	RtlClearBits [0x0x77dec2ef+191]
+
+2025-06-10 17:41:43,723 - src.scrapers.fbref_scraper - ERROR - Error extrayendo tabla stats_defense para Aynsley Pears: Message: invalid session id
+Stacktrace:
+	GetHandleVerifier [0x0x11a3763+63299]
+	GetHandleVerifier [0x0x11a37a4+63364]
+	(No symbol) [0x0xfd0f70]
+	(No symbol) [0x0x100c9a8]
+	(No symbol) [0x0x103e436]
+	(No symbol) [0x0x1039f05]
+	(No symbol) [0x0x1039486]
+	(No symbol) [0x0xfa3a05]
+	(No symbol) [0x0xfa3f5e]
+	(No symbol) [0x0xfa43ed]
+	GetHandleVerifier [0x0x13fe033+2531347]
+	GetHandleVerifier [0x0x13f9332+2511634]
+	GetHandleVerifier [0x0x11c9eda+220858]
+	GetHandleVerifier [0x0x11ba528+156936]
+	GetHandleVerifier [0x0x11c0c5d+183357]
+	(No symbol) [0x0xfa36d0]
+	(No symbol) [0x0xfa2edd]
+	GetHandleVerifier [0x0x1537edc+3817148]
+	BaseThreadInitThunk [0x0x76177ba9+25]
+	RtlInitializeExceptionChain [0x0x77dec36b+107]
+	RtlClearBits [0x0x77dec2ef+191]
+
+2025-06-10 17:41:43,730 - src.scrapers.fbref_scraper - ERROR - Error extrayendo tabla stats_possession para Aynsley Pears: Message: invalid session id
+Stacktrace:
+	GetHandleVerifier [0x0x11a3763+63299]
+	GetHandleVerifier [0x0x11a37a4+63364]
+	(No symbol) [0x0xfd0f70]
+	(No symbol) [0x0x100c9a8]
+	(No symbol) [0x0x103e436]
+	(No symbol) [0x0x1039f05]
+	(No symbol) [0x0x1039486]
+	(No symbol) [0x0xfa3a05]
+	(No symbol) [0x0xfa3f5e]
+	(No symbol) [0x0xfa43ed]
+	GetHandleVerifier [0x0x13fe033+2531347]
+	GetHandleVerifier [0x0x13f9332+2511634]
+	GetHandleVerifier [0x0x11c9eda+220858]
+	GetHandleVerifier [0x0x11ba528+156936]
+	GetHandleVerifier [0x0x11c0c5d+183357]
+	(No symbol) [0x0xfa36d0]
+	(No symbol) [0x0xfa2edd]
+	GetHandleVerifier [0x0x1537edc+3817148]
+	BaseThreadInitThunk [0x0x76177ba9+25]
+	RtlInitializeExceptionChain [0x0x77dec36b+107]
+	RtlClearBits [0x0x77dec2ef+191]
+
+2025-06-10 17:41:43,743 - src.scrapers.fbref_scraper - ERROR - Error extrayendo tabla stats_misc para Aynsley Pears: Message: invalid session id
+Stacktrace:
+	GetHandleVerifier [0x0x11a3763+63299]
+	GetHandleVerifier [0x0x11a37a4+63364]
+	(No symbol) [0x0xfd0f70]
+	(No symbol) [0x0x100c9a8]
+	(No symbol) [0x0x103e436]
+	(No symbol) [0x0x1039f05]
+	(No symbol) [0x0x1039486]
+	(No symbol) [0x0xfa3a05]
+	(No symbol) [0x0xfa3f5e]
+	(No symbol) [0x0xfa43ed]
+	GetHandleVerifier [0x0x13fe033+2531347]
+	GetHandleVerifier [0x0x13f9332+2511634]
+	GetHandleVerifier [0x0x11c9eda+220858]
+	GetHandleVerifier [0x0x11ba528+156936]
+	GetHandleVerifier [0x0x11c0c5d+183357]
+	(No symbol) [0x0xfa36d0]
+	(No symbol) [0x0xfa2edd]
+	GetHandleVerifier [0x0x1537edc+3817148]
+	BaseThreadInitThunk [0x0x76177ba9+25]
+	RtlInitializeExceptionChain [0x0x77dec36b+107]
+	RtlClearBits [0x0x77dec2ef+191]
+
+2025-06-10 17:41:43,749 - src.scrapers.fbref_scraper - ERROR - Error extrayendo tabla stats_playing_time para Aynsley Pears: Message: invalid session id
+Stacktrace:
+	GetHandleVerifier [0x0x11a3763+63299]
+	GetHandleVerifier [0x0x11a37a4+63364]
+	(No symbol) [0x0xfd0f70]
+	(No symbol) [0x0x100c9a8]
+	(No symbol) [0x0x103e436]
+	(No symbol) [0x0x1039f05]
+	(No symbol) [0x0x1039486]
+	(No symbol) [0x0xfa3a05]
+	(No symbol) [0x0xfa3f5e]
+	(No symbol) [0x0xfa43ed]
+	GetHandleVerifier [0x0x13fe033+2531347]
+	GetHandleVerifier [0x0x13f9332+2511634]
+	GetHandleVerifier [0x0x11c9eda+220858]
+	GetHandleVerifier [0x0x11ba528+156936]
+	GetHandleVerifier [0x0x11c0c5d+183357]
+	(No symbol) [0x0xfa36d0]
+	(No symbol) [0x0xfa2edd]
+	GetHandleVerifier [0x0x1537edc+3817148]
+	BaseThreadInitThunk [0x0x76177ba9+25]
+	RtlInitializeExceptionChain [0x0x77dec36b+107]
+	RtlClearBits [0x0x77dec2ef+191]
+
+2025-06-10 17:41:43,755 - src.scrapers.fbref_scraper - ERROR - Error extrayendo tabla stats_keeper para Aynsley Pears: Message: invalid session id
+Stacktrace:
+	GetHandleVerifier [0x0x11a3763+63299]
+	GetHandleVerifier [0x0x11a37a4+63364]
+	(No symbol) [0x0xfd0f70]
+	(No symbol) [0x0x100c9a8]
+	(No symbol) [0x0x103e436]
+	(No symbol) [0x0x1039f05]
+	(No symbol) [0x0x1039486]
+	(No symbol) [0x0xfa3a05]
+	(No symbol) [0x0xfa3f5e]
+	(No symbol) [0x0xfa43ed]
+	GetHandleVerifier [0x0x13fe033+2531347]
+	GetHandleVerifier [0x0x13f9332+2511634]
+	GetHandleVerifier [0x0x11c9eda+220858]
+	GetHandleVerifier [0x0x11ba528+156936]
+	GetHandleVerifier [0x0x11c0c5d+183357]
+	(No symbol) [0x0xfa36d0]
+	(No symbol) [0x0xfa2edd]
+	GetHandleVerifier [0x0x1537edc+3817148]
+	BaseThreadInitThunk [0x0x76177ba9+25]
+	RtlInitializeExceptionChain [0x0x77dec36b+107]
+	RtlClearBits [0x0x77dec2ef+191]
+
+2025-06-10 17:41:43,761 - src.scrapers.fbref_scraper - ERROR - Error extrayendo tabla stats_keeper_adv para Aynsley Pears: Message: invalid session id
+Stacktrace:
+	GetHandleVerifier [0x0x11a3763+63299]
+	GetHandleVerifier [0x0x11a37a4+63364]
+	(No symbol) [0x0xfd0f70]
+	(No symbol) [0x0x100c9a8]
+	(No symbol) [0x0x103e436]
+	(No symbol) [0x0x1039f05]
+	(No symbol) [0x0x1039486]
+	(No symbol) [0x0xfa3a05]
+	(No symbol) [0x0xfa3f5e]
+	(No symbol) [0x0xfa43ed]
+	GetHandleVerifier [0x0x13fe033+2531347]
+	GetHandleVerifier [0x0x13f9332+2511634]
+	GetHandleVerifier [0x0x11c9eda+220858]
+	GetHandleVerifier [0x0x11ba528+156936]
+	GetHandleVerifier [0x0x11c0c5d+183357]
+	(No symbol) [0x0xfa36d0]
+	(No symbol) [0x0xfa2edd]
+	GetHandleVerifier [0x0x1537edc+3817148]
+	BaseThreadInitThunk [0x0x76177ba9+25]
+	RtlInitializeExceptionChain [0x0x77dec36b+107]
+	RtlClearBits [0x0x77dec2ef+191]
+
+2025-06-10 17:41:43,767 - __main__ - ERROR - No se obtuvieron datos para Aynsley Pears
+2025-06-10 17:41:43,768 - __main__ - INFO - 
+Procesando jugador: Emmanuel Dennis (ID: 2c44a35d)
+2025-06-10 17:41:43,773 - src.scrapers.fbref_scraper - INFO - Procesando jugador: Emmanuel Dennis (https://fbref.com/en/players/2c44a35d)
+2025-06-10 17:41:43,776 - src.scrapers.fbref_scraper - ERROR - Error procesando jugador Emmanuel Dennis: Message: invalid session id
+Stacktrace:
+	GetHandleVerifier [0x0x11a3763+63299]
+	GetHandleVerifier [0x0x11a37a4+63364]
+	(No symbol) [0x0xfd0f70]
+	(No symbol) [0x0x100c9a8]
+	(No symbol) [0x0x103e436]
+	(No symbol) [0x0x1039f05]
+	(No symbol) [0x0x1039486]
+	(No symbol) [0x0xfa3a05]
+	(No symbol) [0x0xfa3f5e]
+	(No symbol) [0x0xfa43ed]
+	GetHandleVerifier [0x0x13fe033+2531347]
+	GetHandleVerifier [0x0x13f9332+2511634]
+	GetHandleVerifier [0x0x11c9eda+220858]
+	GetHandleVerifier [0x0x11ba528+156936]
+	GetHandleVerifier [0x0x11c0c5d+183357]
+	(No symbol) [0x0xfa36d0]
+	(No symbol) [0x0xfa2edd]
+	GetHandleVerifier [0x0x1537edc+3817148]
+	BaseThreadInitThunk [0x0x76177ba9+25]
+	RtlInitializeExceptionChain [0x0x77dec36b+107]
+	RtlClearBits [0x0x77dec2ef+191]
+
+2025-06-10 17:41:43,780 - __main__ - ERROR - No se obtuvieron datos para Emmanuel Dennis
+2025-06-10 17:41:43,781 - __main__ - INFO - Cerrando el driver de Selenium...
+2025-06-10 17:51:06,124 - urllib3.connectionpool - WARNING - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000025452369450>: Failed to establish a new connection: [WinError 10061] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión')': /session/25a4b33cf5d6b77a73a06c2a82660033
+2025-06-10 17:51:10,192 - urllib3.connectionpool - WARNING - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000025452368CD0>: Failed to establish a new connection: [WinError 10061] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión')': /session/25a4b33cf5d6b77a73a06c2a82660033
+2025-06-10 17:51:14,263 - urllib3.connectionpool - WARNING - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002545216FBB0>: Failed to establish a new connection: [WinError 10061] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión')': /session/25a4b33cf5d6b77a73a06c2a82660033
+2025-06-10 17:52:38,542 - __main__ - INFO - Inicializando scraper...
+2025-06-10 17:52:38,543 - WDM - INFO - ====== WebDriver manager ======
+2025-06-10 17:52:39,598 - WDM - INFO - Get LATEST chromedriver version for google-chrome
+2025-06-10 17:52:39,688 - WDM - INFO - Get LATEST chromedriver version for google-chrome
+2025-06-10 17:52:39,717 - WDM - INFO - Driver [C:\Users\zyadb\.wdm\drivers\chromedriver\win64\137.0.7151.68\chromedriver-win32/chromedriver.exe] found in cache
+2025-06-10 17:52:40,901 - __main__ - INFO - 
+Procesando jugador: Lewis Baker
+2025-06-10 17:52:40,901 - src.scrapers.fbref_scraper - INFO - Procesando jugador: Lewis Baker (https://fbref.com/en/players/1b278bf5)
+2025-06-10 17:52:58,671 - src.scrapers.fbref_scraper - WARNING - Tabla stats_standard no encontrada para Lewis Baker
+2025-06-10 17:53:08,891 - src.scrapers.fbref_scraper - WARNING - Tabla stats_shooting no encontrada para Lewis Baker
+2025-06-10 17:53:19,127 - src.scrapers.fbref_scraper - WARNING - Tabla stats_passing no encontrada para Lewis Baker
+2025-06-10 17:53:29,351 - src.scrapers.fbref_scraper - WARNING - Tabla stats_passing_types no encontrada para Lewis Baker
+2025-06-10 17:53:39,568 - src.scrapers.fbref_scraper - WARNING - Tabla stats_gca no encontrada para Lewis Baker
+2025-06-10 17:53:49,794 - src.scrapers.fbref_scraper - WARNING - Tabla stats_defense no encontrada para Lewis Baker
+2025-06-10 17:54:00,015 - src.scrapers.fbref_scraper - WARNING - Tabla stats_possession no encontrada para Lewis Baker
+2025-06-10 17:54:10,280 - src.scrapers.fbref_scraper - WARNING - Tabla stats_misc no encontrada para Lewis Baker
+2025-06-10 17:54:20,547 - src.scrapers.fbref_scraper - WARNING - Tabla stats_playing_time no encontrada para Lewis Baker
+2025-06-10 17:54:30,792 - src.scrapers.fbref_scraper - WARNING - Tabla stats_keeper no encontrada para Lewis Baker
+2025-06-10 17:54:41,008 - src.scrapers.fbref_scraper - WARNING - Tabla stats_keeper_adv no encontrada para Lewis Baker
+2025-06-10 17:54:41,009 - src.scrapers.fbref_scraper - ERROR - No se obtuvieron datos para Lewis Baker
+2025-06-10 17:54:41,010 - __main__ - ERROR - No se obtuvieron datos para Lewis Baker
+2025-06-10 17:54:43,010 - __main__ - INFO - 
+Procesando jugador: Aynsley Pears
+2025-06-10 17:54:43,012 - src.scrapers.fbref_scraper - INFO - Procesando jugador: Aynsley Pears (https://fbref.com/en/players/dfa084b2)
+2025-06-10 17:54:59,121 - src.scrapers.fbref_scraper - WARNING - Tabla stats_standard no encontrada para Aynsley Pears
+2025-06-10 17:55:09,358 - src.scrapers.fbref_scraper - WARNING - Tabla stats_shooting no encontrada para Aynsley Pears
+2025-06-10 17:55:19,583 - src.scrapers.fbref_scraper - WARNING - Tabla stats_passing no encontrada para Aynsley Pears
+2025-06-10 17:55:29,798 - src.scrapers.fbref_scraper - WARNING - Tabla stats_passing_types no encontrada para Aynsley Pears
+2025-06-10 17:55:40,030 - src.scrapers.fbref_scraper - WARNING - Tabla stats_gca no encontrada para Aynsley Pears
+2025-06-10 17:55:50,260 - src.scrapers.fbref_scraper - WARNING - Tabla stats_defense no encontrada para Aynsley Pears
+2025-06-10 17:56:00,478 - src.scrapers.fbref_scraper - WARNING - Tabla stats_possession no encontrada para Aynsley Pears
+2025-06-10 17:56:10,706 - src.scrapers.fbref_scraper - WARNING - Tabla stats_misc no encontrada para Aynsley Pears
+2025-06-10 17:56:20,941 - src.scrapers.fbref_scraper - WARNING - Tabla stats_playing_time no encontrada para Aynsley Pears
+2025-06-10 17:56:31,169 - src.scrapers.fbref_scraper - WARNING - Tabla stats_keeper no encontrada para Aynsley Pears
+2025-06-10 17:56:41,382 - src.scrapers.fbref_scraper - WARNING - Tabla stats_keeper_adv no encontrada para Aynsley Pears
+2025-06-10 17:56:41,383 - src.scrapers.fbref_scraper - ERROR - No se obtuvieron datos para Aynsley Pears
+2025-06-10 17:56:41,383 - __main__ - ERROR - No se obtuvieron datos para Aynsley Pears
+2025-06-10 17:56:43,385 - __main__ - INFO - 
+Procesando jugador: Emmanuel Dennis
+2025-06-10 17:56:43,386 - src.scrapers.fbref_scraper - INFO - Procesando jugador: Emmanuel Dennis (https://fbref.com/en/players/2c44a35d)
+2025-06-10 17:57:00,765 - src.scrapers.fbref_scraper - WARNING - Tabla stats_standard no encontrada para Emmanuel Dennis
+2025-06-10 17:57:10,995 - src.scrapers.fbref_scraper - WARNING - Tabla stats_shooting no encontrada para Emmanuel Dennis
+2025-06-10 17:57:21,211 - src.scrapers.fbref_scraper - WARNING - Tabla stats_passing no encontrada para Emmanuel Dennis
+2025-06-10 17:57:31,428 - src.scrapers.fbref_scraper - WARNING - Tabla stats_passing_types no encontrada para Emmanuel Dennis
+2025-06-10 17:57:41,659 - src.scrapers.fbref_scraper - WARNING - Tabla stats_gca no encontrada para Emmanuel Dennis
+2025-06-10 17:57:51,875 - src.scrapers.fbref_scraper - WARNING - Tabla stats_defense no encontrada para Emmanuel Dennis
+2025-06-10 17:58:02,089 - src.scrapers.fbref_scraper - WARNING - Tabla stats_possession no encontrada para Emmanuel Dennis
+2025-06-10 17:58:12,311 - src.scrapers.fbref_scraper - WARNING - Tabla stats_misc no encontrada para Emmanuel Dennis
+2025-06-10 17:58:22,525 - src.scrapers.fbref_scraper - WARNING - Tabla stats_playing_time no encontrada para Emmanuel Dennis
+2025-06-10 17:58:32,733 - src.scrapers.fbref_scraper - WARNING - Tabla stats_keeper no encontrada para Emmanuel Dennis
+2025-06-10 17:58:42,930 - src.scrapers.fbref_scraper - WARNING - Tabla stats_keeper_adv no encontrada para Emmanuel Dennis
+2025-06-10 17:58:42,931 - src.scrapers.fbref_scraper - ERROR - No se obtuvieron datos para Emmanuel Dennis
+2025-06-10 17:58:42,931 - __main__ - ERROR - No se obtuvieron datos para Emmanuel Dennis
+2025-06-10 17:58:44,932 - __main__ - INFO - 
+Resumen de resultados:
+2025-06-10 17:58:45,007 - __main__ - INFO - Cerrando el scraper...
