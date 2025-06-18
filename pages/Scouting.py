@@ -262,6 +262,45 @@ st.markdown("""
         div[data-baseweb="select"] * {
             color: #000000 !important;
         }
+        
+        /* Estilos para filtros rápidos */
+        .quick-filter-btn {
+            background: linear-gradient(135deg, #004D98 0%, #A50044 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        
+        .quick-filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,77,152,0.3);
+        }
+        
+        /* Chips de filtros activos */
+        .filter-chip {
+            background-color: #004D98;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            margin: 0.2rem;
+            display: inline-block;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        /* Contador de resultados */
+        .results-counter {
+            background-color: #f8f9fa;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid #004D98;
+            margin: 1rem 0;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -274,6 +313,35 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# Filtros rápidos
+st.markdown("### ⚡ Filtros Rápidos")
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    if st.button("🌟 Jóvenes Promesas", use_container_width=True):
+        st.session_state.age_range = (18, 23)
+        st.session_state.rating_min = 7.5
+        st.rerun()
+
+with col2:
+    if st.button("💰 Oportunidades", use_container_width=True):
+        st.session_state.market_value = (0, 15)
+        st.session_state.rating_min = 7.2
+        st.rerun()
+
+with col3:
+    if st.button("🆓 Mercado Libre", use_container_width=True):
+        st.session_state.contract_dates = (datetime.now().date(), datetime(2025, 6, 30).date())
+        st.rerun()
+
+with col4:
+    if st.button("⭐ Elite", use_container_width=True):
+        st.session_state.rating_min = 8.0
+        st.session_state.age_range = (23, 30)
+        st.rerun()
+
+st.markdown("---")
+
 # Breadcrumb y contador de shortlist con mejor diseño
 col1, col2 = st.columns([6,1])
 with col1:
@@ -284,10 +352,15 @@ with col1:
         </div>
     """, unsafe_allow_html=True)
 with col2:
-    st.markdown("""
+    # Inicializar shortlist si no existe
+    if 'shortlist' not in st.session_state:
+        st.session_state.shortlist = []
+    
+    shortlist_count = len(st.session_state.shortlist)
+    st.markdown(f"""
         <div style='text-align: right; background-color: white; padding: 1rem; border-radius: 0.5rem;'>
             <span style='font-size: 1.2rem;'>📋</span> 
-            <span class="shortlist-counter">0</span>
+            <span class="shortlist-counter">{shortlist_count}</span>
         </div>
     """, unsafe_allow_html=True)
 
@@ -414,7 +487,7 @@ with st.sidebar:
     st.markdown('<p class="filter-title">¿Tiene cláusula?</p>', unsafe_allow_html=True)
     has_clause = st.radio(
         "",
-        ["Sí", "No"],
+        ["Ambos", "Sí", "No"],
         index=0,
         key="has_clause"
     )
@@ -428,8 +501,6 @@ with st.sidebar:
             default=st.session_state.metrics_90,
             key="metrics_90"
         )
-        st.markdown('<p class="filter-title">Percentil</p>', unsafe_allow_html=True)
-        percentile = st.checkbox("Mostrar solo ≥ 70th percentil", value=st.session_state.percentile, key="percentile")
 
     # Botones de acción
     col1, col2 = st.columns(2)
@@ -476,34 +547,115 @@ with tab1:
 
     # --- FILTRADO POR TODOS LOS FILTROS ---
     filtered_df = df.copy()
+    active_filters = []
+    
     # Posición
     if position != "All":
         filtered_df = filtered_df[filtered_df["Position"] == position]
+        active_filters.append(f"Posición: {position}")
+    
     # Perfil
     if roles != "All Profiles":
         filtered_df = filtered_df[filtered_df["Profile"] == roles]
+        active_filters.append(f"Perfil: {roles}")
+    
     # Edad
-    filtered_df = filtered_df[(filtered_df["Age"] >= age_range[0]) & (filtered_df["Age"] <= age_range[1])]
+    if age_range != (18, 35):
+        filtered_df = filtered_df[(filtered_df["Age"] >= age_range[0]) & (filtered_df["Age"] <= age_range[1])]
+        active_filters.append(f"Edad: {age_range[0]}-{age_range[1]}")
+    else:
+        filtered_df = filtered_df[(filtered_df["Age"] >= age_range[0]) & (filtered_df["Age"] <= age_range[1])]
+    
     # Altura
-    filtered_df = filtered_df[(filtered_df["Height"] >= height_range[0]) & (filtered_df["Height"] <= height_range[1])]
+    if height_range != (160, 200):
+        filtered_df = filtered_df[(filtered_df["Height"] >= height_range[0]) & (filtered_df["Height"] <= height_range[1])]
+        active_filters.append(f"Altura: {height_range[0]}-{height_range[1]}cm")
+    else:
+        filtered_df = filtered_df[(filtered_df["Height"] >= height_range[0]) & (filtered_df["Height"] <= height_range[1])]
+    
     # Pie dominante
     if foot != "Both":
         filtered_df = filtered_df[filtered_df["Foot"] == foot]
+        active_filters.append(f"Pie: {foot}")
+    
     # Nacionalidad
     if nationality:
         filtered_df = filtered_df[filtered_df["Nationality"].str.contains(nationality, case=False)]
+        active_filters.append(f"País: {nationality}")
+    
     # Contrato
-    # (Ejemplo: solo filtra por año de fin de contrato)
     filtered_df = filtered_df[(filtered_df["Contract End"] >= contract_dates[0].year) & (filtered_df["Contract End"] <= contract_dates[1].year)]
+    if contract_dates != (datetime.now().date(), datetime(2025, 12, 31).date()):
+        active_filters.append(f"Contrato: {contract_dates[0].year}-{contract_dates[1].year}")
+    
     # Valor de mercado
-    filtered_df = filtered_df[(filtered_df["Market Value"] >= market_value[0]) & (filtered_df["Market Value"] <= market_value[1])]
+    if market_value != (0, 50):
+        filtered_df = filtered_df[(filtered_df["Market Value"] >= market_value[0]) & (filtered_df["Market Value"] <= market_value[1])]
+        active_filters.append(f"Valor: €{market_value[0]}-{market_value[1]}M")
+    else:
+        filtered_df = filtered_df[(filtered_df["Market Value"] >= market_value[0]) & (filtered_df["Market Value"] <= market_value[1])]
+    
     # Salario
-    filtered_df = filtered_df[filtered_df["Salary"] <= max_salary]
+    if max_salary != 5000000:  # 5M por defecto
+        filtered_df = filtered_df[filtered_df["Salary"] <= max_salary]
+        active_filters.append(f"Salario: ≤{format_salary(max_salary)}")
+    else:
+        filtered_df = filtered_df[filtered_df["Salary"] <= max_salary]
+    
     # Cláusula
     if has_clause == "Sí":
         filtered_df = filtered_df[filtered_df["Has Clause"] == "Sí"]
+        active_filters.append("Con cláusula")
     elif has_clause == "No":
         filtered_df = filtered_df[filtered_df["Has Clause"] == "No"]
+        active_filters.append("Sin cláusula")
+    
+    # Métricas
+    if metrics_90:
+        active_filters.append(f"Métricas: {', '.join(metrics_90)}")
+    
+    # Mostrar filtros activos
+    if active_filters:
+        st.markdown("**Filtros activos:**")
+        filter_chips = ""
+        for filter_item in active_filters:
+            filter_chips += f"""
+                <span class="filter-chip">{filter_item}</span>
+            """
+        st.markdown(f"<div class='results-counter'>{filter_chips}</div>", unsafe_allow_html=True)
+    
+    # Contador de resultados y paginación
+    total_results = len(filtered_df)
+    
+    # Reset de página si no hay resultados en la página actual
+    players_per_page = 10
+    total_pages = max(1, (total_results + players_per_page - 1) // players_per_page)
+    
+    if 'current_page' not in st.session_state:
+        st.session_state.current_page = 1
+    
+    # Resetear página si está fuera de rango
+    if st.session_state.current_page > total_pages:
+        st.session_state.current_page = 1
+    
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.markdown(f"<div class='results-counter'>📊 **{total_results} jugadores encontrados**</div>", unsafe_allow_html=True)
+    
+    # Paginación
+    with col2:
+        if total_pages > 1:
+            col_prev, col_page, col_next = st.columns([1, 2, 1])
+            with col_prev:
+                if st.button("◀", disabled=st.session_state.current_page <= 1):
+                    st.session_state.current_page -= 1
+                    st.rerun()
+            with col_page:
+                st.markdown(f"<div style='text-align: center; padding: 0.5rem;'>Página {st.session_state.current_page} de {total_pages}</div>", unsafe_allow_html=True)
+            with col_next:
+                if st.button("▶", disabled=st.session_state.current_page >= total_pages):
+                    st.session_state.current_page += 1
+                    st.rerun()
 
     # --- LÓGICA DE FILTRO POR MÉTRICAS (mantener al final) ---
     if metrics_90:
@@ -515,21 +667,40 @@ with tab1:
         if top_sets:
             top_intersection = set.intersection(*top_sets)
             if top_intersection:
-                filtered_df = filtered_df[filtered_df["Name"].isin(top_intersection)]
-                cols_to_show = ["Name", "Position", "Club", "Rating"] + metrics_90
-                st.dataframe(
-                    filtered_df[cols_to_show].sort_values(by="Rating", ascending=False),
-                    hide_index=True,
-                    use_container_width=True
-                )
+                st.markdown(f"#### Top jugadores en {' & '.join(metrics_90)} (en el top 10 de todas)")
+                cols_to_show = ["Name", "Club"] + metrics_90
+                filtered_top = filtered_df[filtered_df["Name"].isin(top_intersection)][cols_to_show]
+                
+                # Paginación para métricas también
+                start_idx = (st.session_state.current_page - 1) * players_per_page
+                end_idx = start_idx + players_per_page
+                paginated_top = filtered_top.iloc[start_idx:end_idx]
+                
+                st.dataframe(paginated_top.sort_values(by=metrics_90[0], ascending=False), hide_index=True, use_container_width=True)
             else:
                 st.info("No hay jugadores que estén en el top 10 de todas las métricas seleccionadas. Prueba con otras combinaciones o menos métricas.")
         else:
             st.info("No hay métricas válidas seleccionadas.")
     else:
+        # Aplicar paginación
+        start_idx = (st.session_state.current_page - 1) * players_per_page
+        end_idx = start_idx + players_per_page
+        paginated_df = filtered_df.iloc[start_idx:end_idx].copy()
+        
+        # Añadir columna de shortlist
+        paginated_df['Shortlist'] = paginated_df['Name'].apply(
+            lambda x: x in st.session_state.shortlist
+        )
+        
+        # Configuración de columnas
         st.dataframe(
-            filtered_df,
+            paginated_df,
             column_config={
+                "Shortlist": st.column_config.CheckboxColumn(
+                    "📋",
+                    width="small",
+                    help="Añadir/quitar de shortlist"
+                ),
                 "Name": st.column_config.TextColumn(
                     "Player Name",
                     width="medium",
@@ -547,61 +718,138 @@ with tab1:
                 ),
             },
             hide_index=True,
-            use_container_width=True
+            use_container_width=True,
+            on_select="rerun",
+            selection_mode="multi-row"
         )
+        
+        # Botones de acción para shortlist
+        st.markdown("---")
+        col1, col2, col3 = st.columns([2, 2, 4])
+        
+        with col1:
+            if st.button("➕ Añadir seleccionados a shortlist"):
+                # Esta funcionalidad se implementará cuando tengamos eventos
+                st.info("Selecciona jugadores en la tabla y usa este botón para añadirlos")
+        
+        with col2:
+            if st.button("🗑️ Limpiar shortlist"):
+                st.session_state.shortlist = []
+                st.rerun()
+        
+        with col3:
+            if st.session_state.shortlist:
+                shortlist_names = ", ".join(st.session_state.shortlist[:3])
+                if len(st.session_state.shortlist) > 3:
+                    shortlist_names += f" y {len(st.session_state.shortlist) - 3} más..."
+                st.info(f"📋 Shortlist: {shortlist_names}")
+
+    # Sección de gestión manual de shortlist
+    st.markdown("---")
+    with st.expander("📋 Gestión de Shortlist", expanded=len(st.session_state.shortlist) > 0):
+        if st.session_state.shortlist:
+            st.markdown("**Jugadores en tu shortlist:**")
+            for i, player_name in enumerate(st.session_state.shortlist):
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    st.markdown(f"• {player_name}")
+                with col2:
+                    if st.button("🗑️", key=f"remove_{i}", help="Quitar de shortlist"):
+                        st.session_state.shortlist.remove(player_name)
+                        st.rerun()
+        else:
+            st.info("Tu shortlist está vacía. Usa la tabla de arriba para añadir jugadores.")
+        
+        # Función para añadir jugadores manualmente
+        st.markdown("**Añadir jugador manualmente:**")
+        available_players = [name for name in df['Name'].tolist() if name not in st.session_state.shortlist]
+        if available_players:
+            player_to_add = st.selectbox("Selecciona un jugador:", [""] + available_players)
+            if st.button("➕ Añadir a shortlist") and player_to_add:
+                if player_to_add not in st.session_state.shortlist:
+                    st.session_state.shortlist.append(player_to_add)
+                    st.success(f"✅ {player_to_add} añadido a la shortlist")
+                    st.rerun()
+        else:
+            st.info("Todos los jugadores están ya en tu shortlist")
 
 with tab2:
     st.markdown("<h3 style='margin-bottom: 1.5rem;'>Player Cards</h3>", unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns(3)
-    
+    # Mostrar contador y filtros activos también en card view
+    col1, col2 = st.columns([3, 1])
     with col1:
-        st.markdown("""
-            <div class="player-card">
-                <img src="https://via.placeholder.com/150" style="width: 100%; border-radius: 0.5rem; margin-bottom: 1rem;">
-                <h3>Player 1</h3>
-                <p>🎯 CM | 👤 23 years</p>
-                <p>🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | ⚽ Barcelona</p>
-                <div class="metric-badge">Rating: 7.8</div>
-                <div style="margin-top: 1rem;">
-                    <button style="background-color: #004D98; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; width: 100%; cursor: pointer;">
-                        View Profile
-                    </button>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"**{total_results} jugadores encontrados**")
     
     with col2:
-        st.markdown("""
-            <div class="player-card">
-                <img src="https://via.placeholder.com/150" style="width: 100%; border-radius: 0.5rem; margin-bottom: 1rem;">
-                <h3>Player 2</h3>
-                <p>⚔️ ST | 👤 25 years</p>
-                <p>🇫🇷 France | ⚽ PSG</p>
-                <div class="metric-badge">Rating: 8.2</div>
-                <div style="margin-top: 1rem;">
-                    <button style="background-color: #004D98; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; width: 100%; cursor: pointer;">
-                        View Profile
-                    </button>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+        if total_pages > 1:
+            col_prev, col_page, col_next = st.columns([1, 2, 1])
+            with col_prev:
+                if st.button("◀", key="card_prev", disabled=st.session_state.current_page <= 1):
+                    st.session_state.current_page -= 1
+                    st.rerun()
+            with col_page:
+                st.markdown(f"<div style='text-align: center; padding: 0.5rem;'>Página {st.session_state.current_page} de {total_pages}</div>", unsafe_allow_html=True)
+            with col_next:
+                if st.button("▶", key="card_next", disabled=st.session_state.current_page >= total_pages):
+                    st.session_state.current_page += 1
+                    st.rerun()
     
-    with col3:
-        st.markdown("""
-            <div class="player-card">
-                <img src="https://via.placeholder.com/150" style="width: 100%; border-radius: 0.5rem; margin-bottom: 1rem;">
-                <h3>Player 3</h3>
-                <p>🛡️ CB | 👤 21 years</p>
-                <p>🇩🇪 Germany | ⚽ Bayern Munich</p>
-                <div class="metric-badge">Rating: 7.5</div>
-                <div style="margin-top: 1rem;">
-                    <button style="background-color: #004D98; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; width: 100%; cursor: pointer;">
-                        View Profile
-                    </button>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+    # Aplicar paginación para cards
+    start_idx = (st.session_state.current_page - 1) * players_per_page
+    end_idx = start_idx + players_per_page
+    paginated_df = filtered_df.iloc[start_idx:end_idx]
+    
+    # Mostrar cards en grid de 3 columnas
+    if len(paginated_df) > 0:
+        for i in range(0, len(paginated_df), 3):
+            cols = st.columns(3)
+            for j, col in enumerate(cols):
+                if i + j < len(paginated_df):
+                    player = paginated_df.iloc[i + j]
+                    is_in_shortlist = player['Name'] in st.session_state.shortlist
+                    
+                    # Determinar emoji de posición
+                    position_emoji = {
+                        'GK': '🥅', 'CB': '🛡️', 'RB': '⚡', 'LB': '⚡',
+                        'CM': '🎯', 'CDM': '🛡️', 'CAM': '🎨', 
+                        'RW': '⚡', 'LW': '⚡', 'ST': '⚔️'
+                    }.get(player['Position'], '⚽')
+                    
+                    # Color del badge según rating
+                    if player['Rating'] >= 8.0:
+                        badge_color = "#22c55e"  # Verde
+                    elif player['Rating'] >= 7.5:
+                        badge_color = "#f59e0b"  # Amarillo
+                    else:
+                        badge_color = "#A50044"  # Rojo por defecto
+                    
+                    shortlist_button_style = "background-color: #dc2626;" if is_in_shortlist else "background-color: #004D98;"
+                    shortlist_text = "❌ Quitar" if is_in_shortlist else "➕ Añadir"
+                    
+                    with col:
+                        st.markdown(f"""
+                            <div class="player-card">
+                                <img src="https://via.placeholder.com/150" style="width: 100%; border-radius: 0.5rem; margin-bottom: 1rem;">
+                                <h3>{player['Name']}</h3>
+                                <p>{position_emoji} {player['Position']} | 👤 {player['Age']} años</p>
+                                <p>{player['Nationality']} | ⚽ {player['Club']}</p>
+                                <p>💰 €{player['Value (M€)']}M | 📏 {player['Height']}cm</p>
+                                <div style="background-color: {badge_color}; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 1rem; font-weight: 600; display: inline-block; margin-top: 0.5rem;">
+                                    Rating: {player['Rating']}
+                                </div>
+                                <div style="margin-top: 1rem;">
+                                    <button onclick="alert('Funcionalidad de shortlist')" style="{shortlist_button_style} color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; width: 100%; cursor: pointer; margin-bottom: 0.5rem;">
+                                        {shortlist_text}
+                                    </button>
+                                    <button onclick="alert('Ver perfil completo')" style="background-color: #6b7280; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; width: 100%; cursor: pointer;">
+                                        Ver Perfil
+                                    </button>
+                                </div>
+                            </div>
+                        """, unsafe_allow_html=True)
+    else:
+        st.info("No se encontraron jugadores con los filtros aplicados. Prueba ajustando los criterios de búsqueda.")
 
 with tab3:
     # Vista de mapa de calor (placeholder)
