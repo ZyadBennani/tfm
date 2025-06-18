@@ -35,39 +35,23 @@ LALIGA_TEAMS = [
 ]
 
 # 2. Datos ficticios reproducibles
-def generate_fake_data(per90=True):
+def generate_fake_data():
     rng = np.random.default_rng(7)
     teams = [name for name, _ in LALIGA_TEAMS]
     n = len(teams)
-    if per90:
-        df = pd.DataFrame({
-            "Team": teams,
-            "PPDA/90": rng.uniform(5, 14, n),
-            "CtrShots/90": rng.uniform(0.2, 3.0, n),
-            "LossHigh": rng.integers(25, 51, n),
-            "RecovHigh": rng.integers(5, 31, n),
-            "ShotsOT/90": rng.uniform(1.5, 6.0, n),
-            "DeepPass/90": rng.uniform(6, 22, n),
-            "PSxGA/90": rng.uniform(0.6, 2.5, n),
-            "ProgPass/90": rng.uniform(15, 45, n),
-            "xG/90": rng.uniform(0.6, 2.2, n),
-            "CP_succes/90": rng.uniform(0.1, 0.8, n),
-        })
-    else:
-        # Simular medias por partido (no por 90')
-        df = pd.DataFrame({
-            "Team": teams,
-            "PPDA": rng.uniform(5, 14, n),
-            "CtrShots": rng.uniform(0.2, 3.0, n),
-            "LossHigh": rng.integers(25, 51, n),
-            "RecovHigh": rng.integers(5, 31, n),
-            "ShotsOT": rng.uniform(1.5, 6.0, n),
-            "DeepPass": rng.uniform(6, 22, n),
-            "PSxGA": rng.uniform(0.6, 2.5, n),
-            "ProgPass": rng.uniform(15, 45, n),
-            "xG": rng.uniform(0.6, 2.2, n),
-            "CP_succ": rng.uniform(0.1, 0.8, n),
-        })
+    df = pd.DataFrame({
+        "Team": teams,
+        "PPDA/90": rng.uniform(5, 14, n),
+        "CtrShots/90": rng.uniform(0.2, 3.0, n),
+        "LossHigh": rng.integers(25, 51, n),
+        "RecovHigh": rng.integers(5, 31, n),
+        "ShotsOT/90": rng.uniform(1.5, 6.0, n),
+        "DeepPass/90": rng.uniform(6, 22, n),
+        "PSxGA/90": rng.uniform(0.6, 2.5, n),
+        "ProgPass/90": rng.uniform(15, 45, n),
+        "xG/90": rng.uniform(0.6, 2.2, n),
+        "CP_succes/90": rng.uniform(0.1, 0.8, n),
+    })
     return df
 
 LOGOS_PATH = os.path.join(os.path.dirname(__file__), "..", "static", "logos")
@@ -105,7 +89,7 @@ def plot_phase(ax, df, x, y, invert, title, color):
     ax.set_xlabel(x)
     ax.set_ylabel(y)
 
-def plot_phase_plotly(df, x, y, invert, title, color, x_range=None, y_range=None, selected_team=None):
+def plot_phase_plotly(df, x, y, invert, title, color, x_range=None, y_range=None, selected_team=None, x_label=None, y_label=None):
     logos_path = os.path.join(os.path.dirname(__file__), "..", "static", "logos")
     logo_files = {name: os.path.join(logos_path, logo) for name, logo in LALIGA_TEAMS}
     fig = go.Figure()
@@ -180,7 +164,7 @@ def plot_phase_plotly(df, x, y, invert, title, color, x_range=None, y_range=None
             mode="markers",
             marker=invisible_marker,
             name=team,
-            text=f"<b>{team}</b><br>{x}: {row[x]:.2f}<br>{y}: {row[y]:.2f}",
+            text=f"<b>{team}</b><br>{x_label or x}: {row[x]:.2f}<br>{y_label or y}: {row[y]:.2f}",
             hoverinfo="text"
         ))
     # Líneas de la mediana
@@ -215,8 +199,8 @@ def plot_phase_plotly(df, x, y, invert, title, color, x_range=None, y_range=None
         fig.update_yaxes(range=y_range)
     fig.update_layout(
         title=title,
-        xaxis_title=x,
-        yaxis_title=y,
+        xaxis_title=x_label or x,
+        yaxis_title=y_label or y,
         plot_bgcolor="#F8F9FA",
         paper_bgcolor="#FFFFFF",
         showlegend=False,
@@ -312,44 +296,26 @@ def main():
     team_names = [name for name, _ in LALIGA_TEAMS]
     selected_team = st.selectbox("Equipo a resaltar", team_names, index=0)
 
-    # Selector de tipo de métrica
-    tipo = st.radio(
-        "Tipo de métrica",
-        ["Por 90 minutos", "Media del año"],
-        horizontal=True,
-        index=0
-    )
-    per90 = tipo == "Por 90 minutos"
-    df = load_laliga_team_stats(per90=per90)
+    # Siempre usar estadísticas por 90 minutos
+    df = load_laliga_team_stats(per90=True)
 
     # Mini ranking interactivo
-    st.subheader("Ranking Top 10 por métrica")
-    if per90:
-        metric_options = [
-            ("PPDA/90", "PPDA/90"),
-            ("CtrShots/90", "CtrShots/90"),
-            ("CP_succes/90", "CP_succes/90"),
-            ("ShotsOT/90", "ShotsOT/90"),
-            ("DeepPass/90", "DeepPass/90"),
-            ("PSxGA/90", "PSxGA/90"),
-            ("ProgPass/90", "ProgPass/90"),
-            ("xG/90", "xG/90"),
-        ]
-    else:
-        metric_options = [
-            ("PPDA", "PPDA"),
-            ("CtrShots", "CtrShots"),
-            ("CP_succ", "CP_succ"),
-            ("ShotsOT", "ShotsOT"),
-            ("DeepPass", "DeepPass"),
-            ("PSxGA", "PSxGA"),
-            ("ProgPass", "ProgPass"),
-            ("xG", "xG"),
-        ]
+    st.subheader("Top 10 por métrica")
+    metric_options = [
+        ("PPDA/90", "PPDA"),
+        ("CtrShots/90", "Contraataques con disparo"),
+        ("CP_succes/90", "Pérdidas altas recuperadas"),
+        ("ShotsOT/90", "Disparos a puerta recibidos"),
+        ("DeepPass/90", "DeepPass"),
+        ("PSxGA/90", "xG de tiros a puerta"),
+        ("ProgPass/90", "Pases progresivos"),
+        ("xG/90", "xG"),
+    ]
+    
     metric_key = st.selectbox("Selecciona métrica para ranking", [m[1] for m in metric_options], index=0)
     metric_col = [m[0] for m in metric_options if m[1] == metric_key][0]
     # Ordenar ranking (mayor a menor, salvo PPDA y PSxGA que menor es mejor)
-    asc_metrics = ["PPDA/90", "PPDA", "PSxGA/90", "PSxGA"]
+    asc_metrics = ["PPDA/90", "PSxGA/90"]
     ascending = metric_col in asc_metrics
     top10 = df.sort_values(metric_col, ascending=ascending).head(10)
     # Mostrar ranking
@@ -368,40 +334,49 @@ def main():
         st.markdown(f"<div style='display:flex;align-items:center;{highlight}padding:4px 8px;margin-bottom:2px;'><span style='width:24px;font-weight:bold;'>{idx+1}</span>{logo_html}<span style='flex:1;'>{row['Team']}</span><span style='font-weight:bold;'>{row[metric_col]:.2f}</span></div>", unsafe_allow_html=True)
 
     colors = ["#1E88E5", "#43A047", "#FB8C00", "#8E24AA"]
-    if per90:
-        phases = [
-            ("PPDA/90", "CtrShots/90", False,  "Transición ofensiva",
-             "<b>Cuadrantes:</b><br>↖️ Presión baja, pocos contraataques<br>↗️ Presión baja, muchos contraataques<br>↙️ Presión alta, pocos contraataques<br>↘️ Presión alta, muchos contraataques"),
-            ("CP_succes/90", "ShotsOT/90", False, "Transición defensiva",
-             "<b>Cuadrantes:</b><br>↖️ Baja eficacia CP, pocos tiros recibidos<br>↗️ Alta eficacia CP, pocos tiros recibidos<br>↙️ Baja eficacia CP, muchos tiros recibidos<br>↘️ Alta eficacia CP, muchos tiros recibidos"),
-            ("DeepPass/90", "PSxGA/90", False,  "Fase defensiva",
-             "<b>Cuadrantes:</b><br>↖️ Pocos pases profundos, bajo PSxGA<br>↗️ Muchos pases profundos, bajo PSxGA<br>↙️ Pocos pases profundos, alto PSxGA<br>↘️ Muchos pases profundos, alto PSxGA"),
-            ("ProgPass/90", "xG/90", False, "Fase ofensiva",
-             "<b>Cuadrantes:</b><br>↖️ Pocos pases progresivos, bajo xG<br>↗️ Muchos pases progresivos, bajo xG<br>↙️ Pocos pases progresivos, alto xG<br>↘️ Muchos pases progresivos, alto xG"),
-        ]
-    else:
-        phases = [
-            ("PPDA", "CtrShots", False,  "Transición ofensiva",
-             "<b>Cuadrantes:</b><br>↖️ Presión baja, pocos contraataques<br>↗️ Presión baja, muchos contraataques<br>↙️ Presión alta, pocos contraataques<br>↘️ Presión alta, muchos contraataques"),
-            ("CP_succ", "ShotsOT", False, "Transición defensiva",
-             "<b>Cuadrantes:</b><br>↖️ Baja eficacia CP, pocos tiros recibidos<br>↗️ Alta eficacia CP, pocos tiros recibidos<br>↙️ Baja eficacia CP, muchos tiros recibidos<br>↘️ Alta eficacia CP, muchos tiros recibidos"),
-            ("DeepPass", "PSxGA", False,  "Fase defensiva",
-             "<b>Cuadrantes:</b><br>↖️ Pocos pases profundos, bajo PSxGA<br>↗️ Muchos pases profundos, bajo PSxGA<br>↙️ Pocos pases profundos, alto PSxGA<br>↘️ Muchos pases profundos, alto PSxGA"),
-            ("ProgPass", "xG", False, "Fase ofensiva",
-             "<b>Cuadrantes:</b><br>↖️ Pocos pases progresivos, bajo xG<br>↗️ Muchos pases progresivos, bajo xG<br>↙️ Pocos pases progresivos, alto xG<br>↘️ Muchos pases progresivos, alto xG"),
-        ]
+    phases = [
+        ("PPDA", "Contraataques con disparo", False,  "Transición ofensiva",
+         "<b>Cuadrantes:</b><br>↖️ Presión baja, pocos contraataques<br>↗️ Presión baja, muchos contraataques<br>↙️ Presión alta, pocos contraataques<br>↘️ Presión alta, muchos contraataques"),
+        ("Pérdidas altas recuperadas", "Disparos a puerta recibidos", False, "Transición defensiva",
+         "<b>Cuadrantes:</b><br>↖️ Baja eficacia CP, pocos tiros recibidos<br>↗️ Alta eficacia CP, pocos tiros recibidos<br>↙️ Baja eficacia CP, muchos tiros recibidos<br>↘️ Alta eficacia CP, muchos tiros recibidos"),
+        ("DeepPass", "xG de tiros a puerta", False,  "Fase defensiva",
+         "<b>Cuadrantes:</b><br>↖️ Pocos pases profundos, bajo PSxGA<br>↗️ Muchos pases profundos, bajo PSxGA<br>↙️ Pocos pases profundos, alto PSxGA<br>↘️ Muchos pases profundos, alto PSxGA"),
+        ("Pases progresivos", "xG", False, "Fase ofensiva",
+         "<b>Cuadrantes:</b><br>↖️ Pocos pases progresivos, bajo xG<br>↗️ Muchos pases progresivos, bajo xG<br>↙️ Pocos pases progresivos, alto xG<br>↘️ Muchos pases progresivos, alto xG"),
+    ]
+    
     # Calcular rangos globales para cada métrica
     axis_ranges = {}
+    # Mapeo de nombres mostrados a nombres de columnas
+    metric_mapping = {
+        "PPDA": "PPDA/90",
+        "Contraataques con disparo": "CtrShots/90",
+        "Pérdidas altas recuperadas": "CP_succes/90", 
+        "Disparos a puerta recibidos": "ShotsOT/90",
+        "DeepPass": "DeepPass/90",
+        "xG de tiros a puerta": "PSxGA/90",
+        "Pases progresivos": "ProgPass/90",
+        "xG": "xG/90"
+    }
+    
     for (x, y, inv, title, quad_legend), color in zip(phases, colors):
-        x_min, x_max = df[x].min(), df[x].max()
-        y_min, y_max = df[y].min(), df[y].max()
-        x_margin = (x_max - x_min) * 0.1
-        y_margin = (y_max - y_min) * 0.1
+        # Mapear nombres de display a nombres de columna
+        x_col = metric_mapping.get(x, x)
+        y_col = metric_mapping.get(y, y)
+        
+        x_min, x_max = df[x_col].min(), df[x_col].max()
+        y_min, y_max = df[y_col].min(), df[y_col].max()
+        x_margin = (x_max - x_min) * 0.15
+        y_margin = (y_max - y_min) * 0.15
         axis_ranges[(x, y)] = ([x_min - x_margin, x_max + x_margin], [y_min - y_margin, y_max + y_margin])
     cols = st.columns(2)
     for i, ((x, y, inv, title, quad_legend), color) in enumerate(zip(phases, colors)):
+        # Mapear nombres de display a nombres de columna
+        x_col = metric_mapping.get(x, x)
+        y_col = metric_mapping.get(y, y)
+        
         x_range, y_range = axis_ranges[(x, y)]
-        fig = plot_phase_plotly(df, x, y, inv, title, color, x_range=x_range, y_range=y_range, selected_team=selected_team)
+        fig = plot_phase_plotly(df, x_col, y_col, inv, title, color, x_range=x_range, y_range=y_range, selected_team=selected_team, x_label=x, y_label=y)
         with cols[i % 2]:
             st.plotly_chart(fig, use_container_width=True)
 

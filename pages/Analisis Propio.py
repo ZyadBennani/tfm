@@ -550,7 +550,7 @@ with tabs[1]:
                 <h3>Métricas de Transición Ofensiva</h3>
             </div>
         """, unsafe_allow_html=True)
-    
+        
         # Métricas de transición ofensiva
         col1, col2, col3, col4 = st.columns(4)
         with col1:

@@ -409,13 +409,7 @@ def get_laliga_teams_data():
 
 def show_league_dashboard():
     df = get_laliga_teams_data()
-    st.markdown(
-        "<h1 style='text-align:center; font-size:2.7em; margin-bottom: 0.2em;'>"
-        "Liga – Radar de fases de juego"
-        "</h1>",
-        unsafe_allow_html=True
-    )
-    st.markdown("<div style='height: 18px;'></div>", unsafe_allow_html=True)  # Espacio extra
+    st.markdown("<h2 style='text-align:center;'>Liga – Radar de fases de juego</h2>", unsafe_allow_html=True)
     # Definir configuraciones de los 4 gráficos
     plots = [
         {
