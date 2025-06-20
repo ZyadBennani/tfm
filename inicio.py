@@ -133,8 +133,8 @@ st.markdown("""
     }
 
     .main-content {
-        margin-top: 80px;
-        padding: 20px;
+        margin-top: 10px;
+        padding: 15px;
         animation: fadeIn 0.5s ease;
     }
 
@@ -257,18 +257,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Barra de navegación
-st.markdown("""
-    <div class="navbar">
-        <a href="#" class="navbar-logo">⚽ ScoutVision</a>
-        <div class="navbar-links">
-            <a href="#" class="nav-link active">Inicio</a>
-            <a href="#" class="nav-link">Análisis</a>
-            <a href="#" class="nav-link">Comparación</a>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
 # Contenedor principal
 st.markdown('<div class="main-content">', unsafe_allow_html=True)
 
@@ -280,27 +268,75 @@ if 'liga_seleccionada' not in st.session_state:
 if 'equipo_seleccionado' not in st.session_state:
     st.session_state.equipo_seleccionado = None
 
-# Título principal
-st.markdown('<div class="centered-header"><h1>⚽ ScoutVision</h1><p>Análisis y Comparación de Equipos y Jugadores</p></div>', unsafe_allow_html=True)
-
-# Sección del Barça (centrada)
+# Sección principal con título FCBLAB
 st.markdown("""
     <div style="
         display: flex;
         justify-content: center;
         align-items: center;
         margin: 0 auto;
-        margin-bottom: 40px;
-        max-width: 400px;
+        margin-bottom: 15px;
+        max-width: 600px;
     ">
-        <div class="team-card" style="
+        <div style="
             width: 100%;
             margin: 0;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 30px;
+            background: linear-gradient(135deg, #004D98, #A50044);
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 77, 152, 0.3);
+            padding: 20px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        ">
+            <div style="
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+                animation: pulse 4s ease-in-out infinite;
+            "></div>
+                         <h1 style="
+                 font-size: 1.8em;
+                 font-weight: 900;
+                 color: white;
+                 margin: 0;
+                 letter-spacing: 2px;
+                 text-shadow: 2px 4px 8px rgba(0,0,0,0.3);
+                 font-family: 'Arial Black', Arial, sans-serif;
+                 position: relative;
+                 z-index: 2;
+             ">FCBLAB</h1>
+             <p style="
+                 font-size: 0.9em;
+                 color: rgba(255,255,255,0.9);
+                 margin: 10px 0 15px 0;
+                 font-weight: 300;
+                 letter-spacing: 1px;
+                 position: relative;
+                 z-index: 2;
+                          ">Laboratorio de Análisis del FC Barcelona</p>
+         </div>
+     </div>
+""", unsafe_allow_html=True)
+
+# Logo del Barça centrado debajo del título
+st.markdown("""
+    <div style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: -10px auto 20px auto;
+        max-width: 400px;
+    ">
+        <div style="
+            background: white;
+            border-radius: 50%;
+            padding: 18px;
+            box-shadow: 0 8px 25px rgba(0, 77, 152, 0.2);
+            border: 3px solid rgba(255,255,255,0.9);
         ">
 """, unsafe_allow_html=True)
 
@@ -311,31 +347,43 @@ if os.path.exists(barca_logo):
             src="data:image/png;base64,{get_image_base64(barca_logo)}" 
             alt="FC Barcelona"
             style="
-                width: 180px;
+                width: 120px;
                 height: auto;
-                margin: 0 auto;
                 display: block;
+                margin: 0 auto;
             "
         />
     """, unsafe_allow_html=True)
 else:
     st.markdown("""
-        <div class="placeholder-image">Logo FC Barcelona</div>
+        <div style="
+            width: 120px;
+            height: 120px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-weight: bold;
+        ">Logo FC Barcelona</div>
     """, unsafe_allow_html=True)
 
 st.markdown("""
-            <div style="
-                font-size: 1.4em;
-                font-weight: bold;
-                color: #333;
-                margin: 15px 0;
-                text-align: center;
-            ">FC Barcelona</div>
         </div>
-    </div>
+     </div>
+    
+    <style>
+    @keyframes pulse {
+        0% { transform: rotate(0deg) scale(1); opacity: 0.3; }
+        50% { transform: rotate(180deg) scale(1.1); opacity: 0.1; }
+        100% { transform: rotate(360deg) scale(1); opacity: 0.3; }
+    }
+    </style>
 """, unsafe_allow_html=True)
 
-# Botón centrado
+# Botones principales con espaciado reducido
+st.markdown('<div style="margin-top: 10px; margin-bottom: 10px;">', unsafe_allow_html=True)
 col1, col2, col3, col4 = st.columns([1,2,2,1])
 with col2:
     if st.button("Analisis Propio", key="barca_analysis", use_container_width=True):
@@ -343,9 +391,10 @@ with col2:
 with col3:
     if st.button("Barça VS Bayern", key="barca_bayern", use_container_width=True):
         st.switch_page("pages/Barça VS Bayern.py")
+st.markdown('</div>', unsafe_allow_html=True)
 
 # Separador visual
-st.markdown("<hr style='margin: 30px 0; opacity: 0.2;'>", unsafe_allow_html=True)
+st.markdown("<hr style='margin: 20px 0; opacity: 0.2;'>", unsafe_allow_html=True)
 
 # Si estamos en la página de inicio, mostrar el contenido normal
 if st.session_state.pagina_actual == 'inicio':

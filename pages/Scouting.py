@@ -8,6 +8,12 @@ import io
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.colors import LinearSegmentedColormap
+import sys
+import os
+
+# Agregar el directorio utils al path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from utils.scouting_data_manager import ScoutingDataManager
 
 # Configuración de la página
 st.set_page_config(
@@ -15,6 +21,11 @@ st.set_page_config(
     page_icon="🔍",
     layout="wide"
 )
+
+# Inicializar el gestor de datos
+@st.cache_resource
+def get_data_manager():
+    return ScoutingDataManager()
 
 # Estilos CSS personalizados
 st.markdown("""
@@ -395,150 +406,152 @@ with st.sidebar:
     # 📍 SECCIÓN 1: CARACTERÍSTICAS BÁSICAS
     with st.expander("📍 **Características Básicas**", expanded=True):
         st.markdown("##### Posición y Rol")
-    # Posición
+        # Posición
         position_options = ["All", "GK", "CB", "RB", "LB", "CM-CDM", "CAM", "RW", "LW", "ST"]
         position_index = position_options.index(st.session_state.position_select) if st.session_state.position_select in position_options else 0
-    position = st.selectbox(
+        position = st.selectbox(
             "Puesto",
             options=position_options,
             index=position_index,
             key="position_select"
-    )
-    
-    # Perfil/Rol
-    available_profiles = position_profiles.get(position, ["All Profiles"])
-    profile_index = available_profiles.index(st.session_state.profile_select) if st.session_state.profile_select in available_profiles else 0
-    roles = st.selectbox(
-        "Perfil de Juego",
-        options=available_profiles,
-        index=profile_index,
-        key="profile_select"
-    )
-    
-    st.markdown("---")
-    st.markdown("##### Edad y Físico")
-    # Edad
-    age_range = st.slider("Edad", 15, 40, st.session_state.age_range, key="age_range")
-    
-    # Rating mínimo
-    default_rating = st.session_state.get('rating_min', 40)
-    if not isinstance(default_rating, int):
-        default_rating = int(default_rating)
-    rating_min = st.slider("Rating Mínimo", min_value=40, max_value=99, value=default_rating, key="rating_min")
-    
-    # Altura
-    height_range = st.slider("Altura (cm)", 140, 210, st.session_state.height_range, key="height_range")
-    
-    # Pie dominante
-    foot_options = ["Both", "Left", "Right"]
-    foot_index = foot_options.index(st.session_state.foot) if st.session_state.foot in foot_options else 0
-    foot = st.radio("Pie Dominante", foot_options, index=foot_index, key="foot")
-    
-    # País
-    nationality_options = [
-        "Todos los países",
-        "Albania – ALB",
-        "Algeria – ALG",
-        "Angola – ANG",
-        "Argentina – ARG",
-        "Armenia – ARM",
-        "Australia – AUS",
-        "Austria – AUT",
-        "Belgium – BEL",
-        "Benin – BEN",
-        "Bosnia and Herzegovina – BIH",
-        "Brazil – BRA",
-        "Bulgaria – BUL",
-        "Burkina Faso – BFA",
-        "Cameroon – CMR",
-        "Canada – CAN",
-        "Cape Verde – CPV",
-        "Chile – CHI",
-        "China – CHN",
-        "Colombia – COL",
-        "Comoros – COM",
-        "Congo – COG",
-        "DR Congo – COD",
-        "Côte d'Ivoire – CIV",
-        "Croatia – CRO",
-        "Curaçao – CUW",
-        "Cyprus – CYP",
-        "Czech Republic – CZE",
-        "Denmark – DEN",
-        "Dominican Republic – DOM",
-        "Ecuador – ECU",
-        "Egypt – EGY",
-        "England – ENG",
-        "Equatorial Guinea – GNQ",
-        "Finland – FIN",
-        "France – FRA",
-        "Gabon – GAB",
-        "Gambia – GAM",
-        "Georgia – GEO",
-        "Germany – GER",
-        "Ghana – GHA",
-        "Greece – GRE",
-        "Guinea – GIN",
-        "Guinea-Bissau – GNB",
-        "Haiti – HAI",
-        "Hungary – HUN",
-        "Iceland – ISL",
-        "Iran – IRN",
-        "Ireland – IRL",
-        "Israel – ISR",
-        "Italy – ITA",
-        "Jamaica – JAM",
-        "Japan – JPN",
-        "Kosovo – KOS",
-        "Lithuania – LTU",
-        "Luxembourg – LUX",
-        "Mali – MLI",
-        "Mexico – MEX",
-        "Montenegro – MNE",
-        "Morocco – MAR",
-        "Netherlands – NED",
-        "New Zealand – NZL",
-        "Nigeria – NGA",
-        "North Macedonia – MKD",
-        "Northern Ireland – NIR",
-        "Norway – NOR",
-        "Paraguay – PAR",
-        "Peru – PER",
-        "Poland – POL",
-        "Portugal – POR",
-        "Romania – ROU",
-        "Russia – RUS",
-        "Saudi Arabia – KSA",
-        "Scotland – SCO",
-        "Senegal – SEN",
-        "Serbia – SRB",
-        "Slovakia – SVK",
-        "Slovenia – SVN",
-        "South Africa – RSA",
-        "South Korea – KOR",
-        "Spain – ESP",
-        "Suriname – SUR",
-        "Sweden – SWE",
-        "Switzerland – SUI",
-        "Tunisia – TUN",
-        "Turkey – TUR",
-        "Ukraine – UKR",
-        "United States – USA",
-        "Uruguay – URU",
-        "Uzbekistan – UZB",
-        "Venezuela – VEN",
-        "Wales – WAL",
-        "Zambia – ZAM",
-        "Zimbabwe – ZIM"
-    ]
-    
-    nationality_index = nationality_options.index(st.session_state.nationality) if st.session_state.nationality in nationality_options else 0
-    nationality = st.selectbox(
-        "Nacionalidad",
-        options=nationality_options,
-        index=nationality_index,
-        key="nationality"
-    )
+        )
+        
+        # Perfil/Rol
+        available_profiles = position_profiles.get(position, ["All Profiles"])
+        profile_index = available_profiles.index(st.session_state.profile_select) if st.session_state.profile_select in available_profiles else 0
+        roles = st.selectbox(
+            "Perfil de Juego",
+            options=available_profiles,
+            index=profile_index,
+            key="profile_select"
+        )
+        
+        st.markdown("---")
+        st.markdown("##### Edad y Físico")
+        # Edad
+        age_range = st.slider("Edad", 15, 40, st.session_state.age_range, key="age_range_slider")
+        
+        # Rating mínimo
+        default_rating = st.session_state.get('rating_min', 40)
+        if not isinstance(default_rating, int):
+            default_rating = int(default_rating)
+        rating_min = st.slider("Rating Mínimo", min_value=40, max_value=99, value=default_rating, key="rating_min")
+        
+        # Altura
+        height_range = st.slider("Altura (cm)", 140, 210, st.session_state.height_range, key="height_range")
+        
+        # Pie dominante
+        foot_options = ["Both", "Left", "Right"]
+        foot_index = foot_options.index(st.session_state.foot) if st.session_state.foot in foot_options else 0
+        foot = st.radio("Pie Dominante", foot_options, index=foot_index, key="foot")
+        
+        st.markdown("---")
+        st.markdown("##### Nacionalidad")
+        # País
+        nationality_options = [
+            "Todos los países",
+            "Albania – ALB",
+            "Algeria – ALG",
+            "Angola – ANG",
+            "Argentina – ARG",
+            "Armenia – ARM",
+            "Australia – AUS",
+            "Austria – AUT",
+            "Belgium – BEL",
+            "Benin – BEN",
+            "Bosnia and Herzegovina – BIH",
+            "Brazil – BRA",
+            "Bulgaria – BUL",
+            "Burkina Faso – BFA",
+            "Cameroon – CMR",
+            "Canada – CAN",
+            "Cape Verde – CPV",
+            "Chile – CHI",
+            "China – CHN",
+            "Colombia – COL",
+            "Comoros – COM",
+            "Congo – COG",
+            "DR Congo – COD",
+            "Côte d'Ivoire – CIV",
+            "Croatia – CRO",
+            "Curaçao – CUW",
+            "Cyprus – CYP",
+            "Czech Republic – CZE",
+            "Denmark – DEN",
+            "Dominican Republic – DOM",
+            "Ecuador – ECU",
+            "Egypt – EGY",
+            "England – ENG",
+            "Equatorial Guinea – GNQ",
+            "Finland – FIN",
+            "France – FRA",
+            "Gabon – GAB",
+            "Gambia – GAM",
+            "Georgia – GEO",
+            "Germany – GER",
+            "Ghana – GHA",
+            "Greece – GRE",
+            "Guinea – GIN",
+            "Guinea-Bissau – GNB",
+            "Haiti – HAI",
+            "Hungary – HUN",
+            "Iceland – ISL",
+            "Iran – IRN",
+            "Ireland – IRL",
+            "Israel – ISR",
+            "Italy – ITA",
+            "Jamaica – JAM",
+            "Japan – JPN",
+            "Kosovo – KOS",
+            "Lithuania – LTU",
+            "Luxembourg – LUX",
+            "Mali – MLI",
+            "Mexico – MEX",
+            "Montenegro – MNE",
+            "Morocco – MAR",
+            "Netherlands – NED",
+            "New Zealand – NZL",
+            "Nigeria – NGA",
+            "North Macedonia – MKD",
+            "Northern Ireland – NIR",
+            "Norway – NOR",
+            "Paraguay – PAR",
+            "Peru – PER",
+            "Poland – POL",
+            "Portugal – POR",
+            "Romania – ROU",
+            "Russia – RUS",
+            "Saudi Arabia – KSA",
+            "Scotland – SCO",
+            "Senegal – SEN",
+            "Serbia – SRB",
+            "Slovakia – SVK",
+            "Slovenia – SVN",
+            "South Africa – RSA",
+            "South Korea – KOR",
+            "Spain – ESP",
+            "Suriname – SUR",
+            "Sweden – SWE",
+            "Switzerland – SUI",
+            "Tunisia – TUN",
+            "Turkey – TUR",
+            "Ukraine – UKR",
+            "United States – USA",
+            "Uruguay – URU",
+            "Uzbekistan – UZB",
+            "Venezuela – VEN",
+            "Wales – WAL",
+            "Zambia – ZAM",
+            "Zimbabwe – ZIM"
+        ]
+        
+        nationality_index = nationality_options.index(st.session_state.nationality) if st.session_state.nationality in nationality_options else 0
+        nationality = st.selectbox(
+            "Nacionalidad",
+            options=nationality_options,
+            index=nationality_index,
+            key="nationality"
+        )
     
     # 💰 SECCIÓN 2: ASPECTOS ECONÓMICOS
     with st.expander("💰 **Aspectos Económicos**", expanded=True):
@@ -623,81 +636,75 @@ with tab1:
         </div>
     """, unsafe_allow_html=True)
     
-    # Tabla de resultados mejorada con nuevo sistema de rating 40-99
-    df = pd.DataFrame({
-        'Name': ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5', 'Player 6', 'Player 7', 'Player 8', 'Player 9', 'Player 10', 'Player 11', 'Player 12'],
-        'Age': [23, 25, 21, 28, 24, 27, 22, 29, 26, 20, 30, 19],
-        'Position': ['CM', 'ST', 'CB', 'RW', 'LW', 'GK', 'CB', 'CM', 'ST', 'LB', 'RB', 'CAM'],
-        'Profile': ['Box-to-Box', 'Poacher', 'Stopper', 'Direct Winger', 'Wide Playmaker', 'Sweeper', 'Ball Playing', 'Deep Lying', 'Target Man', 'Defensive', 'Progressive', 'Advanced Playmaker'],
-        'Value (M€)': [15, 45, 8, 22, 18, 5, 12, 30, 25, 10, 9, 16],
-        'Rating': [78, 89, 65, 84, 80, 72, 77, 91, 76, 73, 74, 85],  # Nuevo sistema 40-99
-        'xG': [0.25, 0.45, 0.10, 0.30, 0.28, 0.05, 0.12, 0.33, 0.40, 0.08, 0.09, 0.29],
-        'xA': [0.18, 0.22, 0.05, 0.27, 0.19, 0.03, 0.07, 0.25, 0.21, 0.06, 0.08, 0.24],
-        'Passes Completed': [65, 40, 55, 70, 68, 30, 60, 75, 50, 45, 48, 72],
-        'Tackles': [2, 1, 4, 3, 2, 0, 5, 2, 1, 6, 7, 2],
-        'Interceptions': [1, 0, 3, 2, 1, 0, 4, 1, 0, 5, 6, 1],
-        'Distance Covered': [10.2, 9.8, 10.5, 11.0, 10.7, 9.0, 10.1, 11.2, 10.3, 9.5, 9.7, 11.1],
-        'Nationality': ['🇪🇸 ESP', '🇫🇷 FRA', '🇩🇪 GER', '🇮🇹 ITA', '🇧🇷 BRA', '🇵🇹 POR', '🇳🇱 NED', '🇦🇷 ARG', '🇧🇪 BEL', '🇬🇧 ENG', '🇺🇾 URU', '🇭🇷 CRO'],
-        'Club': ['Barcelona', 'PSG', 'Bayern Munich', 'Juventus', 'Real Madrid', 'Chelsea', 'Liverpool', 'Atletico', 'Sevilla', 'Valencia', 'Betis', 'Milan'],
-        'Contract End': [2026, 2025, 2027, 2024, 2026, 2025, 2027, 2024, 2026, 2025, 2027, 2024],
-        'Market Value': [15, 45, 8, 22, 18, 5, 12, 30, 25, 10, 9, 16],
-        'Salary': [2_000_000, 8_000_000, 1_200_000, 3_500_000, 2_800_000, 900_000, 1_500_000, 4_000_000, 2_200_000, 1_000_000, 1_100_000, 2_600_000],
-        'Height': [180, 185, 190, 175, 178, 192, 188, 181, 183, 177, 179, 176],
-        'Foot': ['Right', 'Left', 'Right', 'Right', 'Left', 'Right', 'Left', 'Right', 'Right', 'Left', 'Right', 'Left'],
-        'Has Clause': ['Sí', 'No', 'Sí', 'No', 'Sí', 'No', 'Sí', 'No', 'Sí', 'No', 'Sí', 'No'],
-    })
+    # Cargar datos reales de jugadores
+    data_manager = get_data_manager()
+    
+    # Opción para usar datos de muestra o reales
+    use_real_data = st.sidebar.checkbox("🔬 Usar datos reales", value=False, help="Marcar para cargar datos reales (puede tardar)")
+    
+    # Cargar datos
+    df = data_manager.get_player_data(use_real_data=use_real_data)
+    
+    # Validar calidad de datos
+    data_quality = data_manager.validate_data_quality(df)
+    if data_quality['status'] == 'error':
+        st.error(data_quality['message'])
+        st.stop()
+    elif data_quality['status'] == 'warning':
+        st.warning(data_quality['message'])
+    else:
+        st.success(data_quality['message'])
+    
+    # Mostrar estadísticas de datos
+    stats = data_manager.get_player_stats_summary(df)
+    if stats:
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Jugadores", stats['total_players'])
+        with col2:
+            st.metric("Ligas", stats['total_leagues'])
+        with col3:
+            st.metric("Clubes", stats['total_clubs'])
+        with col4:
+            st.metric("Rating Promedio", f"{stats['avg_rating']:.1f}")
+    
+    # Ajustar nombres de columnas para compatibilidad
+    if 'Market_Value' in df.columns:
+        df['Market Value'] = df['Market_Value']
+    if 'Salary_Annual' in df.columns:
+        df['Salary'] = df['Salary_Annual']
+    if 'Contract_End' in df.columns:
+        df['Contract End'] = df['Contract_End']
+    if 'xG_90' in df.columns:
+        df['xG'] = df['xG_90']
+    if 'xA_90' in df.columns:
+        df['xA'] = df['xA_90']
+    if 'Passes_Completed_90' in df.columns:
+        df['Passes Completed'] = df['Passes_Completed_90']
+    if 'Tackles_90' in df.columns:
+        df['Tackles'] = df['Tackles_90']
+    if 'Interceptions_90' in df.columns:
+        df['Interceptions'] = df['Interceptions_90']
+    if 'Distance_Covered_90' in df.columns:
+        df['Distance Covered'] = df['Distance_Covered_90']
 
-    # --- FILTRADO POR TODOS LOS FILTROS ---
-    filtered_df = df.copy()
+    # --- FILTRADO USANDO EL SISTEMA DE GESTIÓN DE DATOS ---
+    filters = {
+        'position': position,
+        'profile': roles,
+        'age_range': age_range,
+        'rating_min': st.session_state.get('rating_min', 40),
+        'height_range': height_range,
+        'foot': foot,
+        'nationality': nationality,
+        'contract_year': contract_year,
+        'contract_years': st.session_state.get('contract_years', None),
+        'market_value': market_value,
+        'max_salary': max_salary * 1000,  # Convertir a formato anual
+        'has_clause': has_clause
+    }
     
-    # Posición
-    if position != "All":
-        filtered_df = filtered_df[filtered_df["Position"] == position]
-    
-    # Perfil
-    if roles != "All Profiles":
-        filtered_df = filtered_df[filtered_df["Profile"] == roles]
-    
-    # Edad
-    filtered_df = filtered_df[(filtered_df["Age"] >= age_range[0]) & (filtered_df["Age"] <= age_range[1])]
-    
-    # Rating mínimo (NUEVO)
-    if 'rating_min' in st.session_state and st.session_state.rating_min > 40:
-        filtered_df = filtered_df[filtered_df["Rating"] >= st.session_state.rating_min]
-    
-    # Altura
-    filtered_df = filtered_df[(filtered_df["Height"] >= height_range[0]) & (filtered_df["Height"] <= height_range[1])]
-    
-    # Pie dominante
-    if foot != "Both":
-        filtered_df = filtered_df[filtered_df["Foot"] == foot]
-    
-    # Nacionalidad
-    if nationality != "Todos los países":
-        # Extraer el código del país (últimas 3 letras después del guión)
-        country_code = nationality.split(" – ")[-1]
-        filtered_df = filtered_df[filtered_df["Nationality"].str.contains(country_code, case=False)]
-    
-    # Contrato (NUEVO - Simplificado)
-    # Mercado Libre: filtro específico para contratos específicos
-    if 'contract_years' in st.session_state and st.session_state.contract_years is not None:
-        filtered_df = filtered_df[filtered_df["Contract End"].isin(st.session_state.contract_years)]
-    elif contract_year != "Todos":
-        # Filtro del sidebar por año específico
-        filtered_df = filtered_df[filtered_df["Contract End"] == contract_year]
-    
-    # Valor de mercado
-    # Siempre aplicar el filtro
-    filtered_df = filtered_df[(filtered_df["Market Value"] >= market_value[0]) & (filtered_df["Market Value"] <= market_value[1])]
-    
-    # Salario
-    filtered_df = filtered_df[filtered_df["Salary"] <= max_salary]
-    
-    # Cláusula
-    if has_clause == "Sí":
-        filtered_df = filtered_df[filtered_df["Has Clause"] == "Sí"]
-    elif has_clause == "No":
-        filtered_df = filtered_df[filtered_df["Has Clause"] == "No"]
+    filtered_df = data_manager.apply_filters(df, filters)
     
     # Contador de resultados y paginación
     total_results = len(filtered_df)
@@ -902,7 +909,7 @@ with tab2:
                                 <h3>{player['Name']}</h3>
                                 <p>{position_emoji} {player['Position']} | 👤 {player['Age']} años</p>
                                 <p>{player['Nationality']} | ⚽ {player['Club']}</p>
-                                <p>💰 €{player['Value (M€)']}M | 📏 {player['Height']}cm</p>
+                                <p>💰 €{player.get('Market Value', player.get('Market_Value', 0))}M | 📏 {player['Height']}cm</p>
                                 <div style="background-color: {badge_color}; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 1rem; font-weight: 600; display: inline-block; margin-top: 0.5rem;">
                                     Rating: {player['Rating']}
                                 </div>
