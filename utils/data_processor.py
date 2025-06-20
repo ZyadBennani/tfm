@@ -59,6 +59,14 @@ class DataProcessor:
         # Si ya está en el formato correcto, devolverlo
         if ' – ' in nationality:
             return nationality
+        
+        # Manejar casos especiales como "esESP", "frFRA", etc.
+        if len(nat_clean) >= 5 and nat_clean[:2] == nat_clean[2:5]:
+            # Formato como "esESP" -> "esp"
+            nat_clean = nat_clean[2:5]
+        elif len(nat_clean) >= 4 and nat_clean.endswith(nat_clean[:2]):
+            # Formato como "ESPes" -> "esp"
+            nat_clean = nat_clean[:3]
             
         # Buscar en el mapeo
         return self.nationality_mapping.get(nat_clean, f"{nationality} – UNK")
@@ -147,6 +155,35 @@ class DataProcessor:
                 
         return 175
     
+    def _estimate_market_value(self, age: int, league: str) -> float:
+        """Estima el valor de mercado basado en edad y liga"""
+        # Valor base por liga (en millones)
+        league_base_values = {
+            'La Liga': 15.0,
+            'EPL': 20.0,
+            'Premier League': 20.0,
+            'Bundesliga': 12.0,
+            'Serie A': 10.0,
+            'Ligue 1': 8.0,
+            'Primeira Liga': 5.0,
+            'Eredivisie': 4.0,
+            'Super Lig': 3.0
+        }
+        
+        base_value = league_base_values.get(league, 5.0)
+        
+        # Ajuste por edad - jugadores jóvenes valen más
+        if age <= 20:
+            age_multiplier = 2.0  # Jóvenes promesas
+        elif age <= 25:
+            age_multiplier = 1.5  # En su prime
+        elif age <= 30:
+            age_multiplier = 1.0  # Maduros
+        else:
+            age_multiplier = 0.6  # Veteranos
+            
+        return base_value * age_multiplier
+    
     def assign_player_profile(self, position: str, stats: Dict) -> str:
         """Asigna un perfil de juego basado en la posición y estadísticas"""
         # Por ahora, perfiles básicos basados en posición
@@ -231,13 +268,37 @@ class DataProcessor:
         processed = {}
         
         # Información básica - probar diferentes variaciones de nombres de columnas
-        processed['Name'] = (
-            player_row.get('player_name') or 
-            player_row.get('Player') or 
-            player_row.get('Jugador') or 
-            player_row.get('Name') or 
-            'Unknown'
-        )
+        # Buscar columnas que contengan el nombre del jugador
+        name_candidates = [
+            'player_name', 'Player', 'Jugador', 'Name', 'name',
+            'Player Name', 'Nombre', 'nombre', 'PLAYER', 'JUGADOR'
+        ]
+        
+        processed['Name'] = 'Unknown'
+        for name_col in name_candidates:
+            if name_col in player_row and pd.notna(player_row[name_col]):
+                name_value = str(player_row[name_col]).strip()
+                # Verificar que no sea un nombre de equipo común
+                team_indicators = [
+                    'fc ', 'cf ', 'cd ', 'ud ', 'ca ', 'rcd ', 'real ', 'atletico', 'barcelona', 
+                    'madrid', 'sevilla', 'valencia', 'betis', 'celta', 'villarreal', 'girona',
+                    'getafe', 'osasuna', 'mallorca', 'espanyol', 'las palmas', 'leganes',
+                    'alaves', 'rayo', 'vallecano', 'athletic', 'sociedad', 'valladolid',
+                    'manchester', 'chelsea', 'arsenal', 'liverpool', 'tottenham', 'city',
+                    'bayern', 'dortmund', 'leipzig', 'juventus', 'milan', 'inter', 'napoli',
+                    'psg', 'marseille', 'lyon', 'porto', 'benfica', 'sporting', 'ajax',
+                    'psv', 'feyenoord', 'galatasaray', 'fenerbahce', 'besiktas'
+                ]
+                is_team_name = any(indicator in name_value.lower() for indicator in team_indicators)
+                
+                if name_value and name_value != 'Unknown' and not is_team_name:
+                    processed['Name'] = name_value
+                    break
+        
+        # Solo como último recurso, usar un nombre genérico basado en la posición
+        if processed['Name'] == 'Unknown':
+            position = player_row.get('Position', 'Player')
+            processed['Name'] = f"Unknown {position}"
         
         # Edad - probar diferentes formatos
         processed['Age'] = (
@@ -247,8 +308,36 @@ class DataProcessor:
             25
         )
         
-        processed['League'] = player_row.get('Liga', 'Unknown')
+        processed['Liga'] = player_row.get('Liga', 'Unknown')
         processed['Club'] = player_row.get('Equipo', 'Unknown')
+        
+        # Nacionalidad - buscar en diferentes columnas
+        nationality_raw = (
+            player_row.get('Nationality') or 
+            player_row.get('País') or 
+            player_row.get('Country') or 
+            'Unknown'
+        )
+        processed['Nationality'] = self.normalize_nationality(nationality_raw)
+        
+        # Posición - valor por defecto, se puede mejorar con datos de Transfermarket
+        processed['Position'] = player_row.get('Position', 'Unknown')
+        
+        # Altura - valor por defecto, se puede mejorar con datos de Transfermarket  
+        processed['Height'] = int(player_row.get('Height', 175))
+        
+        # Pie - valor por defecto
+        processed['Foot'] = player_row.get('Foot', 'Right')
+        
+        # Valor de mercado estimado basado en liga y edad
+        processed['Market_Value'] = self._estimate_market_value(processed['Age'], processed['Liga'])
+        
+        # Información de temporada - IMPORTANTE para filtrar
+        processed['Season'] = (
+            player_row.get('Season') or 
+            player_row.get('Temporada') or 
+            '2024-2025'
+        )
         
         # Métricas de rendimiento - buscar en diferentes formatos de columnas
         # xG por 90 minutos
@@ -302,6 +391,23 @@ class DataProcessor:
             if col in player_row and pd.notna(player_row[col]):
                 try:
                     processed['Interceptions_90'] = float(player_row[col])
+                    break
+                except:
+                    continue
+        
+        # Minutos jugados - IMPORTANTE para filtros de análisis avanzado
+        minutes_columns = ['Min', 'Minutes', 'Minutos', 'Playing Time', 'MP', 'Mins']
+        processed['Minutes'] = 1000.0  # Valor por defecto para jugadores regulares
+        for col in minutes_columns:
+            if col in player_row and pd.notna(player_row[col]):
+                try:
+                    minutes_value = float(player_row[col])
+                    # Si el valor es muy bajo, podría ser en formato de partidos jugados
+                    if minutes_value < 100:
+                        # Asumir que son partidos jugados, estimar minutos (90 min por partido)
+                        processed['Minutes'] = minutes_value * 90
+                    else:
+                        processed['Minutes'] = minutes_value
                     break
                 except:
                     continue
@@ -412,7 +518,15 @@ class DataProcessor:
                     continue
         
         if consolidated_players:
-            return pd.DataFrame(consolidated_players)
+            df = pd.DataFrame(consolidated_players)
+            
+            # FILTRAR SOLO TEMPORADA 2024-2025 (más reciente)
+            df_filtered = _self._filter_current_season(df)
+            
+            # ELIMINAR DUPLICADOS restantes (por si acaso)
+            df_deduped = _self._remove_duplicates(df_filtered)
+            
+            return df_deduped
         else:
             return pd.DataFrame()
     
@@ -435,10 +549,75 @@ class DataProcessor:
             'Tackles_90': 1.0,
             'Interceptions_90': 0.5,
             'Distance_Covered_90': 10.0,
-            'League': 'Unknown',
+            'Minutes': 1000.0,
+            'Liga': 'Unknown',
             'Club': 'Unknown'
         }
         
         for field, default_value in defaults.items():
             if field not in player_data or pd.isna(player_data[field]):
-                player_data[field] = default_value 
+                player_data[field] = default_value
+    
+    def _filter_current_season(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Filtra para quedarse solo con la temporada 2024-2025"""
+        if df.empty:
+            return df
+        
+        # Buscar indicadores de temporada en los datos originales
+        # Los archivos de FBREF suelen tener la temporada en el nombre o en una columna
+        current_season_keywords = ['2024-25', '2024-2025', '24-25', '2024/25', '2024/2025']
+        
+        # Si hay una columna de temporada, filtrar directamente
+        season_columns = ['Season', 'Temporada']
+        for season_col in season_columns:
+            if season_col in df.columns:
+                season_mask = df[season_col].astype(str).str.contains('|'.join(current_season_keywords), case=False, na=False)
+                if season_mask.any():
+                    return df[season_mask].copy()
+        
+        # Si no hay columna de temporada, usar heurística por edad
+        # Los jugadores más jóvenes probablemente sean de la temporada más reciente
+        if 'Age' in df.columns:
+            # Agrupar por nombre y quedarse con la edad más alta (temporada más reciente)
+            df_latest = df.loc[df.groupby('Name')['Age'].idxmax()].copy()
+            return df_latest
+        
+        # Como último recurso, eliminar duplicados por nombre
+        return df.drop_duplicates(subset=['Name'], keep='last').copy()
+    
+    def _remove_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Elimina jugadores duplicados, manteniendo el más completo"""
+        if df.empty:
+            return df
+        
+        # Agrupar por nombre y club para identificar duplicados exactos
+        df_clean = df.drop_duplicates(subset=['Name', 'Club'], keep='last').copy()
+        
+        # Si todavía hay duplicados por nombre (mismo jugador, diferentes clubes)
+        # Mantener el que tenga más datos completos
+        duplicated_names = df_clean[df_clean.duplicated(subset=['Name'], keep=False)]['Name'].unique()
+        
+        if len(duplicated_names) > 0:
+            final_players = []
+            
+            # Para cada nombre duplicado, elegir el registro más completo
+            for name in duplicated_names:
+                name_group = df_clean[df_clean['Name'] == name].copy()
+                
+                # Calcular "completeness score" - cuántos campos no están vacíos
+                name_group['completeness'] = name_group.count(axis=1)
+                
+                # Quedarse con el más completo (mayor Market_Value como desempate)
+                best_record = name_group.loc[name_group['completeness'].idxmax()]
+                final_players.append(best_record)
+            
+            # Crear DataFrame con los mejores registros
+            best_df = pd.DataFrame(final_players)
+            
+            # Combinar con los jugadores que no estaban duplicados
+            non_duplicated = df_clean[~df_clean['Name'].isin(duplicated_names)]
+            
+            result = pd.concat([non_duplicated, best_df], ignore_index=True)
+            return result.copy()
+        
+        return df_clean 

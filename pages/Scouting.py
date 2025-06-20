@@ -189,6 +189,18 @@ st.markdown("""
             margin-bottom: 0.5rem;
         }
         
+        /* Selectbox con borde siempre visible */
+        .stSelectbox > div > div {
+            border: 2px solid #004D98 !important;
+            border-radius: 0.5rem !important;
+            background-color: white !important;
+        }
+        
+        .stSelectbox > div > div:hover {
+            border-color: #0066CC !important;
+            box-shadow: 0 0 0 1px #0066CC !important;
+        }
+        
         /* Sliders mejorados - menos padding */
         .stSlider {
             padding: 0.5rem 0;
@@ -276,60 +288,54 @@ col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     if st.button("🌟 Jóvenes Promesas", use_container_width=True):
-        # RESETEAR TODOS LOS FILTROS A NEUTROS (RANGOS COMPLETOS)
-        st.session_state.position_select = "All"
-        st.session_state.profile_select = "All Profiles"
-        st.session_state.foot = "Both"
-        st.session_state.nationality = "Todos los países"
-        st.session_state.contract_year = "Todos"
-        st.session_state.market_value = (0, 200)  # RANGO COMPLETO
-        st.session_state.max_salary_k = 100000    # SALARIO MÁXIMO
-        st.session_state.height_range = (140, 210)  # RANGO COMPLETO
-        st.session_state.has_clause = "Ambos"
-        st.session_state.metrics_90 = []
-        st.session_state.contract_years = None
+        # LIMPIAR FILTROS PRIMERO
+        keys_to_reset = [
+            'position_select', 'profile_select', 'foot', 'nationality',
+            'contract_year', 'market_value', 'max_salary_k', 'height_range',
+            'has_clause', 'metrics_90', 'contract_years', 'age_range', 'rating_min',
+            'free_market_filter', 'elite_filter'
+        ]
+        for key in keys_to_reset:
+            if key in st.session_state:
+                del st.session_state[key]
         
         # APLICAR FILTROS ESPECÍFICOS DE JÓVENES PROMESAS
-        st.session_state.age_range = (16, 22)  # Edad específica
-        st.session_state.rating_min = 70       # Rating específico
+        st.session_state['young_prospects_filter'] = True
+        st.session_state.current_page = 1
 
 with col2:
     if st.button("🆓 Mercado Libre", use_container_width=True):
-        # RESETEAR TODOS LOS FILTROS A NEUTROS (RANGOS COMPLETOS)
-        st.session_state.position_select = "All"
-        st.session_state.profile_select = "All Profiles"
-        st.session_state.age_range = (15, 40)     # RANGO COMPLETO
-        st.session_state.rating_min = 40          # RATING MÍNIMO
-        st.session_state.foot = "Both"
-        st.session_state.nationality = "Todos los países"
-        st.session_state.market_value = (0, 200)  # RANGO COMPLETO
-        st.session_state.max_salary_k = 100000    # SALARIO MÁXIMO
-        st.session_state.height_range = (140, 210)  # RANGO COMPLETO
-        st.session_state.has_clause = "Ambos"
-        st.session_state.metrics_90 = []
-        st.session_state.contract_year = "Todos"
+        # LIMPIAR FILTROS PRIMERO
+        keys_to_reset = [
+            'position_select', 'profile_select', 'age_range', 'rating_min',
+            'foot', 'nationality', 'market_value', 'max_salary_k', 
+            'height_range', 'has_clause', 'metrics_90', 'contract_year',
+            'young_prospects_filter', 'elite_filter'
+        ]
+        for key in keys_to_reset:
+            if key in st.session_state:
+                del st.session_state[key]
         
         # APLICAR FILTRO ESPECÍFICO DE MERCADO LIBRE
-        st.session_state.contract_years = [2025]  # Solo contratos 2025
+        st.session_state['free_market_filter'] = True
+        st.session_state.current_page = 1
 
 with col3:
     if st.button("⭐ Elite", use_container_width=True):
-        # RESETEAR TODOS LOS FILTROS A NEUTROS (RANGOS COMPLETOS)
-        st.session_state.position_select = "All"
-        st.session_state.profile_select = "All Profiles"
-        st.session_state.foot = "Both"
-        st.session_state.nationality = "Todos los países"
-        st.session_state.contract_year = "Todos"
-        st.session_state.market_value = (0, 200)  # RANGO COMPLETO
-        st.session_state.max_salary_k = 100000    # SALARIO MÁXIMO
-        st.session_state.height_range = (140, 210)  # RANGO COMPLETO
-        st.session_state.has_clause = "Ambos"
-        st.session_state.metrics_90 = []
-        st.session_state.contract_years = None
+        # LIMPIAR FILTROS PRIMERO
+        keys_to_reset = [
+            'position_select', 'profile_select', 'foot', 'nationality',
+            'contract_year', 'market_value', 'max_salary_k', 'height_range',
+            'has_clause', 'metrics_90', 'contract_years', 'age_range', 'rating_min',
+            'young_prospects_filter', 'free_market_filter'
+        ]
+        for key in keys_to_reset:
+            if key in st.session_state:
+                del st.session_state[key]
         
         # APLICAR FILTROS ESPECÍFICOS DE ELITE
-        st.session_state.age_range = (22, 30)  # Edad específica
-        st.session_state.rating_min = 83       # Rating específico
+        st.session_state['elite_filter'] = True
+        st.session_state.current_page = 1
 
 with col4:
     # Espacio vacío para mantener el diseño
@@ -380,23 +386,17 @@ with st.sidebar:
         "contract_years": None,  # Años de contrato específicos
         "contract_year": "Todos",  # Año de contrato del sidebar
         "foot": "Both",
+        "league": "Todas las ligas",  # Liga por defecto
+        "club": "Todos los clubes",  # Club por defecto
         "nationality": "Todos los países",
         "market_value": (0, 200),  # RANGO COMPLETO
-        "max_salary_k": 100000,  # SALARIO MÁXIMO
+        "max_salary_k": 100000,  # SALARIO MÁXIMO (100M€)
         "metrics_90": [],
         "percentile": False,
         "height_range": (140, 210),  # RANGO COMPLETO
-        "has_clause": "Ambos",
+        "has_clause": "Todos",  # Mostrar todos por defecto
+        "current_page": 1,  # Resetear también la página
     }
-
-    # --- SOLUCIÓN RESET ---
-    if st.session_state.get("reset_filters", False):
-        for k, v in default_filters.items():
-            st.session_state[k] = v
-        st.session_state["reset_filters"] = False
-        # Resetear también el filtro específico de mercado libre
-        if 'contract_years' in st.session_state:
-            st.session_state.contract_years = None
 
     # Inicializar filtros si no existen
     for k, v in default_filters.items():
@@ -405,10 +405,10 @@ with st.sidebar:
     
     # 📍 SECCIÓN 1: CARACTERÍSTICAS BÁSICAS
     with st.expander("📍 **Características Básicas**", expanded=True):
-        st.markdown("##### Posición y Rol")
+    
         # Posición
         position_options = ["All", "GK", "CB", "RB", "LB", "CM-CDM", "CAM", "RW", "LW", "ST"]
-        position_index = position_options.index(st.session_state.position_select) if st.session_state.position_select in position_options else 0
+        position_index = position_options.index(st.session_state.get('position_select', 'All')) if st.session_state.get('position_select', 'All') in position_options else 0
         position = st.selectbox(
             "Puesto",
             options=position_options,
@@ -418,7 +418,7 @@ with st.sidebar:
         
         # Perfil/Rol
         available_profiles = position_profiles.get(position, ["All Profiles"])
-        profile_index = available_profiles.index(st.session_state.profile_select) if st.session_state.profile_select in available_profiles else 0
+        profile_index = available_profiles.index(st.session_state.get('profile_select', 'All Profiles')) if st.session_state.get('profile_select', 'All Profiles') in available_profiles else 0
         roles = st.selectbox(
             "Perfil de Juego",
             options=available_profiles,
@@ -426,27 +426,65 @@ with st.sidebar:
             key="profile_select"
         )
         
-        st.markdown("---")
-        st.markdown("##### Edad y Físico")
-        # Edad
-        age_range = st.slider("Edad", 15, 40, st.session_state.age_range, key="age_range_slider")
         
-        # Rating mínimo
-        default_rating = st.session_state.get('rating_min', 40)
-        if not isinstance(default_rating, int):
-            default_rating = int(default_rating)
-        rating_min = st.slider("Rating Mínimo", min_value=40, max_value=99, value=default_rating, key="rating_min")
+        # Edad - ajustar según filtros especiales
+        default_age = (15, 40)
+        if st.session_state.get('young_prospects_filter', False):
+            default_age = (16, 22)
+        elif st.session_state.get('elite_filter', False):
+            default_age = (22, 30)
+        
+        age_range = st.slider("Edad", 15, 40, st.session_state.get('age_range', default_age), key="age_range")
+        
+        # Rating mínimo - ajustar según filtros especiales
+        default_rating = 40
+        if st.session_state.get('young_prospects_filter', False):
+            default_rating = 70
+        elif st.session_state.get('elite_filter', False):
+            default_rating = 83
+        
+        current_rating = st.session_state.get('rating_min', default_rating)
+        if not isinstance(current_rating, int):
+            current_rating = int(current_rating)
+        rating_min = st.slider("Rating Mínimo", min_value=40, max_value=99, value=current_rating, key="rating_min")
         
         # Altura
-        height_range = st.slider("Altura (cm)", 140, 210, st.session_state.height_range, key="height_range")
+        height_range = st.slider("Altura (cm)", 140, 210, st.session_state.get('height_range', (140, 210)), key="height_range")
         
         # Pie dominante
         foot_options = ["Both", "Left", "Right"]
-        foot_index = foot_options.index(st.session_state.foot) if st.session_state.foot in foot_options else 0
+        foot_index = foot_options.index(st.session_state.get('foot', 'Both')) if st.session_state.get('foot', 'Both') in foot_options else 0
         foot = st.radio("Pie Dominante", foot_options, index=foot_index, key="foot")
         
-        st.markdown("---")
-        st.markdown("##### Nacionalidad")
+        # Liga - obtener ligas dinámicamente de los datos
+        data_manager = get_data_manager()
+        temp_df = data_manager.get_player_data(use_real_data=True)
+        available_leagues = data_manager.get_available_leagues(temp_df)
+        
+        league_options = ["Todas las ligas"] + available_leagues
+        league_index = league_options.index(st.session_state.get('league', 'Todas las ligas')) if st.session_state.get('league', 'Todas las ligas') in league_options else 0
+        league = st.selectbox(
+            "Liga",
+            options=league_options,
+            index=league_index,
+            key="league"
+        )
+        
+        # Club - obtener clubes dinámicamente de los datos (filtrados por liga si está seleccionada)
+        if league != "Todas las ligas":
+            available_clubs = data_manager.get_available_clubs(temp_df, league)
+        else:
+            available_clubs = data_manager.get_available_clubs(temp_df)
+        
+        club_options = ["Todos los clubes"] + available_clubs
+        club_index = club_options.index(st.session_state.get('club', 'Todos los clubes')) if st.session_state.get('club', 'Todos los clubes') in club_options else 0
+        club = st.selectbox(
+            "Club",
+            options=club_options,
+            index=club_index,
+            key="club"
+        )
+    
         # País
         nationality_options = [
             "Todos los países",
@@ -545,7 +583,7 @@ with st.sidebar:
             "Zimbabwe – ZIM"
         ]
         
-        nationality_index = nationality_options.index(st.session_state.nationality) if st.session_state.nationality in nationality_options else 0
+        nationality_index = nationality_options.index(st.session_state.get('nationality', 'Todos los países')) if st.session_state.get('nationality', 'Todos los países') in nationality_options else 0
         nationality = st.selectbox(
             "Nacionalidad",
             options=nationality_options,
@@ -557,7 +595,7 @@ with st.sidebar:
     with st.expander("💰 **Aspectos Económicos**", expanded=True):
         st.markdown("##### Valor y Salario")
         # Valor de mercado
-        market_value = st.slider("Valor de Mercado (M€)", 0, 200, st.session_state.market_value, key="market_value")
+        market_value = st.slider("Valor de Mercado (M€)", 0, 200, st.session_state.get('market_value', (0, 200)), key="market_value")
         
         # Salario
         def format_salary(val):
@@ -570,21 +608,25 @@ with st.sidebar:
                     return f"{val/1_000_000:.1f}M€".replace('.0','')
         
         max_salary_k = st.slider(
-            f"Salario Máximo: {format_salary(1000*st.session_state.get('max_salary_k', 5000))}",
+            f"Salario Máximo: {format_salary(1000*st.session_state.get('max_salary_k', 100000))}",
             min_value=100,
             max_value=100_000,
-            value=5_000,
+            value=st.session_state.get('max_salary_k', 100000),
             step=50,
             format="%dK€",
             key="max_salary_k"
         )
         max_salary = max_salary_k * 1000
         
-        st.markdown("---")
+       
         st.markdown("##### Situación Contractual")
-        # Contrato
+        # Contrato - ajustar según filtros especiales
         contract_options = ["Todos", 2024, 2025, 2026, 2027, 2028, 2029, 2030]
-        contract_index = contract_options.index(st.session_state.contract_year) if st.session_state.contract_year in contract_options else 0
+        default_contract = 'Todos'
+        if st.session_state.get('free_market_filter', False):
+            default_contract = 2025
+        
+        contract_index = contract_options.index(st.session_state.get('contract_year', default_contract)) if st.session_state.get('contract_year', default_contract) in contract_options else 0
         contract_year = st.selectbox(
             "Fin de Contrato",
             options=contract_options,
@@ -593,8 +635,13 @@ with st.sidebar:
         )
         
         # Filtro de cláusula
-        clause_options = ["Ambos", "Sí", "No"]
-        clause_index = clause_options.index(st.session_state.has_clause) if st.session_state.has_clause in clause_options else 0
+        clause_options = ["Todos", "No", "Sí"]
+        
+        # Limpiar valor inválido del session_state si existe
+        if 'has_clause' in st.session_state and st.session_state['has_clause'] not in clause_options:
+            st.session_state['has_clause'] = 'Todos'
+        
+        clause_index = clause_options.index(st.session_state.get('has_clause', 'Todos')) if st.session_state.get('has_clause', 'Todos') in clause_options else 0
         has_clause = st.radio(
             "¿Tiene Cláusula de Rescisión?",
             clause_options,
@@ -607,66 +654,90 @@ with st.sidebar:
         metrics_90 = st.multiselect(
             "Métricas de Rendimiento/90",
             ["xG", "xA", "Passes Completed", "Tackles", "Interceptions", "Distance Covered"],
-            default=st.session_state.metrics_90,
+            default=st.session_state.get('metrics_90', []),
             key="metrics_90",
             help="Selecciona métricas para encontrar jugadores destacados"
         )
         
         if metrics_90:
-            st.info(f"🔍 Buscaré jugadores en el TOP 10 de: {', '.join(metrics_90)}")
+            st.info(f"TOP 10 jugadores con mejor {', '.join(metrics_90)} (mínimo 1000 minutos jugados)")
 
-    # 🔄 BOTONES DE ACCIÓN
-  
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🔍 Aplicar Filtros", type="primary", use_container_width=True):
-            st.success("✅ Filtros aplicados")
-    with col2:
-        if st.button("🗑️ Limpiar Todo", use_container_width=True):
-            st.session_state["reset_filters"] = True
-            st.rerun()
+    # 🔄 BOTÓN DE ACCIÓN
+    if st.button("🗑️ Limpiar Todo", use_container_width=True):
+        # LIMPIAR TODOS LOS FILTROS - eliminar las claves para que se reinicialicen
+        keys_to_reset = [
+            'position_select', 'profile_select', 'age_range', 'rating_min',
+            'height_range', 'foot', 'league', 'club', 'nationality', 'market_value', 
+            'max_salary_k', 'contract_year', 'has_clause', 'metrics_90',
+            'contract_years', 'current_page', 'young_prospects_filter',
+            'free_market_filter', 'elite_filter'
+        ]
+        
+        for key in keys_to_reset:
+            if key in st.session_state:
+                del st.session_state[key]
+        
+        st.rerun()
+
+    # 💾 GESTIÓN DE CACHÉ
+    with st.expander("💾 **Gestión de Caché**", expanded=False):
+        st.markdown("**Gestión del caché de datos:**")
+        
+        data_manager = get_data_manager()
+        
+        # Verificar si el método existe (compatibilidad)
+        if hasattr(data_manager.loader, 'get_cache_info'):
+            try:
+                cache_info = data_manager.loader.get_cache_info()
+                
+                for cache_type, info in cache_info.items():
+                    if info['exists']:
+                        status_icon = "✅" if info['is_valid'] else "⚠️"
+                        st.markdown(f"{status_icon} **{cache_type.title()}**: {info['size_mb']} MB - Modificado: {info['last_modified']}")
+                        if not info['is_valid']:
+                            st.markdown(f"   ⏰ Caché expirado (hace {abs(info['expires_in_days'])} días)")
+                    else:
+                        st.markdown(f"❌ **{cache_type.title()}**: No existe")
+            except Exception as e:
+                st.markdown("⚠️ No se pudo obtener información del caché")
+        else:
+            st.markdown("📁 Sistema de caché disponible")
+        
+        st.markdown("---")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🔄 Limpiar Caché Completo", help="Elimina todos los archivos de caché. Los datos se recargarán la próxima vez."):
+                if hasattr(data_manager.loader, 'clear_cache'):
+                    data_manager.loader.clear_cache('all')
+                    st.info("🔄 Reinicia la aplicación para recargar los datos")
+                else:
+                    st.warning("⚠️ Función de limpieza no disponible")
+        
+        with col2:
+            if st.button("🗑️ Solo Datos Consolidados", help="Limpia solo el caché de datos consolidados"):
+                if hasattr(data_manager.loader, 'clear_cache'):
+                    data_manager.loader.clear_cache('consolidated')
+                    st.info("🔄 Los datos se reconsolidarán automáticamente")
+                else:
+                    st.warning("⚠️ Función de limpieza no disponible")
 
 # Panel principal
 tab1, tab2, tab3 = st.tabs(["Table View", "Card View", "Heatmap View"])
 
 with tab1:
-    st.markdown("""
-        <div style='background-color: white; padding: 1rem; border-radius: 1rem; margin-bottom: 0.5rem;'>
-            <h3 style='margin-bottom: 0.5rem;'>Resultados de la Búsqueda</h3>
-        </div>
-    """, unsafe_allow_html=True)
-    
     # Cargar datos reales de jugadores
     data_manager = get_data_manager()
     
-    # Opción para usar datos de muestra o reales
-    use_real_data = st.sidebar.checkbox("🔬 Usar datos reales", value=False, help="Marcar para cargar datos reales (puede tardar)")
+    # Cargar datos reales directamente
+    df = data_manager.get_player_data(use_real_data=True)
     
-    # Cargar datos
-    df = data_manager.get_player_data(use_real_data=use_real_data)
-    
-    # Validar calidad de datos
+    # Validar calidad de datos silenciosamente
     data_quality = data_manager.validate_data_quality(df)
+    
     if data_quality['status'] == 'error':
         st.error(data_quality['message'])
         st.stop()
-    elif data_quality['status'] == 'warning':
-        st.warning(data_quality['message'])
-    else:
-        st.success(data_quality['message'])
-    
-    # Mostrar estadísticas de datos
-    stats = data_manager.get_player_stats_summary(df)
-    if stats:
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Total Jugadores", stats['total_players'])
-        with col2:
-            st.metric("Ligas", stats['total_leagues'])
-        with col3:
-            st.metric("Clubes", stats['total_clubs'])
-        with col4:
-            st.metric("Rating Promedio", f"{stats['avg_rating']:.1f}")
     
     # Ajustar nombres de columnas para compatibilidad
     if 'Market_Value' in df.columns:
@@ -689,16 +760,38 @@ with tab1:
         df['Distance Covered'] = df['Distance_Covered_90']
 
     # --- FILTRADO USANDO EL SISTEMA DE GESTIÓN DE DATOS ---
+    
+    # Aplicar filtros especiales si están activos
+    if st.session_state.get('young_prospects_filter', False):
+        # Jóvenes promesas: 16-22 años, rating 70+
+        age_range = (16, 22)
+        rating_min = 70
+        contract_years = [2025, 2026, 2027]  # Contratos que terminan pronto
+    elif st.session_state.get('free_market_filter', False):
+        # Mercado libre: contratos que terminan en 2025
+        contract_years = [2025]
+        contract_year = 2025
+    elif st.session_state.get('elite_filter', False):
+        # Elite: 22-30 años, rating 83+
+        age_range = (22, 30)
+        rating_min = 83
+        contract_years = None
+    else:
+        # Sin filtros especiales, usar valores normales
+        contract_years = None
+    
     filters = {
         'position': position,
         'profile': roles,
         'age_range': age_range,
-        'rating_min': st.session_state.get('rating_min', 40),
+        'rating_min': rating_min,
         'height_range': height_range,
         'foot': foot,
+        'league': league,
+        'club': club,
         'nationality': nationality,
         'contract_year': contract_year,
-        'contract_years': st.session_state.get('contract_years', None),
+        'contract_years': contract_years,
         'market_value': market_value,
         'max_salary': max_salary * 1000,  # Convertir a formato anual
         'has_clause': has_clause
@@ -720,35 +813,105 @@ with tab1:
     if st.session_state.current_page > total_pages:
         st.session_state.current_page = 1
     
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.markdown(f"<div class='results-counter'>📊 **{total_results} jugadores encontrados**</div>", unsafe_allow_html=True)
+    # Mostrar métricas dinámicas de los jugadores filtrados
+    if not filtered_df.empty:
+        # Calcular estadísticas de los datos filtrados
+        # Determinar columna de liga
+        league_col = 'Liga' if 'Liga' in filtered_df.columns else ('League' if 'League' in filtered_df.columns else None)
+        
+        filtered_stats = {
+            'total_players': len(filtered_df),
+            'total_leagues': filtered_df[league_col].nunique() if league_col and league_col in filtered_df.columns else 0,
+            'total_clubs': filtered_df['Club'].nunique() if 'Club' in filtered_df.columns else 0,
+            'avg_rating': filtered_df['Rating'].mean() if 'Rating' in filtered_df.columns else 0
+        }
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Jugadores Encontrados", filtered_stats['total_players'])
+        with col2:
+            st.metric("Ligas", filtered_stats['total_leagues'])
+        with col3:
+            st.metric("Clubes", filtered_stats['total_clubs'])
+        with col4:
+            st.metric("Rating Promedio", f"{filtered_stats['avg_rating']:.1f}")
+    else:
+        st.info("No se encontraron jugadores con los filtros aplicados.")
     
     # Paginación
-    with col2:
-        if total_pages > 1:
-            col_prev, col_page, col_next = st.columns([1, 2, 1])
-            with col_prev:
-                if st.button("◀", disabled=st.session_state.current_page <= 1):
-                    st.session_state.current_page -= 1
-            with col_page:
-                st.markdown(f"<div style='text-align: center; padding: 0.5rem;'>Página {st.session_state.current_page} de {total_pages}</div>", unsafe_allow_html=True)
-            with col_next:
-                if st.button("▶", disabled=st.session_state.current_page >= total_pages):
-                    st.session_state.current_page += 1
+    if total_pages > 1:
+        col_prev, col_page, col_next = st.columns([1, 2, 1])
+        with col_prev:
+            if st.button("◀", disabled=st.session_state.current_page <= 1):
+                st.session_state.current_page -= 1
+        with col_page:
+            st.markdown(f"<div style='text-align: center; padding: 0.5rem;'>Página {st.session_state.current_page} de {total_pages}</div>", unsafe_allow_html=True)
+        with col_next:
+            if st.button("▶", disabled=st.session_state.current_page >= total_pages):
+                st.session_state.current_page += 1
 
     # --- LÓGICA DE FILTRO POR MÉTRICAS (mantener al final) ---
     if metrics_90:
         top_sets = []
         for metric in metrics_90:
             if metric in filtered_df.columns:
-                top_players = filtered_df.nlargest(10, metric)["Name"].tolist()
-                top_sets.append(set(top_players))
+                # Filtrar jugadores con más de 1000 minutos jugados
+                minutes_columns = ['Minutes', 'Min', 'Minutos', 'Playing_Time', 'MP']
+                minutes_col = None
+                
+                # Buscar la columna de minutos
+                for col in minutes_columns:
+                    if col in filtered_df.columns:
+                        minutes_col = col
+                        break
+                
+                # Si hay columna de minutos, filtrar por más de 1000 minutos
+                if minutes_col:
+                    qualified_df = filtered_df[filtered_df[minutes_col] > 1000]
+                else:
+                    # Si no hay datos de minutos, usar todos los jugadores
+                    qualified_df = filtered_df
+                
+                if not qualified_df.empty:
+                    # Obtener top 10 de jugadores cualificados
+                    top_df = qualified_df.nlargest(min(10, len(qualified_df)), metric)
+                    top_players = []
+                    
+                    for name in top_df["Name"].tolist():
+                        # Verificar que no sea un nombre de equipo
+                        team_indicators = [
+                            'fc ', 'cf ', 'cd ', 'ud ', 'ca ', 'rcd ', 'real ', 'atletico', 'barcelona', 
+                            'madrid', 'sevilla', 'valencia', 'betis', 'celta', 'villarreal', 'girona',
+                            'getafe', 'osasuna', 'mallorca', 'espanyol', 'las palmas', 'leganes',
+                            'alaves', 'rayo', 'vallecano', 'athletic', 'sociedad', 'valladolid'
+                        ]
+                        is_team_name = any(indicator in str(name).lower() for indicator in team_indicators)
+                        
+                        if not is_team_name and name != 'Unknown':
+                            top_players.append(name)
+                    
+                    if top_players:  # Solo añadir si hay jugadores válidos
+                        top_sets.append(set(top_players))
         if top_sets:
             top_intersection = set.intersection(*top_sets)
             if top_intersection:
                 st.markdown(f"#### Top jugadores en {' & '.join(metrics_90)} (en el top 10 de todas)")
-                cols_to_show = ["Name", "Club"] + metrics_90
+                
+                # Buscar columna de minutos para incluir en la tabla
+                minutes_columns = ['Minutes', 'Min', 'Minutos', 'Playing_Time', 'MP']
+                minutes_col = None
+                
+                for col in minutes_columns:
+                    if col in filtered_df.columns:
+                        minutes_col = col
+                        break
+                
+                # Definir columnas a mostrar incluyendo minutos si está disponible
+                cols_to_show = ["Name", "Club"]
+                if minutes_col:
+                    cols_to_show.append(minutes_col)
+                cols_to_show.extend(metrics_90)
+                
                 filtered_top = filtered_df[filtered_df["Name"].isin(top_intersection)][cols_to_show]
                 
                 # Paginación para métricas también
@@ -756,7 +919,21 @@ with tab1:
                 end_idx = start_idx + players_per_page
                 paginated_top = filtered_top.iloc[start_idx:end_idx]
                 
-                st.dataframe(paginated_top.sort_values(by=metrics_90[0], ascending=False), hide_index=True, use_container_width=True)
+                # Configurar formato de columnas
+                column_config = {}
+                if minutes_col:
+                    column_config[minutes_col] = st.column_config.NumberColumn(
+                        "Minutos",
+                        format="%d min",
+                        help="Minutos jugados en la temporada"
+                    )
+                
+                st.dataframe(
+                    paginated_top.sort_values(by=metrics_90[0], ascending=False), 
+                    hide_index=True, 
+                    use_container_width=True,
+                    column_config=column_config
+                )
             else:
                 st.info("No hay jugadores que estén en el top 10 de todas las métricas seleccionadas. Prueba con otras combinaciones o menos métricas.")
         else:
@@ -792,7 +969,7 @@ with tab1:
                     min_value=40,
                     max_value=99,
                 ),
-                "Value (M€)": st.column_config.NumberColumn(
+                "Market_Value": st.column_config.NumberColumn(
                     "Market Value",
                     format="€%.1fM",
                 ),
@@ -804,7 +981,7 @@ with tab1:
         )
         
         # Botones de acción para shortlist
-        st.markdown("---")
+    
         col1, col2, col3 = st.columns([2, 2, 4])
         
         with col1:
@@ -824,7 +1001,6 @@ with tab1:
                 st.info(f"📋 Shortlist: {shortlist_names}")
 
     # Sección de gestión manual de shortlist
-    st.markdown("---")
     with st.expander("📋 Gestión de Shortlist", expanded=len(st.session_state.shortlist) > 0):
         if st.session_state.shortlist:
             st.markdown("**Jugadores en tu shortlist:**")
@@ -909,7 +1085,7 @@ with tab2:
                                 <h3>{player['Name']}</h3>
                                 <p>{position_emoji} {player['Position']} | 👤 {player['Age']} años</p>
                                 <p>{player['Nationality']} | ⚽ {player['Club']}</p>
-                                <p>💰 €{player.get('Market Value', player.get('Market_Value', 0))}M | 📏 {player['Height']}cm</p>
+                                <p>💰 €{player.get('Market_Value', 0):.1f}M | 📏 {player['Height']}cm</p>
                                 <div style="background-color: {badge_color}; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 1rem; font-weight: 600; display: inline-block; margin-top: 0.5rem;">
                                     Rating: {player['Rating']}
                                 </div>

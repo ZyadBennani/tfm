@@ -15,49 +15,40 @@ class ScoutingDataManager:
         self._cached_data = None
         self._use_real_data = True  # Flag para usar datos reales o de muestra
         
-    @st.cache_data
-    def get_consolidated_data(_self, use_real_data: bool = True) -> pd.DataFrame:
-        """Obtiene los datos consolidados de jugadores"""
+    def get_consolidated_data(self, use_real_data: bool = True) -> pd.DataFrame:
+        """Obtiene los datos consolidados de jugadores con caché persistente"""
         
         if not use_real_data:
             # Usar datos de muestra para testing
-            return _self.loader.get_sample_data()
-        
+            return self.loader.get_sample_data()
+
+        # Verificar si hay caché consolidado válido
+        if self.loader._is_cache_valid(self.loader.cache_files['consolidated']):
+            cached_data = self.loader._load_from_cache(self.loader.cache_files['consolidated'])
+            if cached_data is not None:
+                return cached_data
+
         try:
-            # Intentar cargar datos reales
-            st.info("🔄 Cargando datos de jugadores...")
-            
-            # Cargar datos de normalización
-            norm_data = _self.loader.load_normalization_data()
-            
-            # Cargar datos de las diferentes fuentes
-            with st.spinner("Cargando datos de FBREF..."):
-                fbref_df = _self.loader.load_fbref_data()
-            
-            with st.spinner("Cargando datos de Transfermarket..."):
-                tm_df = _self.loader.load_transfermarket_data()
-            
-            with st.spinner("Cargando datos de Capology..."):
-                cap_df = _self.loader.load_capology_data()
-            
-            # Mostrar estadísticas de carga
-            st.success(f"✅ Datos cargados: {len(fbref_df)} FBREF, {len(tm_df)} Transfermarket, {len(cap_df)} Capology")
+            # Cargar datos con caché individual
+            norm_data = self.loader.load_normalization_data()
+            fbref_df = self.loader.load_fbref_data()
+            tm_df = self.loader.load_transfermarket_data()
+            cap_df = self.loader.load_capology_data()
             
             # Consolidar datos
-            with st.spinner("Consolidando datos..."):
-                consolidated_df = _self.processor.consolidate_player_data(fbref_df, tm_df, cap_df, norm_data)
+            consolidated_df = self.processor.consolidate_player_data(fbref_df, tm_df, cap_df, norm_data)
             
             if not consolidated_df.empty:
-                st.success(f"✅ {len(consolidated_df)} jugadores consolidados correctamente")
+                # Guardar datos consolidados en caché
+                self.loader._save_to_cache(consolidated_df, self.loader.cache_files['consolidated'])
                 return consolidated_df
             else:
-                st.warning("⚠️ No se pudieron consolidar datos reales. Usando datos de muestra.")
-                return _self.loader.get_sample_data()
+                return self.loader.get_sample_data()
                 
         except Exception as e:
             st.error(f"❌ Error cargando datos reales: {e}")
             st.info("🔄 Usando datos de muestra...")
-            return _self.loader.get_sample_data()
+            return self.loader.get_sample_data()
     
     def get_player_data(self, use_real_data: bool = True) -> pd.DataFrame:
         """Método principal para obtener datos de jugadores"""
@@ -65,20 +56,41 @@ class ScoutingDataManager:
     
     def get_available_leagues(self, df: pd.DataFrame) -> list:
         """Obtiene las ligas disponibles en los datos"""
+        # Buscar la columna de liga (puede ser 'League' o 'Liga')
+        league_column = None
         if 'League' in df.columns:
-            return sorted(df['League'].unique().tolist())
+            league_column = 'League'
+        elif 'Liga' in df.columns:
+            league_column = 'Liga'
+        
+        if league_column:
+            leagues = df[league_column].unique().tolist()
+            # Filtrar valores vacíos o unknown
+            leagues = [l for l in leagues if l and l != 'Unknown']
+            return sorted(leagues)
         return []
     
     def get_available_clubs(self, df: pd.DataFrame, league: Optional[str] = None) -> list:
         """Obtiene los clubes disponibles, opcionalmente filtrados por liga"""
         if 'Club' not in df.columns:
             return []
-            
-        if league and league != "All":
-            filtered_df = df[df['League'] == league]
-            return sorted(filtered_df['Club'].unique().tolist())
         
-        return sorted(df['Club'].unique().tolist())
+        # Determinar la columna de liga
+        league_column = None
+        if 'League' in df.columns:
+            league_column = 'League'
+        elif 'Liga' in df.columns:
+            league_column = 'Liga'
+            
+        if league and league != "Todas las ligas" and league_column:
+            filtered_df = df[df[league_column] == league]
+            clubs = filtered_df['Club'].unique().tolist()
+        else:
+            clubs = df['Club'].unique().tolist()
+        
+        # Filtrar valores vacíos o unknown
+        clubs = [c for c in clubs if c and c != 'Unknown']
+        return sorted(clubs)
     
     def get_available_positions(self, df: pd.DataFrame) -> list:
         """Obtiene las posiciones disponibles en los datos"""
@@ -151,15 +163,23 @@ class ScoutingDataManager:
             filtered_df = filtered_df[filtered_df['Contract_End'].isin(filters['contract_years'])]
         
         # Filtro por cláusula de rescisión
-        if filters.get('has_clause') and filters['has_clause'] != "Ambos":
+        if filters.get('has_clause') and filters['has_clause'] != "Todos":
             filtered_df = filtered_df[filtered_df['Has_Clause'] == filters['has_clause']]
         
         # Filtro por liga
-        if filters.get('league') and filters['league'] != "All":
-            filtered_df = filtered_df[filtered_df['League'] == filters['league']]
+        if filters.get('league') and filters['league'] != "Todas las ligas":
+            # Determinar la columna de liga
+            league_column = None
+            if 'League' in filtered_df.columns:
+                league_column = 'League'
+            elif 'Liga' in filtered_df.columns:
+                league_column = 'Liga'
+            
+            if league_column:
+                filtered_df = filtered_df[filtered_df[league_column] == filters['league']]
         
         # Filtro por club
-        if filters.get('club') and filters['club'] != "All":
+        if filters.get('club') and filters['club'] != "Todos los clubes":
             filtered_df = filtered_df[filtered_df['Club'] == filters['club']]
         
         return filtered_df

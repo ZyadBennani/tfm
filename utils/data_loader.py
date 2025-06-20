@@ -3,6 +3,9 @@ import numpy as np
 import os
 import glob
 import streamlit as st
+import pickle
+import hashlib
+from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
 
 class DataLoader:
@@ -17,38 +20,90 @@ class DataLoader:
             'ligas': os.path.join(base_path, "G_Ligas.csv")
         }
         
-    @st.cache_data
-    def load_normalization_data(_self) -> Dict[str, pd.DataFrame]:
-        """Carga los archivos de normalización"""
+        # Sistema de caché persistente
+        self.cache_dir = os.path.join(base_path, ".cache")
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
+        
+        self.cache_files = {
+            'fbref': os.path.join(self.cache_dir, 'fbref_data.pkl'),
+            'transfermarket': os.path.join(self.cache_dir, 'transfermarket_data.pkl'),
+            'capology': os.path.join(self.cache_dir, 'capology_data.pkl'),
+            'normalization': os.path.join(self.cache_dir, 'normalization_data.pkl'),
+            'consolidated': os.path.join(self.cache_dir, 'consolidated_data.pkl')
+        }
+        
+        # Tiempo de expiración del caché (7 días)
+        self.cache_expiry_days = 7
+    
+    def _is_cache_valid(self, cache_file: str) -> bool:
+        """Verifica si el archivo de caché es válido (existe y no ha expirado)"""
+        if not os.path.exists(cache_file):
+            return False
+        
+        # Verificar tiempo de modificación
+        mod_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
+        expiry_time = datetime.now() - timedelta(days=self.cache_expiry_days)
+        
+        return mod_time > expiry_time
+    
+    def _save_to_cache(self, data: pd.DataFrame, cache_file: str):
+        """Guarda datos en caché"""
+        try:
+            with open(cache_file, 'wb') as f:
+                pickle.dump(data, f)
+        except Exception as e:
+            st.warning(f"No se pudo guardar caché: {e}")
+    
+    def _load_from_cache(self, cache_file: str) -> Optional[pd.DataFrame]:
+        """Carga datos desde caché"""
+        try:
+            with open(cache_file, 'rb') as f:
+                return pickle.load(f)
+        except Exception as e:
+            return None
+    
+    def load_normalization_data(self) -> Dict[str, pd.DataFrame]:
+        """Carga los archivos de normalización con caché persistente"""
+        
+        # Verificar si hay caché válido
+        if self._is_cache_valid(self.cache_files['normalization']):
+            cached_data = self._load_from_cache(self.cache_files['normalization'])
+            if cached_data is not None:
+                return cached_data
+        
         norm_data = {}
         
         try:
             # Cargar G_Equipos.csv - probar diferentes encodings
             try:
-                norm_data['equipos'] = pd.read_csv(_self.normalization_files['equipos'], sep=';', encoding='utf-8')
+                norm_data['equipos'] = pd.read_csv(self.normalization_files['equipos'], sep=';', encoding='utf-8')
             except UnicodeDecodeError:
                 try:
-                    norm_data['equipos'] = pd.read_csv(_self.normalization_files['equipos'], sep=';', encoding='latin-1')
+                    norm_data['equipos'] = pd.read_csv(self.normalization_files['equipos'], sep=';', encoding='latin-1')
                 except:
-                    norm_data['equipos'] = pd.read_csv(_self.normalization_files['equipos'], sep=';', encoding='cp1252')
+                    norm_data['equipos'] = pd.read_csv(self.normalization_files['equipos'], sep=';', encoding='cp1252')
             
             # Cargar G_Jugadores.csv - probar diferentes encodings
             try:
-                norm_data['jugadores'] = pd.read_csv(_self.normalization_files['jugadores'], sep=';', encoding='utf-8')
+                norm_data['jugadores'] = pd.read_csv(self.normalization_files['jugadores'], sep=';', encoding='utf-8')
             except UnicodeDecodeError:
                 try:
-                    norm_data['jugadores'] = pd.read_csv(_self.normalization_files['jugadores'], sep=';', encoding='latin-1')
+                    norm_data['jugadores'] = pd.read_csv(self.normalization_files['jugadores'], sep=';', encoding='latin-1')
                 except:
-                    norm_data['jugadores'] = pd.read_csv(_self.normalization_files['jugadores'], sep=';', encoding='cp1252')
+                    norm_data['jugadores'] = pd.read_csv(self.normalization_files['jugadores'], sep=';', encoding='cp1252')
             
             # Cargar G_Ligas.csv - probar diferentes encodings
             try:
-                norm_data['ligas'] = pd.read_csv(_self.normalization_files['ligas'], encoding='utf-8')
+                norm_data['ligas'] = pd.read_csv(self.normalization_files['ligas'], encoding='utf-8')
             except UnicodeDecodeError:
                 try:
-                    norm_data['ligas'] = pd.read_csv(_self.normalization_files['ligas'], encoding='latin-1')
+                    norm_data['ligas'] = pd.read_csv(self.normalization_files['ligas'], encoding='latin-1')
                 except:
-                    norm_data['ligas'] = pd.read_csv(_self.normalization_files['ligas'], encoding='cp1252')
+                    norm_data['ligas'] = pd.read_csv(self.normalization_files['ligas'], encoding='cp1252')
+            
+            # Guardar en caché
+            self._save_to_cache(norm_data, self.cache_files['normalization'])
             
             return norm_data
             
@@ -56,9 +111,18 @@ class DataLoader:
             st.error(f"Error cargando archivos de normalización: {e}")
             return {}
     
-    @st.cache_data
-    def load_fbref_data(_self) -> pd.DataFrame:
-        """Carga todos los datos de FBREF de las 8 ligas"""
+    def load_fbref_data(self) -> pd.DataFrame:
+        """Carga todos los datos de FBREF de las 8 ligas con caché persistente"""
+        
+        # Verificar si hay caché válido
+        if self._is_cache_valid(self.cache_files['fbref']):
+            cached_data = self._load_from_cache(self.cache_files['fbref'])
+            if cached_data is not None:
+                return cached_data
+        
+        # Si no hay caché válido, procesar datos
+        st.info("🔄 Cargando datos de FBREF... (esto puede tardar unos minutos la primera vez)")
+        
         all_players = []
         
         # Ligas disponibles en FBREF
@@ -74,7 +138,7 @@ class DataLoader:
         ]
         
         for league in fbref_leagues:
-            league_path = os.path.join(_self.fbref_path, league)
+            league_path = os.path.join(self.fbref_path, league)
             
             if not os.path.exists(league_path):
                 continue
@@ -106,6 +170,13 @@ class DataLoader:
                             df_player['Equipo'] = team
                             df_player['Archivo_Origen'] = player_file
                             
+                            # DETECTAR TEMPORADA - Solo queremos 2024-2025
+                            if '2024-2025' in league or '2024-25' in league:
+                                df_player['Season'] = '2024-2025'
+                            else:
+                                # Saltar datos de temporadas anteriores
+                                continue
+                            
                             # Extraer nombre del jugador del archivo
                             player_name = os.path.basename(player_file).replace('.csv', '')
                             df_player['player_name'] = player_name
@@ -115,14 +186,27 @@ class DataLoader:
                     except Exception as e:
                         continue  # Saltar archivos problemáticos
         
+        # Consolidar datos
         if all_players:
-            return pd.concat(all_players, ignore_index=True)
+            result_df = pd.concat(all_players, ignore_index=True)
         else:
-            return pd.DataFrame()
+            result_df = pd.DataFrame()
+        
+        # Guardar en caché
+        self._save_to_cache(result_df, self.cache_files['fbref'])
+        st.success("✅ Datos de FBREF cargados y guardados en caché")
+        
+        return result_df
     
-    @st.cache_data  
-    def load_transfermarket_data(_self) -> pd.DataFrame:
-        """Carga todos los datos de Transfermarket"""
+    def load_transfermarket_data(self) -> pd.DataFrame:
+        """Carga todos los datos de Transfermarket con caché persistente"""
+        
+        # Verificar si hay caché válido
+        if self._is_cache_valid(self.cache_files['transfermarket']):
+            cached_data = self._load_from_cache(self.cache_files['transfermarket'])
+            if cached_data is not None:
+                return cached_data
+        
         all_tm_data = []
         
         # Ligas de Transfermarket
@@ -138,7 +222,7 @@ class DataLoader:
         ]
         
         for league in tm_leagues:
-            league_path = os.path.join(_self.fbref_path, league)
+            league_path = os.path.join(self.fbref_path, league)
             
             if not os.path.exists(league_path):
                 continue
@@ -169,20 +253,34 @@ class DataLoader:
                 except Exception as e:
                     continue
         
+        # Consolidar datos
         if all_tm_data:
-            return pd.concat(all_tm_data, ignore_index=True)
+            result_df = pd.concat(all_tm_data, ignore_index=True)
         else:
-            return pd.DataFrame()
+            result_df = pd.DataFrame()
+        
+        # Guardar en caché
+        self._save_to_cache(result_df, self.cache_files['transfermarket'])
+        
+        return result_df
     
-    @st.cache_data
-    def load_capology_data(_self) -> pd.DataFrame:
-        """Carga todos los datos de Capology (salarios)"""
+    def load_capology_data(self) -> pd.DataFrame:
+        """Carga todos los datos de Capology (salarios) con caché persistente"""
+        
+        # Verificar si hay caché válido
+        if self._is_cache_valid(self.cache_files['capology']):
+            cached_data = self._load_from_cache(self.cache_files['capology'])
+            if cached_data is not None:
+                return cached_data
+        
         all_cap_data = []
         
-        capology_path = os.path.join(_self.fbref_path, "Capology")
+        capology_path = os.path.join(self.fbref_path, "Capology")
         
         if not os.path.exists(capology_path):
-            return pd.DataFrame()
+            result_df = pd.DataFrame()
+            self._save_to_cache(result_df, self.cache_files['capology'])
+            return result_df
         
         # Recorrer todas las ligas en Capology
         for league_dir in os.listdir(capology_path):
@@ -224,9 +322,14 @@ class DataLoader:
                         continue
         
         if all_cap_data:
-            return pd.concat(all_cap_data, ignore_index=True)
+            result_df = pd.concat(all_cap_data, ignore_index=True)
         else:
-            return pd.DataFrame()
+            result_df = pd.DataFrame()
+        
+        # Guardar en caché
+        self._save_to_cache(result_df, self.cache_files['capology'])
+        
+        return result_df
     
     def normalize_player_name(self, name: str) -> str:
         """Normaliza nombres de jugadores para hacer matching"""
@@ -323,4 +426,53 @@ class DataLoader:
             })
             sample_players.append(known_player)
         
-        return pd.DataFrame(sample_players) 
+        return pd.DataFrame(sample_players)
+    
+    def clear_cache(self, cache_type: str = 'all'):
+        """Limpia el caché especificado"""
+        if cache_type == 'all':
+            # Limpiar todo el caché
+            for cache_file in self.cache_files.values():
+                if os.path.exists(cache_file):
+                    try:
+                        os.remove(cache_file)
+                        st.success(f"✅ Caché limpiado: {os.path.basename(cache_file)}")
+                    except Exception as e:
+                        st.warning(f"⚠️ No se pudo limpiar: {os.path.basename(cache_file)}")
+        elif cache_type in self.cache_files:
+            # Limpiar caché específico
+            cache_file = self.cache_files[cache_type]
+            if os.path.exists(cache_file):
+                try:
+                    os.remove(cache_file)
+                    st.success(f"✅ Caché limpiado: {cache_type}")
+                except Exception as e:
+                    st.warning(f"⚠️ No se pudo limpiar caché: {cache_type}")
+    
+    def get_cache_info(self) -> dict:
+        """Obtiene información sobre el estado del caché"""
+        cache_info = {}
+        
+        for cache_type, cache_file in self.cache_files.items():
+            if os.path.exists(cache_file):
+                mod_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
+                file_size = os.path.getsize(cache_file) / (1024 * 1024)  # MB
+                is_valid = self._is_cache_valid(cache_file)
+                
+                cache_info[cache_type] = {
+                    'exists': True,
+                    'last_modified': mod_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'size_mb': round(file_size, 2),
+                    'is_valid': is_valid,
+                    'expires_in_days': self.cache_expiry_days - (datetime.now() - mod_time).days
+                }
+            else:
+                cache_info[cache_type] = {
+                    'exists': False,
+                    'last_modified': 'N/A',
+                    'size_mb': 0,
+                    'is_valid': False,
+                    'expires_in_days': 0
+                }
+        
+        return cache_info 
