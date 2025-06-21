@@ -106,6 +106,9 @@ venv.bak/
 *.csv
 data/raw/
 Datos/raw/
+Datos/.cache/
+Datos/processed/
+Datos/fbref_test/
 logs/
 
 # OS generated files
@@ -120,13 +123,52 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+*~
+*.swp
+*.swo
+*.bak
+*.backup
+*_backup
+*_old
 
 # Large data files (if any)
 *.csv.bak
 *.xlsx.bak
+*.xlsx
+*.xls
 
 # Node modules (if any)
 node_modules/
 
 # Environment variables
 .env.local
+.env.production
+.env.development
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Media files (large)
+*.mp4
+*.avi
+*.mov
+*.pdf
+
+# Test files
+test_*
+*_test.py
+tests/
+
+# Backup Python files
+*.py.bak
+*.py.backup
+
+# Cursor specific
+.cursor/
