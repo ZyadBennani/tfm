@@ -14,6 +14,7 @@ import os
 # Agregar el directorio utils al path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from utils.scouting_data_manager import ScoutingDataManager
+from utils.player_photo_manager import get_photo_manager
 
 # Configuración de la página
 st.set_page_config(
@@ -26,6 +27,11 @@ st.set_page_config(
 @st.cache_resource
 def get_data_manager():
     return ScoutingDataManager()
+
+# Inicializar el gestor de fotos
+@st.cache_resource
+def get_photo_manager_cached():
+    return get_photo_manager()
 
 # Estilos CSS personalizados
 st.markdown("""
@@ -826,7 +832,11 @@ with tab1:
             'avg_rating': filtered_df['Rating'].mean() if 'Rating' in filtered_df.columns else 0
         }
         
-        col1, col2, col3, col4 = st.columns(4)
+        # Obtener estadísticas del gestor de fotos
+        photo_manager = get_photo_manager_cached()
+        photo_stats = photo_manager.get_stats()
+        
+        col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
             st.metric("Jugadores Encontrados", filtered_stats['total_players'])
         with col2:
@@ -835,6 +845,8 @@ with tab1:
             st.metric("Clubes", filtered_stats['total_clubs'])
         with col4:
             st.metric("Rating Promedio", f"{filtered_stats['avg_rating']:.1f}")
+        with col5:
+            st.metric("📸 Fotos", photo_stats['total_photos'])
     else:
         st.info("No se encontraron jugadores con los filtros aplicados.")
     
@@ -944,41 +956,124 @@ with tab1:
         end_idx = start_idx + players_per_page
         paginated_df = filtered_df.iloc[start_idx:end_idx].copy()
         
-        # Añadir columna de shortlist
-        paginated_df['Shortlist'] = paginated_df['Name'].apply(
-            lambda x: x in st.session_state.shortlist
-        )
+        # Mostrar jugadores con fotos en formato de columnas
+        if not paginated_df.empty:
+            st.markdown("### Jugadores Encontrados")
+            
+            # Obtener gestor de fotos
+            photo_manager = get_photo_manager_cached()
+            
+            # Función para formatear salario
+            def format_salary(val):
+                if pd.isna(val) or val == 0:
+                    return "N/A"
+                if val >= 1000000:
+                    return f"€{val/1000000:.1f}M"
+                elif val >= 1000:
+                    return f"€{val/1000:.0f}K"
+                else:
+                    return f"€{val:.0f}"
+            
+            # Función para formatear valor de mercado
+            def format_market_value(val):
+                if pd.isna(val) or val == 0:
+                    return "N/A"
+                return f"€{val:.1f}M"
+            
+            # Función para color del rating
+            def get_rating_color(rating):
+                if rating >= 85:
+                    return "#22c55e"  # Verde
+                elif rating >= 75:
+                    return "#f59e0b"  # Amarillo
+                elif rating >= 65:
+                    return "#ef4444"  # Rojo
+                else:
+                    return "#6b7280"  # Gris
+            
+            # Crear encabezados de columnas
+            cols = st.columns([1, 2, 1, 1, 1, 1, 1, 1, 1, 1])
+            headers = ["", "Jugador", "Posición", "Perfil", "Pie", "Edad", "Club", "Salario", "Valor", "Rating"]
+            
+            for i, header in enumerate(headers):
+                with cols[i]:
+                    if header:  # No mostrar header para la columna de fotos
+                        st.markdown(f"**{header}**")
+            
+            st.markdown("---")
+            
+            # Mostrar cada jugador
+            for idx, (_, player) in enumerate(paginated_df.iterrows()):
+                cols = st.columns([1, 2, 1, 1, 1, 1, 1, 1, 1, 1])
+                
+                # Columna 1: Foto (36x36px - 20% más grande)
+                with cols[0]:
+                    photo_base64 = photo_manager.get_player_photo_base64(player['Name'], size=(36, 36))
+                    st.markdown(f"""
+                        <div style="display: flex; justify-content: center; align-items: center; height: 50px;">
+                            <img src="data:image/png;base64,{photo_base64}" 
+                                 style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                        </div>
+                    """, unsafe_allow_html=True)
+                
+                # Columna 2: Nombre del jugador
+                with cols[1]:
+                    is_in_shortlist = player['Name'] in st.session_state.shortlist
+                    shortlist_icon = "⭐" if is_in_shortlist else ""
+                    st.markdown(f"**{player['Name']}** {shortlist_icon}")
+                
+                # Columna 3: Posición
+                with cols[2]:
+                    position_emoji = {
+                        'GK': '🥅', 'CB': '🛡️', 'RB': '⚡', 'LB': '⚡',
+                        'CM': '🎯', 'CDM': '🛡️', 'CAM': '🎨', 
+                        'RW': '⚡', 'LW': '⚡', 'ST': '⚔️'
+                    }.get(player['Position'], '⚽')
+                    st.markdown(f"{position_emoji} {player['Position']}")
+                
+                # Columna 4: Perfil
+                with cols[3]:
+                    st.markdown(player.get('Profile', 'TBD'))
+                
+                # Columna 5: Pie dominante
+                with cols[4]:
+                    foot_emoji = "🦶🏻" if player.get('Foot') == 'Right' else "🦶🏻" if player.get('Foot') == 'Left' else "⚽"
+                    st.markdown(f"{foot_emoji} {player.get('Foot', 'N/A')}")
+                
+                # Columna 6: Edad
+                with cols[5]:
+                    st.markdown(f"👤 {player['Age']}")
+                
+                # Columna 7: Club
+                with cols[6]:
+                    st.markdown(f"⚽ {player['Club']}")
+                
+                # Columna 8: Salario
+                with cols[7]:
+                    salary = player.get('Salary_Annual', player.get('Salary', 0))
+                    st.markdown(f"💰 {format_salary(salary)}")
+                
+                # Columna 9: Valor de mercado
+                with cols[8]:
+                    market_val = player.get('Market_Value', player.get('Market Value', 0))
+                    st.markdown(f"💎 {format_market_value(market_val)}")
+                
+                # Columna 10: Rating con color
+                with cols[9]:
+                    rating_color = get_rating_color(player['Rating'])
+                    st.markdown(f"""
+                        <div style="background-color: {rating_color}; color: white; padding: 0.2rem 0.5rem; 
+                                    border-radius: 12px; text-align: center; font-weight: bold; font-size: 0.9rem;">
+                            {player['Rating']}
+                        </div>
+                    """, unsafe_allow_html=True)
+                
+                # Separador entre filas
+                if idx < len(paginated_df) - 1:
+                    st.markdown("<div style='margin: 0.5rem 0; border-bottom: 1px solid #e5e7eb;'></div>", unsafe_allow_html=True)
         
-        # Configuración de columnas
-        st.dataframe(
-            paginated_df,
-            column_config={
-                "Shortlist": st.column_config.CheckboxColumn(
-                    "📋",
-                    width="small",
-                    help="Añadir/quitar de shortlist"
-                ),
-                "Name": st.column_config.TextColumn(
-                    "Player Name",
-                    width="medium",
-                    help="Full name of the player"
-                ),
-                "Rating": st.column_config.ProgressColumn(
-                    "Rating",
-                    format="%d",
-                    min_value=40,
-                    max_value=99,
-                ),
-                "Market_Value": st.column_config.NumberColumn(
-                    "Market Value",
-                    format="€%.1fM",
-                ),
-            },
-            hide_index=True,
-            use_container_width=True,
-            on_select="rerun",
-            selection_mode="multi-row"
-        )
+        else:
+            st.info("No se encontraron jugadores con los filtros aplicados.")
         
         # Botones de acción para shortlist
     
@@ -1079,15 +1174,25 @@ with tab2:
                     shortlist_text = "❌ Quitar" if is_in_shortlist else "➕ Añadir"
                     
                     with col:
+                        # Obtener foto del jugador
+                        photo_manager = get_photo_manager_cached()
+                        photo_base64 = photo_manager.get_player_photo_base64(player['Name'], size=(80, 80))
+                        
                         st.markdown(f"""
             <div class="player-card">
-                                <img src="https://via.placeholder.com/150" style="width: 100%; border-radius: 0.5rem; margin-bottom: 1rem;">
-                                <h3>{player['Name']}</h3>
-                                <p>{position_emoji} {player['Position']} | 👤 {player['Age']} años</p>
-                                <p>{player['Nationality']} | ⚽ {player['Club']}</p>
-                                <p>💰 €{player.get('Market_Value', 0):.1f}M | 📏 {player['Height']}cm</p>
-                                <div style="background-color: {badge_color}; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 1rem; font-weight: 600; display: inline-block; margin-top: 0.5rem;">
-                                    Rating: {player['Rating']}
+                                <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                                    <img src="data:image/png;base64,{photo_base64}" 
+                                         style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; 
+                                                border: 3px solid #004D98; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                </div>
+                                <h3 style="text-align: center; margin-bottom: 0.5rem;">{player['Name']}</h3>
+                                <p style="text-align: center;">{position_emoji} {player['Position']} | 👤 {player['Age']} años</p>
+                                <p style="text-align: center;">{player['Nationality']} | ⚽ {player['Club']}</p>
+                                <p style="text-align: center;">💰 €{player.get('Market_Value', 0):.1f}M | 📏 {player['Height']}cm</p>
+                                <div style="display: flex; justify-content: center; margin-top: 0.5rem;">
+                                    <div style="background-color: {badge_color}; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 1rem; font-weight: 600;">
+                                        Rating: {player['Rating']}
+                                    </div>
                                 </div>
                                 <div style="margin-top: 1rem;">
                                     <button onclick="alert('Funcionalidad de shortlist')" style="{shortlist_button_style} color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; width: 100%; cursor: pointer; margin-bottom: 0.5rem;">
