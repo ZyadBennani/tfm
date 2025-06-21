@@ -7,7 +7,7 @@ from fuzzywuzzy import fuzz
 import re
 
 class PlayerPhotoManager:
-    def __init__(self, photos_dir="static/players_photos"):
+    def __init__(self, photos_dir=r"C:\Users\zyadb\player_photos"):
         self.photos_dir = photos_dir
         self.cache = {}
         self.available_photos = self._scan_available_photos()

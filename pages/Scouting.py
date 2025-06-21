@@ -685,48 +685,51 @@ with st.sidebar:
         
         st.rerun()
 
-    # 💾 GESTIÓN DE CACHÉ
-    with st.expander("💾 **Gestión de Caché**", expanded=False):
-        st.markdown("**Gestión del caché de datos:**")
-        
-        data_manager = get_data_manager()
-        
-        # Verificar si el método existe (compatibilidad)
-        if hasattr(data_manager.loader, 'get_cache_info'):
-            try:
-                cache_info = data_manager.loader.get_cache_info()
-                
-                for cache_type, info in cache_info.items():
-                    if info['exists']:
-                        status_icon = "✅" if info['is_valid'] else "⚠️"
-                        st.markdown(f"{status_icon} **{cache_type.title()}**: {info['size_mb']} MB - Modificado: {info['last_modified']}")
-                        if not info['is_valid']:
-                            st.markdown(f"   ⏰ Caché expirado (hace {abs(info['expires_in_days'])} días)")
-                    else:
-                        st.markdown(f"❌ **{cache_type.title()}**: No existe")
-            except Exception as e:
-                st.markdown("⚠️ No se pudo obtener información del caché")
-        else:
-            st.markdown("📁 Sistema de caché disponible")
-        
-        st.markdown("---")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("🔄 Limpiar Caché Completo", help="Elimina todos los archivos de caché. Los datos se recargarán la próxima vez."):
-                if hasattr(data_manager.loader, 'clear_cache'):
-                    data_manager.loader.clear_cache('all')
-                    st.info("🔄 Reinicia la aplicación para recargar los datos")
-                else:
-                    st.warning("⚠️ Función de limpieza no disponible")
-        
-        with col2:
-            if st.button("🗑️ Solo Datos Consolidados", help="Limpia solo el caché de datos consolidados"):
-                if hasattr(data_manager.loader, 'clear_cache'):
-                    data_manager.loader.clear_cache('consolidated')
-                    st.info("🔄 Los datos se reconsolidarán automáticamente")
-                else:
-                    st.warning("⚠️ Función de limpieza no disponible")
+    # 💾 GESTIÓN DE CACHÉ - OCULTO AL USUARIO PERO FUNCIONAL
+    # Nota: El caché sigue funcionando en segundo plano para mantener el rendimiento
+    # Solo se oculta la interfaz de gestión ya que no es útil para el usuario final
+    
+    # with st.expander("💾 **Gestión de Caché**", expanded=False):
+    #     st.markdown("**Gestión del caché de datos:**")
+    #     
+    #     data_manager = get_data_manager()
+    #     
+    #     # Verificar si el método existe (compatibilidad)
+    #     if hasattr(data_manager.loader, 'get_cache_info'):
+    #         try:
+    #             cache_info = data_manager.loader.get_cache_info()
+    #             
+    #             for cache_type, info in cache_info.items():
+    #                 if info['exists']:
+    #                     status_icon = "✅" if info['is_valid'] else "⚠️"
+    #                     st.markdown(f"{status_icon} **{cache_type.title()}**: {info['size_mb']} MB - Modificado: {info['last_modified']}")
+    #                     if not info['is_valid']:
+    #                         st.markdown(f"   ⏰ Caché expirado (hace {abs(info['expires_in_days'])} días)")
+    #                 else:
+    #                     st.markdown(f"❌ **{cache_type.title()}**: No existe")
+    #         except Exception as e:
+    #             st.markdown("⚠️ No se pudo obtener información del caché")
+    #     else:
+    #         st.markdown("📁 Sistema de caché disponible")
+    #     
+    #     st.markdown("---")
+    #     
+    #     col1, col2 = st.columns(2)
+    #     with col1:
+    #         if st.button("🔄 Limpiar Caché Completo", help="Elimina todos los archivos de caché. Los datos se recargarán la próxima vez."):
+    #             if hasattr(data_manager.loader, 'clear_cache'):
+    #                 data_manager.loader.clear_cache('all')
+    #                 st.info("🔄 Reinicia la aplicación para recargar los datos")
+    #             else:
+    #                 st.warning("⚠️ Función de limpieza no disponible")
+    #     
+    #     with col2:
+    #         if st.button("🗑️ Solo Datos Consolidados", help="Limpia solo el caché de datos consolidados"):
+    #             if hasattr(data_manager.loader, 'clear_cache'):
+    #                 data_manager.loader.clear_cache('consolidated')
+    #                 st.info("🔄 Los datos se reconsolidarán automáticamente")
+    #             else:
+    #                 st.warning("⚠️ Función de limpieza no disponible")
 
 # Panel principal
 tab1, tab2, tab3 = st.tabs(["Table View", "Card View", "Heatmap View"])
@@ -1006,13 +1009,13 @@ with tab1:
             for idx, (_, player) in enumerate(paginated_df.iterrows()):
                 cols = st.columns([1, 2, 1, 1, 1, 1, 1, 1, 1, 1])
                 
-                # Columna 1: Foto (36x36px - 20% más grande)
+                # Columna 1: Foto (50x50px - más grande)
                 with cols[0]:
-                    photo_base64 = photo_manager.get_player_photo_base64(player['Name'], size=(36, 36))
+                    photo_base64 = photo_manager.get_player_photo_base64(player['Name'], size=(50, 50))
                     st.markdown(f"""
                         <div style="display: flex; justify-content: center; align-items: center; height: 50px;">
                             <img src="data:image/png;base64,{photo_base64}" 
-                                 style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                                 style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
                         </div>
                     """, unsafe_allow_html=True)
                 
@@ -1025,10 +1028,10 @@ with tab1:
                 # Columna 3: Posición
                 with cols[2]:
                     position_emoji = {
-                        'GK': '🥅', 'CB': '🛡️', 'RB': '⚡', 'LB': '⚡',
-                        'CM': '🎯', 'CDM': '🛡️', 'CAM': '🎨', 
-                        'RW': '⚡', 'LW': '⚡', 'ST': '⚔️'
-                    }.get(player['Position'], '⚽')
+                        'GK': '🟡', 'CB': '🔵', 'RB': '🟢', 'LB': '🟢',
+                        'CM': '⚪', 'CDM': '⚪', 'CAM': '🟠',
+                        'RW': '🟣', 'LW': '🟣', 'ST': '🔴'
+                    }.get(player['Position'], '⚪')
                     st.markdown(f"{position_emoji} {player['Position']}")
                 
                 # Columna 4: Perfil
@@ -1037,26 +1040,26 @@ with tab1:
                 
                 # Columna 5: Pie dominante
                 with cols[4]:
-                    foot_emoji = "🦶🏻" if player.get('Foot') == 'Right' else "🦶🏻" if player.get('Foot') == 'Left' else "⚽"
+                    foot_emoji = "" if player.get('Foot') == 'Right' else "🦶🏻" if player.get('Foot') == 'Left' else "⚽"
                     st.markdown(f"{foot_emoji} {player.get('Foot', 'N/A')}")
                 
                 # Columna 6: Edad
                 with cols[5]:
-                    st.markdown(f"👤 {player['Age']}")
+                    st.markdown(f" {player['Age']}")
                 
                 # Columna 7: Club
                 with cols[6]:
-                    st.markdown(f"⚽ {player['Club']}")
+                    st.markdown(f" {player['Club']}")
                 
                 # Columna 8: Salario
                 with cols[7]:
                     salary = player.get('Salary_Annual', player.get('Salary', 0))
-                    st.markdown(f"💰 {format_salary(salary)}")
+                    st.markdown(f" {format_salary(salary)}")
                 
                 # Columna 9: Valor de mercado
                 with cols[8]:
                     market_val = player.get('Market_Value', player.get('Market Value', 0))
-                    st.markdown(f"💎 {format_market_value(market_val)}")
+                    st.markdown(f" {format_market_value(market_val)}")
                 
                 # Columna 10: Rating con color
                 with cols[9]:
@@ -1155,10 +1158,10 @@ with tab2:
                     
                     # Determinar emoji de posición
                     position_emoji = {
-                        'GK': '🥅', 'CB': '🛡️', 'RB': '⚡', 'LB': '⚡',
-                        'CM': '🎯', 'CDM': '🛡️', 'CAM': '🎨', 
-                        'RW': '⚡', 'LW': '⚡', 'ST': '⚔️'
-                    }.get(player['Position'], '⚽')
+                        'GK': '🟡', 'CB': '🔵', 'RB': '🟢', 'LB': '🟢',
+                        'CM': '⚪', 'CDM': '⚪', 'CAM': '🟠',
+                        'RW': '🟣', 'LW': '🟣', 'ST': '🔴'
+                    }.get(player['Position'], '⚫')
                     
                     # Color del badge según rating (nuevo sistema 40-99)
                     if player['Rating'] >= 85:
