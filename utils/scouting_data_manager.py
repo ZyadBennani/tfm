@@ -16,19 +16,22 @@ class ScoutingDataManager:
         self._use_real_data = True  # Flag para usar datos reales o de muestra
         
     def get_consolidated_data(self, use_real_data: bool = True) -> pd.DataFrame:
-        """Obtiene los datos consolidados de jugadores con caché persistente"""
+        """Obtiene los datos consolidados de jugadores con caché PERMANENTE"""
         
         if not use_real_data:
             # Usar datos de muestra para testing
             return self.loader.get_sample_data()
 
-        # Verificar si hay caché consolidado válido
+        # ⭐ CACHE PERMANENTE - Si existe el consolidado, lo usa siempre
         if self.loader._is_cache_valid(self.loader.cache_files['consolidated']):
             cached_data = self.loader._load_from_cache(self.loader.cache_files['consolidated'])
             if cached_data is not None:
                 return cached_data
 
         try:
+            # ⭐ PROCESAR DATOS SOLO LA PRIMERA VEZ
+            st.info("🔄 Consolidando datos de todas las fuentes... (solo la primera vez)")
+            
             # Cargar datos con caché individual
             norm_data = self.loader.load_normalization_data()
             fbref_df = self.loader.load_fbref_data()
@@ -39,8 +42,9 @@ class ScoutingDataManager:
             consolidated_df = self.processor.consolidate_player_data(fbref_df, tm_df, cap_df, norm_data)
             
             if not consolidated_df.empty:
-                # Guardar datos consolidados en caché
+                # ⭐ GUARDAR CONSOLIDADO PERMANENTE
                 self.loader._save_to_cache(consolidated_df, self.loader.cache_files['consolidated'])
+                st.success(f"🎉 ¡Datos consolidados listos! ({len(consolidated_df)} jugadores) - Las próximas cargas serán instantáneas")
                 return consolidated_df
             else:
                 return self.loader.get_sample_data()

@@ -288,65 +288,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Filtros rápidos
-st.markdown('<h3 style="margin-top: 0.5rem !important; margin-bottom: 0.3rem !important;">⚡ Filtros Rápidos</h3>', unsafe_allow_html=True)
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    if st.button("🌟 Jóvenes Promesas", use_container_width=True):
-        # LIMPIAR FILTROS PRIMERO
-        keys_to_reset = [
-            'position_select', 'profile_select', 'foot', 'nationality',
-            'contract_year', 'market_value', 'max_salary_k', 'height_range',
-            'has_clause', 'metrics_90', 'contract_years', 'age_range', 'rating_min',
-            'free_market_filter', 'elite_filter'
-        ]
-        for key in keys_to_reset:
-            if key in st.session_state:
-                del st.session_state[key]
-        
-        # APLICAR FILTROS ESPECÍFICOS DE JÓVENES PROMESAS
-        st.session_state['young_prospects_filter'] = True
-        st.session_state.current_page = 1
-
-with col2:
-    if st.button("🆓 Mercado Libre", use_container_width=True):
-        # LIMPIAR FILTROS PRIMERO
-        keys_to_reset = [
-            'position_select', 'profile_select', 'age_range', 'rating_min',
-            'foot', 'nationality', 'market_value', 'max_salary_k', 
-            'height_range', 'has_clause', 'metrics_90', 'contract_year',
-            'young_prospects_filter', 'elite_filter'
-        ]
-        for key in keys_to_reset:
-            if key in st.session_state:
-                del st.session_state[key]
-        
-        # APLICAR FILTRO ESPECÍFICO DE MERCADO LIBRE
-        st.session_state['free_market_filter'] = True
-        st.session_state.current_page = 1
-
-with col3:
-    if st.button("⭐ Elite", use_container_width=True):
-        # LIMPIAR FILTROS PRIMERO
-        keys_to_reset = [
-            'position_select', 'profile_select', 'foot', 'nationality',
-            'contract_year', 'market_value', 'max_salary_k', 'height_range',
-            'has_clause', 'metrics_90', 'contract_years', 'age_range', 'rating_min',
-            'young_prospects_filter', 'free_market_filter'
-        ]
-        for key in keys_to_reset:
-            if key in st.session_state:
-                del st.session_state[key]
-        
-        # APLICAR FILTROS ESPECÍFICOS DE ELITE
-        st.session_state['elite_filter'] = True
-        st.session_state.current_page = 1
-
-with col4:
-    # Espacio vacío para mantener el diseño
-    st.write("")
-
 # Reducir espacio del divisor
 st.markdown('<hr style="margin: 0.5rem 0;">', unsafe_allow_html=True)
 
@@ -410,8 +351,7 @@ with st.sidebar:
             st.session_state[k] = v
     
     # 📍 SECCIÓN 1: CARACTERÍSTICAS BÁSICAS
-    with st.expander("📍 **Características Básicas**", expanded=True):
-    
+    with st.expander("📍 **Características Básicas**", expanded=False):
         # Posición
         position_options = ["All", "GK", "CB", "RB", "LB", "CM-CDM", "CAM", "RW", "LW", "ST"]
         position_index = position_options.index(st.session_state.get('position_select', 'All')) if st.session_state.get('position_select', 'All') in position_options else 0
@@ -431,7 +371,6 @@ with st.sidebar:
             index=profile_index,
             key="profile_select"
         )
-        
         
         # Edad - ajustar según filtros especiales
         default_age = (15, 40)
@@ -490,7 +429,7 @@ with st.sidebar:
             index=club_index,
             key="club"
         )
-    
+        
         # País
         nationality_options = [
             "Todos los países",
@@ -598,7 +537,7 @@ with st.sidebar:
         )
     
     # 💰 SECCIÓN 2: ASPECTOS ECONÓMICOS
-    with st.expander("💰 **Aspectos Económicos**", expanded=True):
+    with st.expander("💰 **Aspectos Económicos**", expanded=False):
         st.markdown("##### Valor y Salario")
         # Valor de mercado
         market_value = st.slider("Valor de Mercado (M€)", 0, 200, st.session_state.get('market_value', (0, 200)), key="market_value")
@@ -667,6 +606,61 @@ with st.sidebar:
         
         if metrics_90:
             st.info(f"TOP 10 jugadores con mejor {', '.join(metrics_90)} (mínimo 1000 minutos jugados)")
+
+    # ⚡ SECCIÓN 4: FILTROS RÁPIDOS
+    with st.expander("⚡ **Filtros Rápidos**", expanded=False):
+        
+        
+        if st.button("🌟 Jóvenes Promesas", use_container_width=True, help="Jugadores de 16-22 años con rating 70+"):
+            # LIMPIAR FILTROS PRIMERO
+            keys_to_reset = [
+                'position_select', 'profile_select', 'foot', 'nationality',
+                'contract_year', 'market_value', 'max_salary_k', 'height_range',
+                'has_clause', 'metrics_90', 'contract_years', 'age_range', 'rating_min',
+                'free_market_filter', 'elite_filter'
+            ]
+            for key in keys_to_reset:
+                if key in st.session_state:
+                    del st.session_state[key]
+            
+            # APLICAR FILTROS ESPECÍFICOS DE JÓVENES PROMESAS
+            st.session_state['young_prospects_filter'] = True
+            st.session_state.current_page = 1
+            st.success("✅ Filtro aplicado: Jóvenes Promesas")
+        
+        if st.button("🆓 Libres", use_container_width=True, help="Jugadores con contrato terminando en 2025"):
+            # LIMPIAR FILTROS PRIMERO
+            keys_to_reset = [
+                'position_select', 'profile_select', 'age_range', 'rating_min',
+                'foot', 'nationality', 'market_value', 'max_salary_k', 
+                'height_range', 'has_clause', 'metrics_90', 'contract_year',
+                'young_prospects_filter', 'elite_filter'
+            ]
+            for key in keys_to_reset:
+                if key in st.session_state:
+                    del st.session_state[key]
+            
+            # APLICAR FILTRO ESPECÍFICO DE MERCADO LIBRE
+            st.session_state['free_market_filter'] = True
+            st.session_state.current_page = 1
+            st.success("✅ Filtro aplicado: Mercado Libre")
+        
+        if st.button("⭐ Elite", use_container_width=True, help="Jugadores de 22-30 años con rating 83+"):
+            # LIMPIAR FILTROS PRIMERO
+            keys_to_reset = [
+                'position_select', 'profile_select', 'foot', 'nationality',
+                'contract_year', 'market_value', 'max_salary_k', 'height_range',
+                'has_clause', 'metrics_90', 'contract_years', 'age_range', 'rating_min',
+                'young_prospects_filter', 'free_market_filter'
+            ]
+            for key in keys_to_reset:
+                if key in st.session_state:
+                    del st.session_state[key]
+            
+            # APLICAR FILTROS ESPECÍFICOS DE ELITE
+            st.session_state['elite_filter'] = True
+            st.session_state.current_page = 1
+            st.success("✅ Filtro aplicado: Elite")
 
     # 🔄 BOTÓN DE ACCIÓN
     if st.button("🗑️ Limpiar Todo", use_container_width=True):
@@ -839,7 +833,7 @@ with tab1:
         photo_manager = get_photo_manager_cached()
         photo_stats = photo_manager.get_stats()
         
-        col1, col2, col3, col4, col5 = st.columns(5)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.metric("Jugadores Encontrados", filtered_stats['total_players'])
         with col2:
@@ -848,8 +842,6 @@ with tab1:
             st.metric("Clubes", filtered_stats['total_clubs'])
         with col4:
             st.metric("Rating Promedio", f"{filtered_stats['avg_rating']:.1f}")
-        with col5:
-            st.metric("📸 Fotos", photo_stats['total_photos'])
     else:
         st.info("No se encontraron jugadores con los filtros aplicados.")
     
@@ -1045,7 +1037,7 @@ with tab1:
                 
                 # Columna 6: Edad
                 with cols[5]:
-                    st.markdown(f" {player['Age']}")
+                    st.markdown(f" {int(player['Age'])}")
                 
                 # Columna 7: Club
                 with cols[6]:
@@ -1079,7 +1071,6 @@ with tab1:
             st.info("No se encontraron jugadores con los filtros aplicados.")
         
         # Botones de acción para shortlist
-    
         col1, col2, col3 = st.columns([2, 2, 4])
         
         with col1:
@@ -1182,19 +1173,19 @@ with tab2:
                         photo_base64 = photo_manager.get_player_photo_base64(player['Name'], size=(80, 80))
                         
                         st.markdown(f"""
-            <div class="player-card">
+                            <div class="player-card">
                                 <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
                                     <img src="data:image/png;base64,{photo_base64}" 
                                          style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; 
                                                 border: 3px solid #004D98; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
                                 </div>
                                 <h3 style="text-align: center; margin-bottom: 0.5rem;">{player['Name']}</h3>
-                                <p style="text-align: center;">{position_emoji} {player['Position']} | 👤 {player['Age']} años</p>
+                                <p style="text-align: center;">{position_emoji} {player['Position']} | 👤 {int(player['Age'])} años</p>
                                 <p style="text-align: center;">{player['Nationality']} | ⚽ {player['Club']}</p>
                                 <p style="text-align: center;">💰 €{player.get('Market_Value', 0):.1f}M | 📏 {player['Height']}cm</p>
                                 <div style="display: flex; justify-content: center; margin-top: 0.5rem;">
                                     <div style="background-color: {badge_color}; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 1rem; font-weight: 600;">
-                                        Rating: {player['Rating']}
+                                    Rating: {player['Rating']}
                                     </div>
                                 </div>
                                 <div style="margin-top: 1rem;">
@@ -1205,8 +1196,8 @@ with tab2:
                                         Ver Perfil
                                     </button>
                                 </div>
-            </div>
-        """, unsafe_allow_html=True)
+                            </div>
+                        """, unsafe_allow_html=True)
     else:
         st.info("No se encontraron jugadores con los filtros aplicados. Prueba ajustando los criterios de búsqueda.")
 
@@ -1284,3 +1275,37 @@ st.download_button(
     file_name="scouting_report.pdf",
     mime="application/pdf"
 ) 
+
+# ⭐ PANEL DE INFORMACIÓN DEL CACHE (en sidebar)
+with st.sidebar:
+    st.markdown("---")
+    with st.expander("🚀 Estado del Cache", expanded=False):
+        data_manager = get_data_manager()
+        cache_info = data_manager.loader.get_cache_info()
+        
+        st.markdown(f"**Tamaño Total:** {cache_info.get('total_size_mb', 0)} MB")
+        
+        for cache_type, info in cache_info.items():
+            if isinstance(info, dict) and 'exists' in info:
+                status_icon = "✅" if info['exists'] else "⏳"
+                st.markdown(f"**{cache_type.title()}:** {status_icon}")
+                if info['exists']:
+                    st.markdown(f"  - Tamaño: {info.get('size_mb', 0)} MB")
+                    st.markdown(f"  - Modificado: {info.get('modified', 'N/A')}")
+        
+        st.markdown("---")
+        st.markdown("**⚠️ Gestión del Cache:**")
+        
+        if st.button("🗑️ Limpiar Cache", help="Solo usar si hay problemas"):
+            data_manager.loader.clear_cache('all')
+            st.success("Cache limpiado - refresca la página manualmente")
+        
+        if st.button("🔄 Regenerar Cache", help="Fuerza la regeneración completa"):
+            data_manager.loader.force_rebuild_cache()
+            st.success("Cache regenerado - refresca la página manualmente")
+        
+        st.markdown("""
+        <div style='background-color: #f0f9ff; padding: 10px; border-radius: 5px; margin-top: 10px;'>
+        <small><strong>💡 Tip:</strong> El cache permanente hace que la app cargue en 3-5 segundos después de la primera vez.</small>
+        </div>
+        """, unsafe_allow_html=True) 

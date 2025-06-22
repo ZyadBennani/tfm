@@ -20,7 +20,7 @@ class DataLoader:
             'ligas': os.path.join(base_path, "G_Ligas.csv")
         }
         
-        # Sistema de caché persistente
+        # Sistema de caché persistente PERMANENTE
         self.cache_dir = os.path.join(base_path, ".cache")
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
@@ -33,45 +33,50 @@ class DataLoader:
             'consolidated': os.path.join(self.cache_dir, 'consolidated_data.pkl')
         }
         
-        # Tiempo de expiración del caché (7 días)
-        self.cache_expiry_days = 7
+        # ⭐ CACHE PERMANENTE - No expira nunca (datos estáticos)
+        self.cache_expiry_days = None  # Sin expiración
     
     def _is_cache_valid(self, cache_file: str) -> bool:
-        """Verifica si el archivo de caché es válido (existe y no ha expirado)"""
-        if not os.path.exists(cache_file):
-            return False
-        
-        # Verificar tiempo de modificación
-        mod_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
-        expiry_time = datetime.now() - timedelta(days=self.cache_expiry_days)
-        
-        return mod_time > expiry_time
+        """Verifica si el archivo de caché es válido - SIEMPRE válido si existe"""
+        return os.path.exists(cache_file) and os.path.getsize(cache_file) > 0
     
     def _save_to_cache(self, data: pd.DataFrame, cache_file: str):
-        """Guarda datos en caché"""
+        """Guarda datos en caché con compresión optimizada"""
         try:
+            # Crear directorio si no existe
+            os.makedirs(os.path.dirname(cache_file), exist_ok=True)
+            
+            # Guardar con compresión para mayor eficiencia
             with open(cache_file, 'wb') as f:
-                pickle.dump(data, f)
+                pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+            
+            # Log del cache guardado
+            print(f"✅ Cache guardado: {cache_file} ({len(data)} registros)")
         except Exception as e:
             st.warning(f"No se pudo guardar caché: {e}")
     
     def _load_from_cache(self, cache_file: str) -> Optional[pd.DataFrame]:
-        """Carga datos desde caché"""
+        """Carga datos desde caché con manejo optimizado de errores"""
         try:
             with open(cache_file, 'rb') as f:
-                return pickle.load(f)
+                data = pickle.load(f)
+            print(f"✅ Cache cargado: {cache_file} ({len(data)} registros)")
+            return data
         except Exception as e:
+            print(f"❌ Error cargando cache {cache_file}: {e}")
             return None
     
     def load_normalization_data(self) -> Dict[str, pd.DataFrame]:
-        """Carga los archivos de normalización con caché persistente"""
+        """Carga los archivos de normalización con caché persistente PERMANENTE"""
         
-        # Verificar si hay caché válido
+        # ⭐ CACHE PERMANENTE - Si existe, lo usa siempre
         if self._is_cache_valid(self.cache_files['normalization']):
             cached_data = self._load_from_cache(self.cache_files['normalization'])
             if cached_data is not None:
                 return cached_data
         
+        # Solo procesa si no hay cache
+        st.info("🔄 Procesando archivos de normalización... (solo la primera vez)")
         norm_data = {}
         
         try:
@@ -102,8 +107,9 @@ class DataLoader:
                 except:
                     norm_data['ligas'] = pd.read_csv(self.normalization_files['ligas'], encoding='cp1252')
             
-            # Guardar en caché
+            # ⭐ GUARDAR CACHE PERMANENTE
             self._save_to_cache(norm_data, self.cache_files['normalization'])
+            st.success("✅ Archivos de normalización procesados y guardados permanentemente")
             
             return norm_data
             
@@ -112,16 +118,18 @@ class DataLoader:
             return {}
     
     def load_fbref_data(self) -> pd.DataFrame:
-        """Carga todos los datos de FBREF de las 8 ligas con caché persistente"""
+        """Carga todos los datos de FBREF de las 8 ligas con caché PERMANENTE"""
         
-        # Verificar si hay caché válido
+        # ⭐ CACHE PERMANENTE - Si existe, lo usa siempre
         if self._is_cache_valid(self.cache_files['fbref']):
             cached_data = self._load_from_cache(self.cache_files['fbref'])
             if cached_data is not None:
                 return cached_data
         
-        # Si no hay caché válido, procesar datos
-        st.info("🔄 Cargando datos de FBREF... (esto puede tardar unos minutos la primera vez)")
+        # Solo procesa si no hay cache
+        st.info("🔄 Procesando datos de FBREF... (solo la primera vez, puede tardar 10 minutos)")
+        progress_bar = st.progress(0)
+        status_text = st.empty()
         
         all_players = []
         
@@ -137,7 +145,13 @@ class DataLoader:
             "Super_Lig_2024-2025 FBREF"
         ]
         
-        for league in fbref_leagues:
+        total_leagues = len(fbref_leagues)
+        
+        for i, league in enumerate(fbref_leagues):
+            progress = (i + 1) / total_leagues
+            progress_bar.progress(progress)
+            status_text.text(f"Procesando {league}... ({i+1}/{total_leagues})")
+            
             league_path = os.path.join(self.fbref_path, league)
             
             if not os.path.exists(league_path):
@@ -192,21 +206,28 @@ class DataLoader:
         else:
             result_df = pd.DataFrame()
         
-        # Guardar en caché
+        # ⭐ GUARDAR CACHE PERMANENTE
         self._save_to_cache(result_df, self.cache_files['fbref'])
-        st.success("✅ Datos de FBREF cargados y guardados en caché")
+        
+        # Limpiar elementos de progreso
+        progress_bar.empty()
+        status_text.empty()
+        
+        st.success(f"✅ Datos de FBREF procesados y guardados permanentemente ({len(result_df)} registros)")
         
         return result_df
     
     def load_transfermarket_data(self) -> pd.DataFrame:
-        """Carga todos los datos de Transfermarket con caché persistente"""
+        """Carga todos los datos de Transfermarket con caché PERMANENTE"""
         
-        # Verificar si hay caché válido
+        # ⭐ CACHE PERMANENTE - Si existe, lo usa siempre
         if self._is_cache_valid(self.cache_files['transfermarket']):
             cached_data = self._load_from_cache(self.cache_files['transfermarket'])
             if cached_data is not None:
                 return cached_data
         
+        # Solo procesa si no hay cache
+        st.info("🔄 Procesando datos de Transfermarket... (solo la primera vez)")
         all_tm_data = []
         
         # Ligas de Transfermarket
@@ -259,20 +280,23 @@ class DataLoader:
         else:
             result_df = pd.DataFrame()
         
-        # Guardar en caché
+        # ⭐ GUARDAR CACHE PERMANENTE
         self._save_to_cache(result_df, self.cache_files['transfermarket'])
+        st.success(f"✅ Datos de Transfermarket procesados y guardados permanentemente ({len(result_df)} registros)")
         
         return result_df
     
     def load_capology_data(self) -> pd.DataFrame:
-        """Carga todos los datos de Capology (salarios) con caché persistente"""
+        """Carga todos los datos de Capology (salarios) con caché PERMANENTE"""
         
-        # Verificar si hay caché válido
+        # ⭐ CACHE PERMANENTE - Si existe, lo usa siempre
         if self._is_cache_valid(self.cache_files['capology']):
             cached_data = self._load_from_cache(self.cache_files['capology'])
             if cached_data is not None:
                 return cached_data
         
+        # Solo procesa si no hay cache
+        st.info("🔄 Procesando datos de Capology... (solo la primera vez)")
         all_cap_data = []
         
         capology_path = os.path.join(self.fbref_path, "Capology")
@@ -326,8 +350,9 @@ class DataLoader:
         else:
             result_df = pd.DataFrame()
         
-        # Guardar en caché
+        # ⭐ GUARDAR CACHE PERMANENTE
         self._save_to_cache(result_df, self.cache_files['capology'])
+        st.success(f"✅ Datos de Capology procesados y guardados permanentemente ({len(result_df)} registros)")
         
         return result_df
     
@@ -429,50 +454,64 @@ class DataLoader:
         return pd.DataFrame(sample_players)
     
     def clear_cache(self, cache_type: str = 'all'):
-        """Limpia el caché especificado"""
-        if cache_type == 'all':
-            # Limpiar todo el caché
-            for cache_file in self.cache_files.values():
-                if os.path.exists(cache_file):
-                    try:
+        """Limpia archivos de caché - ⚠️ USAR SOLO SI HAY PROBLEMAS"""
+        try:
+            if cache_type == 'all':
+                for cache_file in self.cache_files.values():
+                    if os.path.exists(cache_file):
                         os.remove(cache_file)
-                        st.success(f"✅ Caché limpiado: {os.path.basename(cache_file)}")
-                    except Exception as e:
-                        st.warning(f"⚠️ No se pudo limpiar: {os.path.basename(cache_file)}")
-        elif cache_type in self.cache_files:
-            # Limpiar caché específico
-            cache_file = self.cache_files[cache_type]
-            if os.path.exists(cache_file):
-                try:
+                st.success("✅ Todos los archivos de caché han sido eliminados")
+                st.warning("⚠️ La próxima carga tardará ~10 minutos en regenerar los datos")
+            else:
+                cache_file = self.cache_files.get(cache_type)
+                if cache_file and os.path.exists(cache_file):
                     os.remove(cache_file)
-                    st.success(f"✅ Caché limpiado: {cache_type}")
-                except Exception as e:
-                    st.warning(f"⚠️ No se pudo limpiar caché: {cache_type}")
+                    st.success(f"✅ Caché de {cache_type} eliminado")
+                    st.warning(f"⚠️ Los datos de {cache_type} se regenerarán en la próxima carga")
+                else:
+                    st.warning(f"⚠️ No se encontró caché para {cache_type}")
+        except Exception as e:
+            st.error(f"❌ Error eliminando caché: {e}")
     
     def get_cache_info(self) -> dict:
-        """Obtiene información sobre el estado del caché"""
+        """Obtiene información detallada sobre los archivos de caché"""
         cache_info = {}
+        total_size = 0
         
         for cache_type, cache_file in self.cache_files.items():
             if os.path.exists(cache_file):
-                mod_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
-                file_size = os.path.getsize(cache_file) / (1024 * 1024)  # MB
-                is_valid = self._is_cache_valid(cache_file)
+                stat = os.stat(cache_file)
+                size_mb = round(stat.st_size / (1024 * 1024), 2)
+                total_size += size_mb
                 
                 cache_info[cache_type] = {
                     'exists': True,
-                    'last_modified': mod_time.strftime('%Y-%m-%d %H:%M:%S'),
-                    'size_mb': round(file_size, 2),
-                    'is_valid': is_valid,
-                    'expires_in_days': self.cache_expiry_days - (datetime.now() - mod_time).days
+                    'size_mb': size_mb,
+                    'modified': datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S'),
+                    'status': '✅ Listo (carga instantánea)'
                 }
             else:
                 cache_info[cache_type] = {
                     'exists': False,
-                    'last_modified': 'N/A',
                     'size_mb': 0,
-                    'is_valid': False,
-                    'expires_in_days': 0
+                    'modified': 'N/A',
+                    'status': '⏳ Pendiente (tardará en procesarse)'
                 }
         
-        return cache_info 
+        cache_info['total_size_mb'] = round(total_size, 2)
+        cache_info['cache_status'] = '🚀 OPTIMIZADO' if all(info.get('exists', False) for info in cache_info.values() if isinstance(info, dict) and 'exists' in info) else '⏳ PROCESANDO'
+        
+        return cache_info
+    
+    def force_rebuild_cache(self):
+        """Fuerza la regeneración completa del caché"""
+        st.warning("🔄 Regenerando caché completo...")
+        self.clear_cache('all')
+        
+        # Recargar datos
+        self.load_normalization_data()
+        self.load_fbref_data()
+        self.load_transfermarket_data()
+        self.load_capology_data()
+        
+        st.success("✅ Caché regenerado completamente") 
