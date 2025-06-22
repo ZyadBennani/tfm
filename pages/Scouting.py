@@ -15,6 +15,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from utils.scouting_data_manager import ScoutingDataManager
 from utils.player_photo_manager import get_photo_manager
+from utils.rating_calculator import RatingCalculator
 
 # Configuración de la página
 st.set_page_config(
@@ -32,6 +33,11 @@ def get_data_manager():
 @st.cache_resource
 def get_photo_manager_cached():
     return get_photo_manager()
+
+# Inicializar el calculador de rating
+@st.cache_resource
+def get_rating_calculator():
+    return RatingCalculator()
 
 # Estilos CSS personalizados
 st.markdown("""
@@ -284,6 +290,7 @@ st.markdown("""
         <h1 style='margin: 0; color: #1a1a1a; font-size: 2rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;'>
             <span style='font-size: 2.2rem;'>⚽</span>
             <span>Player Scouting</span>
+            <span style='font-size: 1.2rem; background: linear-gradient(135deg, #004D98 0%, #A50044 100%); color: white; padding: 0.2rem 0.5rem; border-radius: 15px; margin-left: 1rem;'>⚡ Rating System</span>
         </h1>
     </div>
 """, unsafe_allow_html=True)
@@ -802,6 +809,17 @@ with tab1:
     
     filtered_df = data_manager.apply_filters(df, filters)
     
+    # 🔥 CALCULAR RATINGS AUTOMÁTICAMENTE
+    if not filtered_df.empty:
+        try:
+            rating_calculator = get_rating_calculator()
+            filtered_df = rating_calculator.bulk_calculate_ratings(filtered_df)
+            # Usar rating calculado si está disponible, sino usar el original
+            filtered_df['Display_Rating'] = filtered_df.get('Calculated_Rating', filtered_df.get('Rating', 65))
+        except Exception as e:
+            st.warning(f"⚠️ Sistema de rating no disponible: {str(e)}")
+            filtered_df['Display_Rating'] = filtered_df.get('Rating', 65)
+    
     # Contador de resultados y paginación
     total_results = len(filtered_df)
     
@@ -1053,13 +1071,24 @@ with tab1:
                     market_val = player.get('Market_Value', player.get('Market Value', 0))
                     st.markdown(f" {format_market_value(market_val)}")
                 
-                # Columna 10: Rating con color
+                # Columna 10: Rating con color (usar rating calculado)
                 with cols[9]:
-                    rating_color = get_rating_color(player['Rating'])
+                    display_rating = player.get('Display_Rating', player.get('Calculated_Rating', player.get('Rating', 65)))
+                    rating_color = get_rating_color(display_rating)
+                    
+                    # Mostrar rating original vs calculado si son diferentes
+                    original_rating = player.get('Rating', 65)
+                    if abs(display_rating - original_rating) > 1:
+                        tooltip = f"Original: {original_rating} → Calculado: {display_rating}"
+                        rating_display = f"{display_rating} ⚡"
+                    else:
+                        rating_display = f"{display_rating}"
+                        tooltip = f"Rating: {display_rating}"
+                    
                     st.markdown(f"""
-                        <div style="background-color: {rating_color}; color: white; padding: 0.2rem 0.5rem; 
+                        <div title="{tooltip}" style="background-color: {rating_color}; color: white; padding: 0.2rem 0.5rem; 
                                     border-radius: 12px; text-align: center; font-weight: bold; font-size: 0.9rem;">
-                            {player['Rating']}
+                            {rating_display}
                         </div>
                     """, unsafe_allow_html=True)
                 
@@ -1154,12 +1183,13 @@ with tab2:
                         'RW': '🟣', 'LW': '🟣', 'ST': '🔴'
                     }.get(player['Position'], '⚫')
                     
-                    # Color del badge según rating (nuevo sistema 40-99)
-                    if player['Rating'] >= 85:
+                    # Color del badge según rating calculado (nuevo sistema 40-99)
+                    display_rating = player.get('Display_Rating', player.get('Calculated_Rating', player.get('Rating', 65)))
+                    if display_rating >= 85:
                         badge_color = "#22c55e"  # Verde (Excelente)
-                    elif player['Rating'] >= 75:
+                    elif display_rating >= 75:
                         badge_color = "#f59e0b"  # Amarillo (Bueno)
-                    elif player['Rating'] >= 65:
+                    elif display_rating >= 65:
                         badge_color = "#ef4444"  # Rojo (Regular)
                     else:
                         badge_color = "#6b7280"  # Gris (Bajo)
@@ -1185,7 +1215,7 @@ with tab2:
                                 <p style="text-align: center;">💰 €{player.get('Market_Value', 0):.1f}M | 📏 {player['Height']}cm</p>
                                 <div style="display: flex; justify-content: center; margin-top: 0.5rem;">
                                     <div style="background-color: {badge_color}; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 1rem; font-weight: 600;">
-                                    Rating: {player['Rating']}
+                                    Rating: {display_rating} ⚡
                                     </div>
                                 </div>
                                 <div style="margin-top: 1rem;">
@@ -1308,4 +1338,21 @@ with st.sidebar:
         <div style='background-color: #f0f9ff; padding: 10px; border-radius: 5px; margin-top: 10px;'>
         <small><strong>💡 Tip:</strong> El cache permanente hace que la app cargue en 3-5 segundos después de la primera vez.</small>
         </div>
-        """, unsafe_allow_html=True) 
+        """, unsafe_allow_html=True)
+        
+        # ⚡ INFORMACIÓN DEL SISTEMA DE RATING 
+        try:
+            rating_calculator = get_rating_calculator()
+            profiles_count = len(rating_calculator.profiles_data)
+            if profiles_count > 0:
+                st.markdown("---")
+                st.markdown("⚡ **Sistema de Rating Activo**")
+                st.markdown(f"✅ {profiles_count} perfiles cargados")
+                st.markdown("🎯 Rating basado en métricas específicas por posición")
+                st.markdown("🏆 Ponderación por liga (Bota de Oro)")
+                st.markdown("⏱️ Factor minutos jugados incluido")
+                st.info("Los ratings mostrados con ⚡ son calculados automáticamente")
+            else:
+                st.warning("⚠️ Sistema de rating no disponible")
+        except:
+            st.warning("⚠️ Sistema de rating no disponible")
