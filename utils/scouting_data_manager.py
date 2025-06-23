@@ -128,9 +128,10 @@ class ScoutingDataManager:
             min_age, max_age = filters['age_range']
             filtered_df = filtered_df[(filtered_df['Age'] >= min_age) & (filtered_df['Age'] <= max_age)]
         
-        # Filtro por rating
+        # Filtro por rating (usar rating calculado si está disponible)
         if filters.get('rating_min'):
-            filtered_df = filtered_df[filtered_df['Rating'] >= filters['rating_min']]
+            rating_column = 'Display_Rating' if 'Display_Rating' in filtered_df.columns else 'Calculated_Rating' if 'Calculated_Rating' in filtered_df.columns else 'Rating'
+            filtered_df = filtered_df[filtered_df[rating_column] >= filters['rating_min']]
         
         # Filtro por altura
         if filters.get('height_range'):

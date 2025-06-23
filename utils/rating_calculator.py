@@ -10,10 +10,11 @@ class RatingCalculator:
     def __init__(self, profiles_file_path: str = "rating_profiles.xlsx"):
         self.profiles_file_path = profiles_file_path
         self.profiles_data = {}
+        # MULTIPLICADORES EQUILIBRADOS
         self.league_multipliers = {
-            'Premier League': 2.0, 'La Liga': 2.0, 'Serie A': 2.0, 
-            'Bundesliga': 2.0, 'Ligue 1': 2.0,
-            'Liga Portugal': 1.5, 'Eredivisie': 1.5, 'Süper Lig': 1.5,
+            'Premier League': 1.5, 'La Liga': 1.5, 'Serie A': 1.5, 
+            'Bundesliga': 1.5, 'Ligue 1': 1.5,  # Equilibrado: 1.5 para top 5
+            'Liga Portugal': 1.3, 'Eredivisie': 1.3, 'Süper Lig': 1.3,  # 1.3 para segundo tier
             'default': 1.0
         }
         self._load_profiles()
@@ -43,31 +44,118 @@ class RatingCalculator:
             (30, 'LW/RW - Wide Playmaker'), (35, 'ST - Target Man')
         ]
         
-        # Datos de métricas hardcodeados basados en el análisis del Excel
+        # TODOS LOS PERFILES (3 por posición) - Datos completos del Excel
         hardcoded_profiles = {
+            # PORTEROS (3 perfiles)
             'Sweeper': {
-                'sin_balon': {'#OPA /90': 20, 'Crosses Stopped %': 13, 'PSxG +/-': 17},
-                'con_balon': {'Headed shots /90': 13, 'Shots /90': 16.66, 'Key passes /90': 16.67, 'npxG /90': 16.67}
+                'sin_balon': {'#OPA /90': 20, 'Crosses Stopped %': 13, 'PSxG +/-': 17, 'Clean‑Sheet %': 16.66, 'Pen Save %': 16.67},
+                'con_balon': {'Long pass completion %': 16.66, 'Touches outside box /90': 16.67, 'Progressive passes /90': 16.67}
             },
+            'Line Keeper': {
+                'sin_balon': {'Save %': 20, 'PSxG +/-': 17, 'Shots‑on‑Target Against': 13, 'Clean‑Sheet %': 16.66, 'Pen Save %': 16.67},
+                'con_balon': {'Launch %': 16.67}
+            },
+            'Traditional': {
+                'sin_balon': {'Save %': 20, 'Clean‑Sheet %': 13, 'Crosses Stopped %': 17, 'GA /90': 16.66},
+                'con_balon': {'Launch %': 16.67, 'Goal Kicks Avg Length': 16.67}
+            },
+            
+            # DEFENSAS CENTRALES (3 perfiles)
             'Ball Playing': {
-                'sin_balon': {'Blocks /90': 16.66, 'Clearances /90': 16.67, 'Aerial Win %': 16.67},
-                'con_balon': {'Progressive passes /90': 20, 'Pass Completion %': 16.67, 'Long Pass Cmp %': 13}
+                'sin_balon': {'Blocks /90': 16.66, 'Clearances /90': 16.67, 'Aerial Win %': 16.67, 'Tackles /90': 20, 'Interceptions /90': 20},
+                'con_balon': {'Progressive passes /90': 20, 'Pass Completion %': 16.67, 'Long Pass Cmp %': 13, 'Passes into Final 3rd /90': 17}
             },
+            'Stopper': {
+                'sin_balon': {'Tackles /90': 20, 'Aerial Duels Contested': 17, 'Aerial Win %': 13, 'Blocks /90': 16.67, 'Fouls Committed /90': 16.66},
+                'con_balon': {}
+            },
+            'Sweeper': {
+                'sin_balon': {'Interceptions /90': 20, 'Clearances /90': 17, 'Blocks /90': 13, 'Ball Recoveries /90': 16.66},
+                'con_balon': {'Progressive passes /90': 16.67, 'Pass Completion %': 16.67, 'Carries into Final 3rd /90': 16.66}
+            },
+            
+            # LATERALES (3 perfiles)
+            'Defensive': {
+                'sin_balon': {'Tackles Def 3rd /90': 20, 'Interceptions /90': 17, 'Blocks /90': 16.66, 'Ball Recoveries /90': 16.67, 'Clearances /90': 16.67},
+                'con_balon': {'Pass Completion %': 16.67, 'Progressive passes /90': 20, 'Passes into Final 3rd /90': 13}
+            },
+            'Progressive': {
+                'sin_balon': {'Tackles Mid 3rd /90': 16.66, 'Interceptions /90': 16.67, 'Ball Recoveries /90': 16.67},
+                'con_balon': {'Progressive carries /90': 20, 'Progressive passes /90': 17, 'Pass Completion %': 16.67, 'Touches in Final 3rd /90': 13}
+            },
+            'Offensive': {
+                'sin_balon': {'Tackles Att 3rd /90': 16.67, 'Ball Recoveries /90': 16.67},
+                'con_balon': {'Crossing accuracy %': 20, 'Dribbles completed /90': 17, 'Touches in Final 3rd /90': 13, 'Carries into Final 3rd /90': 16.66}
+            },
+            
+            # MEDIOCENTROS DEFENSIVOS (3 perfiles)
+            'Deep Lying': {
+                'sin_balon': {'Tackles+Interceptions /90': 20, 'Ball Recoveries /90': 16.67, 'Fouls Committed /90': 16.67, 'Blocks Shots /90': 17, 'Clearances /90': 16.66},
+                'con_balon': {'Progressive Carries /90': 13, 'Passes Under Pressure /90': 16.67, 'Pass Completion %': 16.67}
+            },
+            'Holding': {
+                'sin_balon': {'Tackles Def 3rd /90': 20, 'Blocks Shots /90': 17, 'Interceptions /90': 13, 'Clearances /90': 16.66},
+                'con_balon': {'Passes Under Pressure /90': 16.67, 'Pass Completion %': 16.67}
+            },
+            'Box-to-Box Destroyer': {
+                'sin_balon': {'Tackles+Interceptions /90': 20, 'Duels Won %': 17, 'Ball Recoveries /90': 16.66, 'Fouls Committed /90': 16.66, 'Interceptions /90': 17, 'Clearances /90': 13},
+                'con_balon': {'Progressive Carries /90': 13, 'Pass Completion %': 16.67}
+            },
+            
+            # MEDIOCENTROS (3 perfiles)
             'Box-to-Box': {
                 'sin_balon': {'Tackles+Interceptions /90': 20, 'Ball Recoveries /90': 16.67, 'Fouls Committed /90': 16.67},
                 'con_balon': {'Progressive passes /90': 17, 'Pass Completion %': 16.67, 'Key passes /90': 20}
             },
-            'Advanced Playmaker': {
-                'sin_balon': {'Interceptions Att 3rd /90': 16.67, 'Ball Recoveries /90': 16.67},
-                'con_balon': {'Touches in box /90': 16.66, 'Key passes /90': 20, 'Progressive passes /90': 13}
+            'Playmaker': {
+                'sin_balon': {'Interceptions /90': 16.66, 'Ball Recoveries /90': 16.67, 'Yellow Cards': 16.67},
+                'con_balon': {'Pass Completion %': 16.67, 'Passes into Final 3rd /90': 13, 'Progressive passes /90': 17}
             },
+            'Defensive': {
+                'sin_balon': {'Tackles /90': 20, 'Interceptions /90': 17, 'Blocks Passes /90': 16.67, 'Ball Recoveries /90': 16.67, 'Aerial Duels Won %': 13},
+                'con_balon': {'Pass Completion %': 16.67}
+            },
+            
+            # MEDIAPUNTAS (3 perfiles)
+            'Advanced Playmaker': {
+                'sin_balon': {'Interceptions Att 3rd /90': 16.67, 'Ball Recoveries /90': 16.67, 'Fouls Committed /90': 16.66},
+                'con_balon': {'Touches in box /90': 16.66, 'Key passes /90': 20, 'Progressive passes /90': 13, 'Pass Completion %': 16.67}
+            },
+            'Shadow Striker': {
+                'sin_balon': {'Interceptions /90': 17, 'Ball Recoveries /90': 16.66, 'Aerial Duels Won %': 13},
+                'con_balon': {'Key passes /90': 20, 'Passes into Final 3rd /90': 13, 'Progressive carries /90': 17}
+            },
+            'Dribbling Creator': {
+                'sin_balon': {'Fouls Drawn /90': 16.67, 'Ball Recoveries /90': 16.67},
+                'con_balon': {'Dribbles completed /90': 20, 'Progressive carries /90': 17, 'Key passes /90': 16.66}
+            },
+            
+            # EXTREMOS (3 perfiles)
             'Wide Playmaker': {
                 'sin_balon': {'Ball Recoveries /90': 16.67, 'Fouls Drawn /90': 16.67},
                 'con_balon': {'xA /90': 17, 'Key passes /90': 20, 'Progressive passes /90': 13}
             },
+            'Direct Winger': {
+                'sin_balon': {'Ball Recoveries /90': 16.67, 'Aerial Duels Won %': 13},
+                'con_balon': {'Shots on target %': 13, 'xA /90': 13, 'Key passes /90': 16.66, 'Progressive carries /90': 20}
+            },
+            'Hybrid': {
+                'sin_balon': {'Ball Recoveries /90': 16.67, 'Progressive passes receive...': 16.67},
+                'con_balon': {'xA /90': 17, 'Progressive passes /90': 13, 'Dribbles completed %': 16.67, 'Progressive passes receive...': 16.67}
+            },
+            
+            # DELANTEROS (3 perfiles)
             'Target Man': {
                 'sin_balon': {'Aerial Duels Contested /90': 20, 'Offsides /90': 16.67},
-                'con_balon': {'Headed shots /90': 13, 'Shots /90': 16.66, 'Goals /90': 20, 'npxG /90': 16.67}
+                'con_balon': {'Headed shots /90': 13, 'Shots /90': 16.66, 'Goals /90': 20, 'npxG /90': 16.67, 'Shots inside box /90': 17, 'npxG / Shot': 13}
+            },
+            'Poacher': {
+                'sin_balon': {'Offsides': 16.67, 'Offsides /90': 16.67},
+                'con_balon': {'Shots inside box /90': 17, 'npxG / Shot': 13, 'Goals /90': 20, 'Shot on target %': 16.67, 'Dribbles attempted /90': 17}
+            },
+            'Playmaker': {
+                'sin_balon': {'Ball Recoveries /90': 16.67},
+                'con_balon': {'Key passes /90': 20, 'xA /90': 17, 'Progressive passes /90': 13, 'Shots /90': 16.66, 'Goals /90': 20, 'Touches in midfield /90': 16.67}
             }
         }
         
@@ -162,6 +250,12 @@ class RatingCalculator:
             
             profile_config = self.profiles_data[profile_key]
             base_rating = self._calculate_weighted_rating(player_data, profile_config)
+            
+            # Si el rating con métricas es muy bajo (65), usar el rating básico mejorado
+            basic_rating = self._calculate_basic_rating(player_data)
+            if base_rating <= 65 and basic_rating > base_rating:
+                base_rating = basic_rating
+            
             final_rating = self._apply_modifiers(base_rating, player_data)
             
             return max(40, min(99, round(final_rating, 1)))
@@ -199,7 +293,7 @@ class RatingCalculator:
         return None
     
     def _calculate_weighted_rating(self, player_data: Dict, profile_config: Dict) -> float:
-        """Calcular rating con pesos"""
+        """Calcular rating con pesos - VERSIÓN EQUILIBRADA"""
         total_score = 0
         total_weight = 0
         
@@ -220,24 +314,62 @@ class RatingCalculator:
                 total_weight += weight / 100
         
         if total_weight > 0:
-            return 40 + (total_score / total_weight) * 0.59
+            # SISTEMA EQUILIBRADO: distribución más realista
+            base_score = total_score / total_weight  # 0-100
+            
+            # Mapeo equilibrado: permitir buenos ratings pero sin inflación
+            if base_score >= 90:  # Solo jugadores excepcionales
+                rating = 80 + (base_score - 90) * 1.0  # 80-90
+            elif base_score >= 75:  # Muy buenos jugadores  
+                rating = 70 + (base_score - 75) * 0.67  # 70-80
+            elif base_score >= 60:  # Buenos jugadores
+                rating = 60 + (base_score - 60) * 0.67  # 60-70
+            elif base_score >= 40:  # Promedio
+                rating = 50 + (base_score - 40) * 0.5   # 50-60
+            else:  # Por debajo del promedio
+                rating = 40 + (base_score * 0.25)  # 40-50
+                
+            return min(90, max(40, rating))  # Hard cap en 90
         else:
-            return 65
+            return 60  # Base más equilibrada
     
     def _get_metric_value(self, player_data: Dict, metric: str) -> Optional[float]:
-        """Obtener valor de métrica con mapeo"""
+        """Obtener valor de métrica con mapeo EXPANDIDO"""
+        # Mapeo más completo de métricas
         mapping = {
-            '#OPA /90': ['Saves', 'OPA_90'],
-            'PSxG +/-': ['PSxG', 'Post_Shot_xG'],
-            'Save %': ['Save_Percentage', 'Save_Pct'],
-            'Tackles /90': ['Tackles_90', 'Tackles'],
-            'Interceptions /90': ['Interceptions_90', 'Interceptions'],
-            'Pass Completion %': ['Pass_Completion_Percentage', 'Pass_Pct'],
-            'Goals /90': ['Goals_90', 'Goals'],
-            'npxG /90': ['npxG_90', 'npxG'],
-            'xA /90': ['xA_90', 'xA'],
-            'Shots /90': ['Shots_90', 'Shots'],
-            'Key passes /90': ['Key_Passes_90', 'Key_Passes']
+            # Porteros
+            '#OPA /90': ['Saves', 'OPA_90', 'Saves_90', 'SoTA'],
+            'PSxG +/-': ['PSxG', 'Post_Shot_xG', 'PSxG_90'],
+            'Save %': ['Save_Percentage', 'Save_Pct', 'Save%'],
+            'Crosses Stopped %': ['Cross_Stop_Pct', 'Crosses_Stopped'],
+            'Clean‑Sheet %': ['Clean_Sheet_Pct', 'CS%'],
+            
+            # Defensivos
+            'Tackles /90': ['Tackles_90', 'Tackles', 'Tkl'],
+            'Interceptions /90': ['Interceptions_90', 'Interceptions', 'Int'],
+            'Blocks /90': ['Blocks_90', 'Blocks', 'Blk'],
+            'Clearances /90': ['Clearances_90', 'Clearances', 'Clr'],
+            'Aerial Win %': ['Aerial_Win_Pct', 'Aerial_Wins_Pct'],
+            
+            # Pases
+            'Pass Completion %': ['Pass_Completion_Percentage', 'Pass_Pct', 'Pass%'],
+            'Progressive passes /90': ['Progressive_Passes_90', 'Prog_Passes'],
+            'Key passes /90': ['Key_Passes_90', 'Key_Passes', 'KP'],
+            'Long Pass Cmp %': ['Long_Pass_Completion', 'Long_Pass_Pct'],
+            
+            # Ofensivos
+            'Goals /90': ['Goals_90', 'Goals', 'Gls'],
+            'npxG /90': ['npxG_90', 'npxG', 'Non_Penalty_xG'],
+            'xA /90': ['xA_90', 'xA', 'Expected_Assists'],
+            'Shots /90': ['Shots_90', 'Shots', 'Sh'],
+            'Headed shots /90': ['Headed_Shots_90', 'Header_Shots'],
+            'Shots inside box /90': ['Shots_Inside_Box_90', 'SiB'],
+            
+            # Físicos
+            'Aerial Duels Contested /90': ['Aerial_Duels_90', 'Aerial_Contested'],
+            'Ball Recoveries /90': ['Ball_Recoveries_90', 'Recoveries'],
+            'Fouls Drawn /90': ['Fouls_Drawn_90', 'Fouls_Drawn'],
+            'Dribbles completed /90': ['Dribbles_90', 'Successful_Dribbles']
         }
         
         # Buscar directo
@@ -250,65 +382,107 @@ class RatingCalculator:
             if alt in player_data:
                 return float(player_data[alt]) if pd.notna(player_data[alt]) else None
         
-        # Búsqueda flexible
-        clean_metric = metric.lower().replace(' ', '_').replace('/', '_').replace('-', '_')
+        # Búsqueda flexible (más agresiva)
+        clean_metric = metric.lower().replace(' ', '_').replace('/', '_').replace('-', '_').replace('%', 'pct')
         for key in player_data.keys():
-            if clean_metric in key.lower():
+            clean_key = key.lower().replace(' ', '_').replace('/', '_').replace('-', '_').replace('%', 'pct')
+            if clean_metric in clean_key or clean_key in clean_metric:
                 return float(player_data[key]) if pd.notna(player_data[key]) else None
         
         return None
     
     def _normalize_metric(self, metric: str, value: float) -> float:
-        """Normalizar métrica 0-100"""
+        """Normalizar métrica 0-100 - VERSIÓN EQUILIBRADA"""
         metric_lower = metric.lower()
         
         if '%' in metric_lower or 'percentage' in metric_lower:
-            return min(100, max(0, value))
+            # Porcentajes: más generoso pero controlado
+            return min(95, max(0, value * 0.9))  # Era 0.8, ahora 0.9
+            
         elif '/90' in metric:
             if 'goal' in metric_lower:
-                return min(100, max(0, (value / 2.0) * 100))
+                # Goles: permitir mejores ratings para goleadores
+                return min(95, max(0, (value / 1.2) * 100))  # Era 1.5, ahora 1.2
             elif 'assist' in metric_lower or 'xa' in metric_lower:
-                return min(100, max(0, (value / 1.5) * 100))
+                # Asistencias: más generoso
+                return min(95, max(0, (value / 1.2) * 100))  # Era 1.0, ahora 1.2
             elif 'shot' in metric_lower:
-                return min(100, max(0, (value / 8.0) * 100))
+                # Disparos: más equilibrado
+                return min(95, max(0, (value / 7.0) * 100))  # Era 6.0, ahora 7.0
             elif 'pass' in metric_lower:
-                return min(100, max(0, (value / 100) * 100))
+                # Pases: más equilibrado
+                return min(95, max(0, (value / 90) * 100))  # Era 80, ahora 90
             elif 'tackle' in metric_lower:
-                return min(100, max(0, (value / 8.0) * 100))
+                # Entradas: más equilibrado
+                return min(95, max(0, (value / 7.0) * 100))  # Era 6.0, ahora 7.0
             elif 'interception' in metric_lower:
-                return min(100, max(0, (value / 5.0) * 100))
+                # Intercepciones: más equilibrado
+                return min(95, max(0, (value / 4.5) * 100))  # Era 4.0, ahora 4.5
             elif 'save' in metric_lower or 'opa' in metric_lower:
-                return min(100, max(0, (value / 8.0) * 100))
+                # Paradas: más equilibrado
+                return min(95, max(0, (value / 7.0) * 100))  # Era 6.0, ahora 7.0
             else:
-                return min(100, max(0, (value / 5.0) * 100))
+                # Otras métricas: más equilibrado
+                return min(95, max(0, (value / 4.5) * 100))  # Era 4.0, ahora 4.5
         else:
-            return min(100, max(0, (value / 10.0) * 100))
+            # Métricas generales: más equilibrado
+            return min(95, max(0, (value / 9.0) * 100))  # Era 8.0, ahora 9.0
     
     def _apply_modifiers(self, base_rating: float, player_data: Dict) -> float:
-        """Aplicar modificadores"""
+        """Aplicar modificadores - VERSIÓN CORREGIDA Y CONSERVADORA"""
         rating = base_rating
         
-        # Liga
+        # Liga: reducir impacto
         league = player_data.get('Liga', player_data.get('League', ''))
         multiplier = self.league_multipliers.get(league, 1.0)
         if multiplier > 1.0:
-            rating += (multiplier - 1.0) * 5
+            # Reducir de 5 a 2 puntos máximo
+            rating += (multiplier - 1.0) * 2  # Era 5, ahora 2
         
-        # Minutos
+        # Minutos: penalización más suave
         minutes = player_data.get('Minutes', player_data.get('Min', 2700))
         if minutes < 900:
-            rating -= (900 - minutes) / 900 * 10
+            # Reducir penalización máxima de 10 a 5
+            rating -= (900 - minutes) / 900 * 5  # Era 10, ahora 5
         
         return rating
     
     def _calculate_basic_rating(self, player_data: Dict) -> float:
-        """Rating básico"""
-        base = 65
+        """Rating básico EQUILIBRADO para cuando no hay métricas específicas"""
+        base = 60  # Más equilibrado: era 55, ahora 60
+        
+        # Bonus por valor de mercado (EQUILIBRADO)
         market_value = player_data.get('Market_Value', player_data.get('Market Value', 0))
-        if market_value > 50: base += 5
-        elif market_value > 20: base += 3
-        elif market_value > 10: base += 1
-        return max(40, min(99, base))
+        if market_value > 150: base += 15   # Era 12, ahora 15 - Súper estrellas
+        elif market_value > 100: base += 12 # Era 8, ahora 12
+        elif market_value > 80: base += 9   # Era 6, ahora 9
+        elif market_value > 50: base += 6   # Era 4, ahora 6
+        elif market_value > 30: base += 4   # Era 2, ahora 4
+        elif market_value > 15: base += 2   # Era 1, ahora 2
+        elif market_value > 5: base += 1    # Nuevo nivel
+        
+        # Bonus por rating original (EQUILIBRADO)
+        original_rating = player_data.get('Rating', 0)
+        if original_rating > 65:
+            # Escala más equilibrada
+            bonus = (original_rating - 65) * 0.7  # Era 0.4, ahora 0.7
+            base += min(bonus, 12)  # Cap aumentado de 8 a 12 puntos
+        
+        # Bonus por liga (EQUILIBRADO)
+        league = player_data.get('Liga', player_data.get('League', ''))
+        if league in ['La Liga', 'Premier League', 'Bundesliga', 'Serie A', 'Ligue 1']:
+            base += 3  # Era 2, ahora 3
+        elif league in ['Liga Portugal', 'Eredivisie', 'Süper Lig']:
+            base += 1  # Nuevo: bonus menor para ligas secundarias
+        
+        # Bonus por edad (EQUILIBRADO)
+        age = player_data.get('Age', 25)
+        if 24 <= age <= 29:  # Prime age
+            base += 2  # Vuelto a 2 desde 1
+        elif 22 <= age <= 32:  # Edad buena
+            base += 1  # Nuevo nivel
+        
+        return max(40, min(85, base))  # Hard cap aumentado de 80 a 85
     
     def bulk_calculate_ratings(self, players_df: pd.DataFrame) -> pd.DataFrame:
         """Calcular ratings masivamente"""

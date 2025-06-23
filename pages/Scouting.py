@@ -39,6 +39,13 @@ def get_photo_manager_cached():
 def get_rating_calculator():
     return RatingCalculator()
 
+# Función para limpiar cache del rating calculator
+def clear_rating_cache():
+    """Limpiar cache del rating calculator"""
+    if 'get_rating_calculator' in st.session_state:
+        del st.session_state['get_rating_calculator']
+    get_rating_calculator.clear()
+
 # Estilos CSS personalizados
 st.markdown("""
     <style>
@@ -313,13 +320,14 @@ with col2:
         </div>
     """, unsafe_allow_html=True)
 
-# Diccionario de perfiles por posición
+# Diccionario de perfiles por posición - ACTUALIZADO CON TODOS LOS PERFILES
 position_profiles = {
     "GK": ["Sweeper", "Line Keeper", "Traditional"],
     "CB": ["Ball Playing", "Stopper", "Sweeper"],
     "RB": ["Defensive", "Progressive", "Offensive"],
     "LB": ["Defensive", "Progressive", "Offensive"],
-    "CM-CDM": ["Deep Lying", "Box-to-Box", "Holding"],
+    "CDM": ["Deep Lying", "Holding", "Box-to-Box Destroyer"],
+    "CM": ["Box-to-Box", "Playmaker", "Defensive"],
     "CAM": ["Advanced Playmaker", "Shadow Striker", "Dribbling Creator"],
     "RW": ["Wide Playmaker", "Direct Winger", "Hybrid"],
     "LW": ["Wide Playmaker", "Direct Winger", "Hybrid"],
@@ -360,7 +368,7 @@ with st.sidebar:
     # 📍 SECCIÓN 1: CARACTERÍSTICAS BÁSICAS
     with st.expander("📍 **Características Básicas**", expanded=False):
         # Posición
-        position_options = ["All", "GK", "CB", "RB", "LB", "CM-CDM", "CAM", "RW", "LW", "ST"]
+        position_options = ["All", "GK", "CB", "RB", "LB", "CDM", "CM", "CAM", "RW", "LW", "ST"]
         position_index = position_options.index(st.session_state.get('position_select', 'All')) if st.session_state.get('position_select', 'All') in position_options else 0
         position = st.selectbox(
             "Puesto",
@@ -816,6 +824,18 @@ with tab1:
             filtered_df = rating_calculator.bulk_calculate_ratings(filtered_df)
             # Usar rating calculado si está disponible, sino usar el original
             filtered_df['Display_Rating'] = filtered_df.get('Calculated_Rating', filtered_df.get('Rating', 65))
+            
+            # Mostrar estadísticas de ratings calculados
+            if 'Calculated_Rating' in filtered_df.columns:
+                max_calc = filtered_df['Calculated_Rating'].max()
+                min_calc = filtered_df['Calculated_Rating'].min()
+                avg_calc = filtered_df['Calculated_Rating'].mean()
+                over_80 = len(filtered_df[filtered_df['Calculated_Rating'] > 80])
+                over_70 = len(filtered_df[filtered_df['Calculated_Rating'] > 70])
+                
+                if over_70 > 0 or max_calc > 75:  # Solo mostrar si hay ratings interesantes
+                    st.success(f"⚡ **Sistema de Rating Activo**: {over_70} jugadores >70 | {over_80} jugadores >80 | Máximo: {max_calc:.1f}")
+                
         except Exception as e:
             st.warning(f"⚠️ Sistema de rating no disponible: {str(e)}")
             filtered_df['Display_Rating'] = filtered_df.get('Rating', 65)
@@ -1333,6 +1353,10 @@ with st.sidebar:
         if st.button("🔄 Regenerar Cache", help="Fuerza la regeneración completa"):
             data_manager.loader.force_rebuild_cache()
             st.success("Cache regenerado - refresca la página manualmente")
+        
+        if st.button("⚡ Limpiar Cache Rating", help="Recalcula todos los ratings con el nuevo sistema"):
+            clear_rating_cache()
+            st.success("Sistema de rating actualizado - los nuevos cálculos se aplicarán automáticamente")
         
         st.markdown("""
         <div style='background-color: #f0f9ff; padding: 10px; border-radius: 5px; margin-top: 10px;'>
