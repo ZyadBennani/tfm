@@ -13,9 +13,7 @@ st.set_page_config(page_title="Peak Age Analytics", page_icon="📊", layout="wi
 st.title("📊 Career & Peak-Age Analytics")
 st.markdown("**Basado en la metodología de Anselmo Ruiz de Alarcón**")
 
-# Construcción del DataFrame
-st.markdown("## 2. Datos de Edad Pico por Posición")
-
+# Construcción del DataFrame (solo para cálculos internos)
 # DataFrame con los datos
 data = {
     "Posición": ["Portero", "Defensa central", "Lateral / Interior", "Mediocentro", "Extremo / Delantero"],
@@ -23,24 +21,6 @@ data = {
     "Edad_max": [33, 29, 28, 28, 26]
 }
 df_prime = pd.DataFrame(data)
-
-# Mostrar el DataFrame
-col1, col2 = st.columns([1, 1])
-
-with col1:
-    st.markdown("### 📋 Tabla de Datos")
-    st.dataframe(df_prime, use_container_width=True)
-
-with col2:
-    st.markdown("### 📊 Estadísticas")
-    # Calcular estadísticas adicionales (usando copia para no modificar el original)
-    df_stats = df_prime.copy()
-    df_stats['Rango'] = df_stats['Edad_max'] - df_stats['Edad_min']
-    df_stats['Edad_media'] = (df_stats['Edad_min'] + df_stats['Edad_max']) / 2
-    
-    st.metric("Posiciones analizadas", len(df_prime))
-    st.metric("Rango promedio", f"{df_stats['Rango'].mean():.1f} años")
-    st.metric("Edad media global", f"{df_stats['Edad_media'].mean():.1f} años")
 
 # Función para crear el gráfico de edad pico con curvas gaussianas
 def plot_peak_age(df):
@@ -226,7 +206,7 @@ def plot_peak_age(df):
 
 # Visualización principal
 st.markdown("---")
-st.markdown("## 3. Visualización: Dumbbell Chart")
+st.markdown("## 2. Visualización: Career Performance Curves")
 
 # Crear y mostrar el gráfico
 fig = plot_peak_age(df_prime)
@@ -236,7 +216,7 @@ st.pyplot(fig)
 
 # Análisis e interpretación
 st.markdown("---")
-st.markdown("## 4. Análisis e Interpretación")
+st.markdown("## 3. Análisis e Interpretación")
 
 col1, col2, col3 = st.columns(3)
 
@@ -274,7 +254,7 @@ with col3:
 
 # Aplicaciones prácticas
 st.markdown("---")
-st.markdown("## 5. Aplicaciones Prácticas")
+st.markdown("## 4. Aplicaciones Prácticas")
 
 st.markdown("""
 ### 🎯 Para Directores Deportivos:

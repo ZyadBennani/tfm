@@ -319,34 +319,26 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Título principal y descripción
-st.markdown("""
-    <div style='background-color: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
-        <h1 style='margin: 0; color: #1a1a1a; font-size: 2rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;'>
-            <span style='font-size: 2.2rem;'>⚽</span>
-            <span>Player Scouting</span>
-            <span style='font-size: 1.2rem; background: linear-gradient(135deg, #004D98 0%, #A50044 100%); color: white; padding: 0.2rem 0.5rem; border-radius: 15px; margin-left: 1rem;'>⚡ Rating System</span>
-        </h1>
-    </div>
-""", unsafe_allow_html=True)
-
-# Reducir espacio del divisor
-st.markdown('<hr style="margin: 0.5rem 0;">', unsafe_allow_html=True)
-
-# Breadcrumb y contador de shortlist con mejor diseño
-col1, col2 = st.columns([6,1])
 # Inicializar shortlist si no existe
 if 'shortlist' not in st.session_state:
     st.session_state.shortlist = []
 
 shortlist_count = len(st.session_state.shortlist)
-with col2:
-    st.markdown(f"""
-        <div style='text-align: right; background-color: white; padding: 0.5rem; border-radius: 0.5rem; margin-bottom: 0.5rem;'>
-            <span style='font-size: 1.2rem;'>📋</span> 
-            <span class="shortlist-counter">{shortlist_count}</span>
+
+# Título principal con contador de shortlist integrado
+st.markdown(f"""
+    <div style='background-color: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;'>
+        <div style='display: flex; align-items: center; gap: 0.5rem;'>
+            <span style='font-size: 2.2rem;'>⚽</span>
+            <span style='font-size: 2rem; font-weight: 600; color: #1a1a1a;'>Player Scouting</span>
+            <span style='font-size: 1.2rem; background: linear-gradient(135deg, #004D98 0%, #A50044 100%); color: white; padding: 0.2rem 0.5rem; border-radius: 15px; margin-left: 1rem;'>⚡ Rating System</span>
         </div>
-    """, unsafe_allow_html=True)
+        <div style='display: flex; align-items: center; gap: 0.5rem;'>
+            <span style='font-size: 1.2rem;'>📋</span> 
+            <span style='background-color: #A50044; color: white; padding: 0.4rem 0.8rem; border-radius: 50%; font-size: 1rem; font-weight: 600; min-width: 2rem; text-align: center;'>{shortlist_count}</span>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
 
 # Diccionario de perfiles por posición - ACTUALIZADO CON TODOS LOS PERFILES
 position_profiles = {
@@ -859,8 +851,6 @@ with tab1:
         df_with_ratings = df.copy()
         df_with_ratings['Display_Rating'] = 65
 
-    st.markdown("---")
-
     # APLICAR FILTROS CON RATINGS YA CALCULADOS  
     filtered_df = data_manager.apply_filters(df_with_ratings, filters)
     
@@ -875,7 +865,7 @@ with tab1:
         if over_70 > 0 or max_calc > 75:  # Solo mostrar si hay ratings interesantes
             over_90 = len(filtered_df[filtered_df['Display_Rating'] > 90])
             over_95 = len(filtered_df[filtered_df['Display_Rating'] > 95])
-            st.success(f"🎯 **Sistema Gaussiano Activo**: {over_70} jugadores >70 | {over_80} >80 | {over_90} >90 | ⭐{over_95} ELITE >95 | Máximo: {max_calc:.1f}")
+            # Información del sistema gaussiano calculada pero no mostrada
     
     # Contador de resultados y paginación
     total_results = len(filtered_df)
@@ -1021,14 +1011,54 @@ with tab1:
         else:
             st.info("No hay métricas válidas seleccionadas.")
     else:
-        # Aplicar paginación
+        # Aplicar ordenación si está definida
+        sorted_df = filtered_df.copy()
+        if hasattr(st.session_state, 'sort_column') and st.session_state.sort_column:
+            try:
+                if st.session_state.sort_column == 'Foot':
+                    # Ordenación especial para pie: Zurdos primero, luego derechos
+                    foot_order = {'Left': 0, 'Right': 1}
+                    sorted_df['foot_sort'] = sorted_df['Foot'].map(foot_order).fillna(2)
+                    sorted_df = sorted_df.sort_values('foot_sort', ascending=st.session_state.sort_ascending)
+                    sorted_df = sorted_df.drop('foot_sort', axis=1)
+                elif st.session_state.sort_column == 'Profile':
+                    # Ordenación especial para perfil
+                    profile_order = {'Completo': 0, 'Ofensivo': 1, 'Defensivo': 2, 'Técnico': 3, 'Físico': 4, 'TBD': 5}
+                    sorted_df['profile_sort'] = sorted_df.get('Profile', 'TBD').map(profile_order).fillna(5)
+                    sorted_df = sorted_df.sort_values('profile_sort', ascending=st.session_state.sort_ascending)
+                    sorted_df = sorted_df.drop('profile_sort', axis=1)
+                elif st.session_state.sort_column in ['Salary_Annual', 'Market_Value']:
+                    # Manejar valores nulos/cero en salarios y valores de mercado
+                    col_name = st.session_state.sort_column
+                    if col_name == 'Salary_Annual':
+                        # Usar Salary si Salary_Annual no existe
+                        if col_name not in sorted_df.columns and 'Salary' in sorted_df.columns:
+                            col_name = 'Salary'
+                    elif col_name == 'Market_Value':
+                        # Usar 'Market Value' si 'Market_Value' no existe
+                        if col_name not in sorted_df.columns and 'Market Value' in sorted_df.columns:
+                            col_name = 'Market Value'
+                    
+                    if col_name in sorted_df.columns:
+                        sorted_df = sorted_df.sort_values(col_name, ascending=st.session_state.sort_ascending, na_position='last')
+                else:
+                    # Ordenación normal para otras columnas
+                    if st.session_state.sort_column in sorted_df.columns:
+                        sorted_df = sorted_df.sort_values(st.session_state.sort_column, ascending=st.session_state.sort_ascending, na_position='last')
+            except Exception as e:
+                st.warning(f"Error al ordenar por {st.session_state.sort_column}: {str(e)}")
+        
+        # Actualizar el total de páginas basado en los datos ordenados
+        total_pages = max(1, (len(sorted_df) + players_per_page - 1) // players_per_page)
+        
+        # Aplicar paginación después de la ordenación
         start_idx = (st.session_state.current_page - 1) * players_per_page
         end_idx = start_idx + players_per_page
-        paginated_df = filtered_df.iloc[start_idx:end_idx].copy()
+        paginated_df = sorted_df.iloc[start_idx:end_idx].copy()
         
         # Mostrar jugadores con fotos en formato de columnas
         if not paginated_df.empty:
-            st.markdown("### Jugadores Encontrados")
+            
             
             # Obtener gestor de fotos
             photo_manager = get_photo_manager_cached()
@@ -1061,20 +1091,70 @@ with tab1:
                 else:
                     return "#6b7280"  # Gris
             
-            # Crear encabezados de columnas
-            cols = st.columns([1, 2, 1, 1, 1, 1, 1, 1, 1, 1])
-            headers = ["", "Jugador", "Posición", "Perfil", "Pie", "Edad", "Club", "Salario", "Valor", "Rating"]
+            # Inicializar estado de ordenación si no existe
+            if 'sort_column' not in st.session_state:
+                st.session_state.sort_column = None
+            if 'sort_ascending' not in st.session_state:
+                st.session_state.sort_ascending = True
+            
+            # Crear encabezados de columnas como botones clicables (ajustar anchos)
+            cols = st.columns([0.6, 1.8, 1.7, 1.2, 1.0, 1.3, 1.8, 1.2, 1.2, 1.5])
+            headers = ["", "Jugador", "Posición", "Perfil", "Pie", "Edad", "Club", "Sal", "Valor", "Rating"]
+            sort_columns = ["", "Name", "Position", "Profile", "Foot", "Age", "Club", "Salary_Annual", "Market_Value", "Display_Rating"]
             
             for i, header in enumerate(headers):
                 with cols[i]:
                     if header:  # No mostrar header para la columna de fotos
-                        st.markdown(f"**{header}**")
+                        # Agregar flecha indicadora de ordenación
+                        sort_indicator = ""
+                        if st.session_state.sort_column == sort_columns[i]:
+                            sort_indicator = " ↑" if st.session_state.sort_ascending else " ↓"
+                        
+                        # Estilo especial para botones de header
+                        button_style = """
+                            <style>
+                            div[data-testid="column"] button[kind="secondary"] {
+                                background-color: #f8f9fa !important;
+                                border: 1px solid #004D98 !important;
+                                color: #004D98 !important;
+                                font-weight: 600 !important;
+                                padding: 0.3rem 0.2rem !important;
+                                font-size: 0.65rem !important;
+                                white-space: nowrap !important;
+                                overflow: visible !important;
+                                text-overflow: clip !important;
+                                min-height: 2.5rem !important;
+                            }
+                            div[data-testid="column"] button[kind="secondary"]:hover {
+                                background-color: #004D98 !important;
+                                color: white !important;
+                            }
+                            </style>
+                        """
+                        st.markdown(button_style, unsafe_allow_html=True)
+                        
+                        if st.button(f"{header}{sort_indicator}", key=f"sort_{i}", use_container_width=True):
+                            # Si se clica en la misma columna, cambiar dirección
+                            if st.session_state.sort_column == sort_columns[i]:
+                                st.session_state.sort_ascending = not st.session_state.sort_ascending
+                            else:
+                                st.session_state.sort_column = sort_columns[i]
+                                # Configurar ordenación por defecto según el tipo de columna
+                                if sort_columns[i] in ['Age', 'Salary_Annual', 'Market_Value', 'Display_Rating']:
+                                    st.session_state.sort_ascending = False  # Descendente para números
+                                elif sort_columns[i] == 'Foot':
+                                    st.session_state.sort_ascending = False  # Zurdos primero
+                                else:
+                                    st.session_state.sort_ascending = True   # Ascendente para texto
+                            
+                            # Resetear a la primera página cuando se cambia el ordenamiento
+                            st.session_state.current_page = 1
             
             st.markdown("---")
             
             # Mostrar cada jugador
             for idx, (_, player) in enumerate(paginated_df.iterrows()):
-                cols = st.columns([1, 2, 1, 1, 1, 1, 1, 1, 1, 1])
+                cols = st.columns([0.6, 1.8, 1.7, 1.2, 1.0, 1.3, 1.8, 1.2, 1.2, 1.5])
                 
                 # Columna 1: Foto (50x50px - más grande)
                 with cols[0]:
