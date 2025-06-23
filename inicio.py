@@ -577,12 +577,6 @@ def mostrar_rankings_liga(selected_team, liga="La Liga Española"):
 def mostrar_equipos(liga):
     st.markdown(f"<h2 style='text-align: center; color: #1e3c72;'>{liga}</h2>", unsafe_allow_html=True)
     
-    # Botón para volver a la selección de ligas
-    if st.button("← Volver a selección de ligas"):
-        st.session_state.liga_seleccionada = None
-        st.session_state.equipo_seleccionado = None
-        st.rerun()
-    
     # Mostrar el grid de equipos para todas las ligas
     mostrar_grid_equipos(liga)
     
@@ -590,7 +584,7 @@ def mostrar_equipos(liga):
     st.markdown("---")  # Separador visual
     
     # Obtener lista de equipos según la liga
-    if liga == "La Liga Española":
+    if liga == "La Liga":
         team_names = [name for name, _ in LALIGA_TEAMS]
         liga_key = "laliga"
     elif liga == "Premier League":
@@ -690,19 +684,25 @@ st.markdown("""
     /* Tarjetas mejoradas */
     .liga-card {
         border: none;
-        border-radius: 15px;
-        padding: 25px;
+        border-radius: 20px;
+        padding: 30px 20px;
         text-align: center;
         background: white;
-        margin: 15px;
+        margin: 10px 5px;
         cursor: pointer;
         transition: all var(--transition-speed) ease;
-        box-shadow: var(--card-shadow);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #f8f9fa;
     }
 
     .liga-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-8px);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+        border-color: #e3f2fd;
     }
 
     .team-card {
@@ -725,6 +725,36 @@ st.markdown("""
         width: 120px;
         height: auto;
         margin-bottom: 10px;
+    }
+
+    .league-logo {
+        max-width: 140px;
+        max-height: 120px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+        transition: all var(--transition-speed) ease;
+    }
+
+    .league-logo-premier {
+        max-width: 168px; /* 20% más grande que 140px */
+        max-height: 144px; /* 20% más grande que 120px */
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+        transition: all var(--transition-speed) ease;
+    }
+
+    .liga-card:hover .league-logo {
+        transform: scale(1.05);
+        filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+    }
+
+    .liga-card:hover .league-logo-premier {
+        transform: scale(1.05);
+        filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
     }
 
     .team-name {
@@ -942,37 +972,56 @@ st.markdown("<hr style='margin: 20px 0; opacity: 0.2;'>", unsafe_allow_html=True
 
 # Si estamos en la página de inicio, mostrar el contenido normal
 if st.session_state.pagina_actual == 'inicio':
-    st.markdown("## 🌍 Selecciona una Liga", unsafe_allow_html=True)
+    st.markdown("""
+        <div style="text-align: center; margin: 20px 0 15px 0;">
+            <h2 style="
+                font-size: 2.2em;
+                font-weight: 700;
+                color: #2c3e50;
+                margin-bottom: 5px;
+                letter-spacing: 1px;
+            ">🌍 Selecciona una Liga</h2>
+        </div>
+    """, unsafe_allow_html=True)
     
-    # Mostrar las ligas en una cuadrícula
-    for i in range(0, len(ligas_y_equipos), 5):
-        cols = st.columns(5)
-        for j, col in enumerate(cols):
-            if i + j < len(ligas_y_equipos):
-                liga_nombre = list(ligas_y_equipos.keys())[i + j]
-                with col:
-                    st.markdown('<div class="liga-card">', unsafe_allow_html=True)
-                    logo_path = get_league_logo_path(liga_nombre)
-                    if os.path.exists(logo_path):
-                        st.markdown(f'<img src="data:image/png;base64,{get_image_base64(logo_path)}" class="team-logo" alt="{liga_nombre}"/>', unsafe_allow_html=True)
-                    else:
-                        st.markdown(f"""
-                            <div class="placeholder-image">Logo {liga_nombre}</div>
-                        """, unsafe_allow_html=True)
-                    st.markdown(f'<div class="liga-title">{liga_nombre}</div>', unsafe_allow_html=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
-                    if st.button(f"Ver {liga_nombre}", key=f"btn_{liga_nombre}"):
-                        st.session_state.liga_seleccionada = liga_nombre
-                        st.rerun()
+    # Mostrar las ligas en una cuadrícula con mejor espaciado
+    ligas_lista = list(ligas_y_equipos.keys())
+    cols = st.columns(len(ligas_lista), gap="medium")
+    
+    for i, liga_nombre in enumerate(ligas_lista):
+        with cols[i]:
+            logo_path = get_league_logo_path(liga_nombre)
+            if os.path.exists(logo_path):
+                # Tamaño especial para Premier League (20% más grande)
+                if liga_nombre == "Premier League":
+                    logo_class = "league-logo-premier"
+                else:
+                    logo_class = "league-logo"
+                
+                # Estructura HTML mejorada para que el logo aparezca DENTRO de la tarjeta
+                st.markdown(f'''
+                    <div class="liga-card">
+                        <img src="data:image/png;base64,{get_image_base64(logo_path)}" class="{logo_class}" alt="{liga_nombre}"/>
+                    </div>
+                ''', unsafe_allow_html=True)
+            else:
+                st.markdown(f'''
+                    <div class="liga-card">
+                        <div class="placeholder-image">Logo {liga_nombre}</div>
+                    </div>
+                ''', unsafe_allow_html=True)
+            
+            if st.button(f"Ver {liga_nombre}", key=f"btn_{liga_nombre}"):
+                st.session_state.liga_seleccionada = liga_nombre
+                st.rerun()
+    
+    st.markdown('</div>', unsafe_allow_html=True)  # Cerrar el div de la cuadrícula
 
     # Si hay una liga seleccionada, mostrar sus equipos
     if st.session_state.liga_seleccionada:
         mostrar_equipos(st.session_state.liga_seleccionada)
 
-    # Si hay un equipo seleccionado, mostrar su información
-    if st.session_state.equipo_seleccionado:
-        st.markdown(f"<h2>Información de {st.session_state.equipo_seleccionado}</h2>", unsafe_allow_html=True)
-
+   
 # Cerrar el contenedor principal
 st.markdown('</div>', unsafe_allow_html=True)
 
