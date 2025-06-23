@@ -29,7 +29,24 @@ def load_image(image_path):
 
 # Función para obtener la ruta de la imagen del equipo
 def get_team_logo_path(team_name):
-    # Normalizar el nombre del equipo para el nombre del archivo
+    """Obtiene la ruta del logo de un equipo específico de cualquier liga"""
+    # Buscar en todas las listas de equipos para encontrar el archivo correcto
+    all_teams_with_paths = [
+        (LALIGA_TEAMS, "LA_LIGA", "SQUADRE"),
+        (PREMIER_TEAMS, "PREMIER LEAGUE", "SQUADRE"),
+        (SERIE_A_TEAMS, "SERIE_A", "SQUADRE_24-25"),
+        (BUNDESLIGA_TEAMS, "BUNDES", "SQUADRE"),
+        (LIGUE1_TEAMS, "LIGUE_1", "SQUADRE")
+    ]
+    
+    for teams_list, league_folder, squadre_folder in all_teams_with_paths:
+        for name, logo_file in teams_list:
+            if team_name == name:
+                logo_path = os.path.join("static", "wetransfer_players_2025-06-18_1752", "LOGHI_PNG", league_folder, squadre_folder, logo_file)
+                if os.path.exists(logo_path):
+                    return logo_path
+    
+    # Fallback: buscar en static/logos si no se encuentra en las carpetas reales
     filename = team_name.lower().replace(" ", "_") + ".png"
     return os.path.join("static", "logos", filename)
 
@@ -63,7 +80,7 @@ LALIGA_TEAMS = [
     ("Sevilla", "Sevilla.png"),
     ("Valencia", "valencia.png"),
     ("Real Betis", "real_betis.png"),
-    ("Villarreal", "Villarreal:png"),
+    ("Villarreal", "villareal.png"),
     ("Girona", "girona.png"),
     ("Celta de Vigo", "celta_de_vigo.png"),
     ("Rayo Vallecano", "rayo_vallecano.png"),
@@ -82,10 +99,10 @@ PREMIER_TEAMS = [
     ("Arsenal", "arsenal.png"),
     ("Manchester United", "manchester_united.png"),
     ("Liverpool", "liverpool.png"),
-    ("Newcastle", "newcastle.png"),
+    ("Newcastle", "Newcastle.png"),
     ("Brighton", "brighton.png"),
     ("Aston Villa", "aston_villa.png"),
-    ("Tottenham", "tottenham.png"),
+    ("Tottenham", "Tottenham.png"),
     ("Brentford", "brentford.png"),
     ("Chelsea", "chelsea.png"),
     ("Crystal Palace", "crystal_palace.png"),
@@ -124,49 +141,45 @@ SERIE_A_TEAMS = [
 ]
 
 BUNDESLIGA_TEAMS = [
-    ("Bayern Munich", "bayern_munich.png"),
-    ("Borussia Dortmund", "borussia_dortmund.png"),
-    ("RB Leipzig", "rb_leipzig.png"),
-    ("Union Berlin", "union_berlin.png"),
-    ("Freiburg", "freiburg.png"),
-    ("Bayer Leverkusen", "bayer_leverkusen.png"),
-    ("Eintracht Frankfurt", "eintracht_frankfurt.png"),
-    ("Wolfsburg", "wolfsburg.png"),
-    ("Mainz 05", "mainz_05.png"),
-    ("Borussia Mönchengladbach", "borussia_monchengladbach.png"),
-    ("Köln", "koln.png"),
-    ("Hoffenheim", "hoffenheim.png"),
-    ("Werder Bremen", "werder_bremen.png"),
-    ("Bochum", "bochum.png"),
-    ("Augsburg", "augsburg.png"),
-    ("Stuttgart", "stuttgart.png"),
-    ("Schalke 04", "schalke_04.png"),
-    ("Hertha BSC", "hertha_bsc.png"),
-    ("Darmstadt", "darmstadt.png"),
-    ("Heidenheim", "heidenheim.png"),
+    ("Augsburg", "Augsburg.png"),
+    ("Bayer Leverkusen", "Bayer_Leverkusen.png"),
+    ("Bayern Munich", "Bayern_Munich.png"),
+    ("Bochum", "Bochum.png"),
+    ("Borussia Dortmund", "Borussia_Dortmund.png"),
+    ("Borussia Mönchengladbach", "Borussia_Mönchengladbach.png"),
+    ("Eintracht Frankfurt", "Eintracht_Frankfurt.png"),
+    ("Freiburg", "Freiburg.png"),
+    ("Heidenheim", "Heidenheim.png"),
+    ("Hoffenheim", "Hoffenheim.png"),
+    ("Holstein Kiel", "Holstein_Kiel.png"),
+    ("Mainz 05", "Mainz_05.png"),
+    ("RB Leipzig", "RB_Leipzig.png"),
+    ("St Pauli", "St_Pauli.png"),
+    ("Stuttgart", "Stuttgart.png"),
+    ("Union Berlin", "Union_Berlin.png"),
+    ("Werder Bremen", "Werder_Bremen.png"),
+    ("Wolfsburg", "Wolfsburg.png"),
 ]
 
 LIGUE1_TEAMS = [
-    ("PSG", "psg.png"),
-    ("Lens", "lens.png"),
-    ("Marseille", "marseille.png"),
-    ("Monaco", "monaco.png"),
-    ("Lille", "lille.png"),
-    ("Rennes", "rennes.png"),
-    ("Lyon", "lyon.png"),
-    ("Nice", "nice.png"),
-    ("Reims", "reims.png"),
-    ("Lorient", "lorient.png"),
-    ("Montpellier", "montpellier.png"),
-    ("Toulouse", "toulouse.png"),
-    ("Nantes", "nantes.png"),
-    ("Strasbourg", "strasbourg.png"),
-    ("Clermont", "clermont.png"),
-    ("Brest", "brest.png"),
-    ("Auxerre", "auxerre.png"),
-    ("Troyes", "troyes.png"),
-    ("Ajaccio", "ajaccio.png"),
-    ("Angers", "angers.png"),
+    ("Angers", "Angers.png"),
+    ("Auxerre", "Auxerre.png"),
+    ("Brest", "Brest.png"),
+    ("Le Havre", "Le_Havre.png"),
+    ("Lens", "Lens.png"),
+    ("Lille", "Lille.png"),
+    ("Lyon", "Lyon.png"),
+    ("Marseille", "Marseille.png"),
+    ("Monaco", "Monaco.png"),
+    ("Montpellier", "Montpellier.png"),
+    ("Nantes", "Nantes.png"),
+    ("Nice", "Nice.png"),
+    ("PSG", "Paris_Saint-Germain.png"),
+    ("Reims", "Reims.png"),
+    ("Rennes", "Rennes.png"),
+    ("Saint Etienne", "Saint Etienne.png"),
+    ("Strasbourg", "Strasbourg.png"),
+    ("Toulouse", "Toulouse.png"),
 ]
 
 # Diccionario con nombres de ligas y sus equipos (definido después de las listas globales)
@@ -296,15 +309,10 @@ def load_ligue1_team_stats(per90=True):
 # Función para obtener logo de un equipo específico  
 def get_logo_for_team(team_name):
     """Obtiene el logo de un equipo específico de cualquier liga"""
-    # Buscar en todas las listas de equipos
-    all_teams = [LALIGA_TEAMS, PREMIER_TEAMS, SERIE_A_TEAMS, BUNDESLIGA_TEAMS, LIGUE1_TEAMS]
-    
-    for teams_list in all_teams:
-        for name, logo_file in teams_list:
-            if team_name == name:
-                logo_path = os.path.join("static", "logos", logo_file)
-                if os.path.exists(logo_path):
-                    return Image.open(logo_path)
+    # Buscar en todas las listas de equipos usando la nueva función
+    logo_path = get_team_logo_path(team_name)
+    if os.path.exists(logo_path):
+        return Image.open(logo_path)
     return None
 
 # Función principal para gráficas de análisis de fases
@@ -377,37 +385,25 @@ def plot_phase_plotly(df, x, y, invert, title, color, x_range=None, y_range=None
             hoverinfo="text"
         ))
         
-        # Añadir imagen del logo
-        logo_path = os.path.join("static", "logos")
-        logo_found = False
-        
-        # Buscar en todas las listas de equipos
-        all_teams = [LALIGA_TEAMS, PREMIER_TEAMS, SERIE_A_TEAMS, BUNDESLIGA_TEAMS, LIGUE1_TEAMS]
-        for teams_list in all_teams:
-            for name, logo_file in teams_list:
-                if name == team:
-                    logo_full_path = os.path.join(logo_path, logo_file)
-                    if os.path.exists(logo_full_path):
-                        fig.add_layout_image(
-                            dict(
-                                source=Image.open(logo_full_path),
-                                x=row[x],
-                                y=row[y],
-                                xref="x",
-                                yref="y",
-                                sizex=sizex,
-                                sizey=sizey,
-                                xanchor="center",
-                                yanchor="middle",
-                                layer="above",
-                                sizing="contain",
-                                opacity=1.0
-                            )
-                        )
-                    logo_found = True
-                    break
-            if logo_found:
-                break
+        # Añadir imagen del logo usando la función actualizada
+        logo_full_path = get_team_logo_path(team)
+        if os.path.exists(logo_full_path):
+            fig.add_layout_image(
+                dict(
+                    source=Image.open(logo_full_path),
+                    x=row[x],
+                    y=row[y],
+                    xref="x",
+                    yref="y",
+                    sizex=sizex,
+                    sizey=sizey,
+                    xanchor="center",
+                    yanchor="middle",
+                    layer="above",
+                    sizing="contain",
+                    opacity=1.0
+                )
+            )
     
     # Líneas de la mediana
     x_med = df[x].median()
