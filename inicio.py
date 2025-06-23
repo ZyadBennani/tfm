@@ -35,31 +35,45 @@ def get_team_logo_path(team_name):
 
 # Función para obtener la ruta del logo de la liga
 def get_league_logo_path(league_name):
-    # Normalizar el nombre de la liga para el nombre del archivo
-    filename = league_name.lower().replace(" ", "_") + ".png"
-    return os.path.join("static", "leagues", filename)
+    # Mapeo de nombres de liga a rutas específicas donde están los logos reales
+    league_mapping = {
+        "La Liga Española": os.path.join("static", "wetransfer_players_2025-06-18_1752", "LOGHI_PNG", "LA_LIGA", "LOGO", "La_Liga.png"),
+        "Premier League": os.path.join("static", "wetransfer_players_2025-06-18_1752", "LOGHI_PNG", "PREMIER LEAGUE", "Premier League.png"),
+        "Serie A": os.path.join("static", "wetransfer_players_2025-06-18_1752", "LOGHI_PNG", "SERIE_A", "LOGO", "Serie_A.png"),
+        "Bundesliga": os.path.join("static", "wetransfer_players_2025-06-18_1752", "LOGHI_PNG", "BUNDES", "LOGO", "Bundesliga.png"),
+        "Ligue 1": os.path.join("static", "wetransfer_players_2025-06-18_1752", "LOGHI_PNG", "LIGUE_1", "LOGO", "Ligue_1.png")
+    }
+    
+    # Obtener la ruta específica para la liga
+    league_path = league_mapping.get(league_name)
+    
+    if league_path and os.path.exists(league_path):
+        return league_path
+    
+    # Fallback a los logos temporales si no se encuentra el original
+    return os.path.join("static", "leagues", league_name.lower().replace(" ", "_") + ".png")
 
 # Listas globales de equipos para todas las ligas (NECESARIAS PARA TODAS LAS FUNCIONES)
 LALIGA_TEAMS = [
-    ("FC Barcelona", "barcelona.png"),
+    ("Barcelona", "Barcelona.png"),
     ("Real Madrid", "real_madrid.png"),
-    ("Atlético de Madrid", "atletico_de_madrid.png"),
+    ("Atletico de Madrid", "atletico_de_madrid.png"),
     ("Athletic Club", "athletic_club.png"),
     ("Real Sociedad", "real_sociedad.png"),
-    ("Sevilla FC", "sevilla.png"),
-    ("Valencia CF", "valencia.png"),
+    ("Sevilla", "Sevilla.png"),
+    ("Valencia", "valencia.png"),
     ("Real Betis", "real_betis.png"),
-    ("Villarreal CF", "villarreal.png"),
-    ("Girona FC", "girona.png"),
-    ("RC Celta", "celta_de_vigo.png"),
+    ("Villarreal", "Villarreal:png"),
+    ("Girona", "girona.png"),
+    ("Celta de Vigo", "celta_de_vigo.png"),
     ("Rayo Vallecano", "rayo_vallecano.png"),
-    ("CA Osasuna", "osasuna.png"),
-    ("Getafe CF", "getafe.png"),
-    ("Deportivo Alavés", "alaves.png"),
-    ("RCD Espanyol", "espanyol.png"),
-    ("UD Las Palmas", "las_palmas.png"),
-    ("RCD Mallorca", "mallorca.png"),
-    ("CD Leganés", "leganes.png"),
+    ("Osasuna", "osasuna.png"),
+    ("Getafe", "getafe.png"),
+    ("Alaves", "Alaves.png"),
+    ("Espanyol", "espanyol.png"),
+    ("Las Palmas", "las_palmas.png"),
+    ("Mallorca", "mallorca.png"),
+    ("Leganes", "Leganes.png"),
     ("Real Valladolid", "real_valladolid.png"),
 ]
 
@@ -75,8 +89,8 @@ PREMIER_TEAMS = [
     ("Brentford", "brentford.png"),
     ("Chelsea", "chelsea.png"),
     ("Crystal Palace", "crystal_palace.png"),
-    ("Wolves", "wolves.png"),
-    ("West Ham", "west_ham.png"),
+    ("Wolves", "Wolves.png"),
+    ("West Ham", "West_Ham.png"),
     ("Bournemouth", "bournemouth.png"),
     ("Nottingham Forest", "nottingham_forest.png"),
     ("Fulham", "fulham.png"),
@@ -87,26 +101,26 @@ PREMIER_TEAMS = [
 ]
 
 SERIE_A_TEAMS = [
-    ("Napoli", "napoli.png"),
-    ("Juventus", "juventus.png"),
-    ("Inter", "inter.png"),
-    ("Milan", "milan.png"),
-    ("Lazio", "lazio.png"),
-    ("Roma", "roma.png"),
-    ("Atalanta", "atalanta.png"),
-    ("Fiorentina", "fiorentina.png"),
-    ("Bologna", "bologna.png"),
-    ("Torino", "torino.png"),
-    ("Monza", "monza.png"),
-    ("Udinese", "udinese.png"),
-    ("Sassuolo", "sassuolo.png"),
-    ("Empoli", "empoli.png"),
-    ("Salernitana", "salernitana.png"),
-    ("Lecce", "lecce.png"),
-    ("Hellas Verona", "hellas_verona.png"),
-    ("Spezia", "spezia.png"),
-    ("Cremonese", "cremonese.png"),
-    ("Sampdoria", "sampdoria.png"),
+    ("Atalanta", "Atalanta.png"),
+    ("Bologna", "Bologna.png"),
+    ("Cagliari", "Cagliari.png"),
+    ("Como", "Como.png"),
+    ("Empoli", "Empoli.png"),
+    ("Fiorentina", "Fiorentina.png"),
+    ("Genoa", "Genoa.png"),
+    ("Hellas Verona", "Hellas_Verona.png"),
+    ("Inter", "Inter.png"),
+    ("Juventus", "Juventus.png"),
+    ("Lazio", "Lazio.png"),
+    ("Lecce", "Lecce.png"),
+    ("Milan", "Milan.png"),
+    ("Monza", "Monza.png"),
+    ("Napoli", "Napoli.png"),
+    ("Parma", "Parma.png"),
+    ("Roma", "Roma.png"),
+    ("Torino", "Torino.png"),
+    ("Udinese", "Udinese.png"),
+    ("Venezia", "Venezia.png"),
 ]
 
 BUNDESLIGA_TEAMS = [
