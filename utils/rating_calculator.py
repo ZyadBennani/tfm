@@ -715,13 +715,13 @@ class RatingCalculator:
         sigma: float = 20,  # Mayor dispersión (era 12, ahora 20)
     ) -> pd.DataFrame:
         """
-        🔥 SISTEMA AVANZADO DE REESCALADO CON SIGMA ADAPTATIVO
+        🎯 SISTEMA SIMPLE Y EFECTIVO DE STRETCH A 99
         
-        Combina las mejores opciones de ChatGPT:
-        - Opción 1: Sigma adaptativo (stretch dinámico)
-        - Opción 4: Diagnóstico asistido completo
-        
-        GARANTIZA matemáticamente que algunos jugadores alcancen 90+
+        Basado en la estrategia de ChatGPT:
+        - Diagnóstico breve
+        - Stretch percentil directo 
+        - Validaciones automáticas
+        - GARANTÍA: máximo = 99
         """
         df = df.copy()
         
@@ -738,215 +738,81 @@ class RatingCalculator:
                 df['rating_40_99'] = 70
                 return df
         
-        raw_ratings = df[col].copy()
+        raw_ratings = df[col].copy().dropna()
         
-        # 🔍 PASO 1: DIAGNÓSTICO COMPLETO (Opción 4 de ChatGPT)
-        print(f"\n🔍 === DIAGNÓSTICO COMPLETO DE {col} ===")
-        print(f"📊 Estadísticas básicas:")
-        print(f"  • Min: {raw_ratings.min():.2f}")
-        print(f"  • Max: {raw_ratings.max():.2f}")
-        print(f"  • Mean: {raw_ratings.mean():.2f}")
-        print(f"  • Std: {raw_ratings.std():.3f}")
-        print(f"  • Rango: {raw_ratings.max() - raw_ratings.min():.2f}")
+        # 🔍 DIAGNÓSTICO BREVE
+        print(f"\n🔍 === DIAGNÓSTICO DE {col} ===")
+        print(f"Min: {raw_ratings.min():.1f}, Max: {raw_ratings.max():.1f}")
+        print(f"Mean: {raw_ratings.mean():.1f}, Std: {raw_ratings.std():.2f}")
+        print(f"Compresión 80-86: {((raw_ratings >= 80) & (raw_ratings <= 86)).sum()} jugadores")
         
-        print(f"📈 Percentiles:")
-        print(f"  • P5: {raw_ratings.quantile(0.05):.2f}")
-        print(f"  • P50 (mediana): {raw_ratings.quantile(0.50):.2f}")
-        print(f"  • P95: {raw_ratings.quantile(0.95):.2f}")
-        print(f"  • P99: {raw_ratings.quantile(0.99):.2f}")
+        # 🚀 APLICAR STRETCH RATING
+        print(f"🚀 === APLICANDO STRETCH A 99 ===")
         
-        # Análisis de distribución
-        count_80_plus = (raw_ratings >= 80).sum()
-        count_75_plus = (raw_ratings >= 75).sum()
-        count_70_plus = (raw_ratings >= 70).sum()
-        print(f"🎯 Distribución actual:")
-        print(f"  • ≥80: {count_80_plus} jugadores")
-        print(f"  • ≥75: {count_75_plus} jugadores") 
-        print(f"  • ≥70: {count_70_plus} jugadores")
+        # Intentar método percentil primero
+        stretched = self._stretch_rating(raw_ratings, floor=40, ceil=99, mode="percentile")
         
-        # 🛠️ PASO 2: DETECCIÓN Y CORRECCIÓN DE PROBLEMAS
+        # Si no llega a 99, usar adaptive_gauss
+        if stretched.max() < 99:
+            print(f"⚠️ Percentil no alcanzó 99 (máx: {stretched.max()}), probando adaptive_gauss...")
+            stretched = self._stretch_rating(raw_ratings, floor=40, ceil=99, mode="adaptive_gauss")
         
-        # Problema: NaNs
-        if raw_ratings.isnull().any():
-            nan_count = raw_ratings.isnull().sum()
-            raw_ratings = raw_ratings.fillna(raw_ratings.mean())
-            print(f"⚠️ CORREGIDO: {nan_count} NaNs imputados con la media")
+        # Asignar resultado
+        df['rating_40_99'] = 70  # Default para NaNs
+        df.loc[raw_ratings.index, 'rating_40_99'] = stretched
         
-        # Problema: Varianza muy baja (Opción 4 de ChatGPT)
-        std_threshold = 0.15
-        if raw_ratings.std() <= std_threshold:
-            print(f"🚨 PROBLEMA DETECTADO: Std muy baja ({raw_ratings.std():.3f} ≤ {std_threshold})")
-            print(f"   Esto impide que el escalado gaussiano funcione correctamente")
-            
-            # SOLUCIÓN: Mapping por percentil puro (Opción 2 de ChatGPT)
-            print(f"🔧 APLICANDO SOLUCIÓN: Mapping por percentil puro")
-            percentiles = raw_ratings.rank(method='average') / (len(raw_ratings) + 1)
-            df['rating_40_99'] = (50 + percentiles * 49).round().astype(int)
-            df['rating_40_99'] = df['rating_40_99'].clip(50, 99)
-            
-            # Aplicar boost élite forzado
-            self._apply_elite_boost(df)
-            self._print_final_results(df, col, "Mapping Percentil")
-            return df
-        
-        # Problema: Rango muy pequeño  
-        rating_range = raw_ratings.max() - raw_ratings.min()
-        if rating_range < 1.0:
-            print(f"🚨 PROBLEMA DETECTADO: Rango muy pequeño ({rating_range:.3f})")
-            
-            # SOLUCIÓN: Min-max scaling agresivo
-            print(f"🔧 APLICANDO SOLUCIÓN: Min-max scaling agresivo")
-            normalized = (raw_ratings - raw_ratings.min()) / (rating_range + 1e-6)
-            df['rating_40_99'] = (50 + normalized * 49).round().astype(int)
-            df['rating_40_99'] = df['rating_40_99'].clip(50, 99)
-            
-            # Aplicar boost élite forzado
-            self._apply_elite_boost(df)
-            self._print_final_results(df, col, "Min-Max Scaling")
-            return df
-        
-        # 🎯 PASO 3: SIGMA ADAPTATIVO (Opción 1 de ChatGPT) 
-        print(f"\n🚀 === APLICANDO SIGMA ADAPTATIVO ===")
-        
-        # Normalizar a percentiles [0,1]
-        percentiles = raw_ratings.rank(method='average') / (len(raw_ratings) + 1)
-        percentiles = percentiles.clip(0.001, 0.999)
-        
-        # BÚSQUEDA ITERATIVA de sigma óptimo
-        target_max = 98  # Queremos que el máximo sea 98+
-        best_sigma = sigma
-        
-        for attempt_sigma in [sigma, sigma * 1.5, sigma * 2.0, sigma * 2.5, sigma * 3.0]:
-            try:
-                # Aplicar transformación gaussiana
-                if stats is not None:
-                    z_scores = percentiles.apply(lambda p: stats.norm.ppf(p))
-                    gaussian_ratings = mu + attempt_sigma * z_scores
-                else:
-                    # Método aproximado sin scipy
-                    import math
-                    def approx_norm_ppf(p):
-                        if p <= 0.5:
-                            t = math.sqrt(-2 * math.log(p))
-                            return -(t - (2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)))
-                        else:
-                            t = math.sqrt(-2 * math.log(1 - p))
-                            return t - (2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481))
-                    
-                    z_scores = percentiles.apply(approx_norm_ppf)
-                    gaussian_ratings = mu + attempt_sigma * z_scores
-                
-                # Clamp temporal
-                clamped = gaussian_ratings.clip(50, 99)
-                max_achieved = clamped.max()
-                
-                print(f"  • Sigma {attempt_sigma:.1f} → Máximo: {max_achieved:.1f}")
-                
-                if max_achieved >= target_max:
-                    best_sigma = attempt_sigma
-                    print(f"✅ ENCONTRADO: Sigma {best_sigma:.1f} logra máximo {max_achieved:.1f}")
-                    break
-                    
-            except Exception as e:
-                print(f"  ⚠️ Error con sigma {attempt_sigma}: {e}")
-                continue
-        
-        # Aplicar mejor sigma encontrado
-        if stats is not None:
-            z_scores = percentiles.apply(lambda p: stats.norm.ppf(p))
-            gaussian_ratings = mu + best_sigma * z_scores
-        else:
-            import math
-            def approx_norm_ppf(p):
-                if p <= 0.5:
-                    t = math.sqrt(-2 * math.log(p))
-                    return -(t - (2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)))
-                else:
-                    t = math.sqrt(-2 * math.log(1 - p))
-                    return t - (2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481))
-            
-            z_scores = percentiles.apply(approx_norm_ppf)
-            gaussian_ratings = mu + best_sigma * z_scores
-        
-        # Clamp final
-        df['rating_40_99'] = gaussian_ratings.clip(50, 99).round().astype(int)
-        
-        # 🌟 PASO 4: BOOST ÉLITE GARANTIZADO
-        self._apply_elite_boost(df)
-        
-        # 📊 PASO 5: RESULTADOS Y VALIDACIÓN
-        self._print_final_results(df, col, f"Sigma Adaptativo ({best_sigma:.1f})")
-        
-        return df
-    
-    def _apply_elite_boost(self, df: pd.DataFrame):
-        """Aplicar boost élite forzado para garantizar ratings altos"""
-        
-        # Boost por valor de mercado
-        if 'Market_Value' in df.columns or 'Market Value' in df.columns:
-            market_col = 'Market_Value' if 'Market_Value' in df.columns else 'Market Value'
-            
-            # Top 1% → mínimo 92
-            top_1_percent = df[market_col].quantile(0.99)
-            super_elite_mask = df[market_col] >= top_1_percent
-            df.loc[super_elite_mask, 'rating_40_99'] = df.loc[super_elite_mask, 'rating_40_99'].clip(lower=92)
-            
-            # Top 5% → mínimo 87  
-            top_5_percent = df[market_col].quantile(0.95)
-            elite_mask = df[market_col] >= top_5_percent
-            df.loc[elite_mask, 'rating_40_99'] = df.loc[elite_mask, 'rating_40_99'].clip(lower=87)
-            
-            # Top 10% → mínimo 82
-            top_10_percent = df[market_col].quantile(0.90)
-            good_mask = df[market_col] >= top_10_percent
-            df.loc[good_mask, 'rating_40_99'] = df.loc[good_mask, 'rating_40_99'].clip(lower=82)
-        
-        # Boost por rating original alto
-        if 'Rating' in df.columns:
-            original_elite = df['Rating'] >= 85
-            df.loc[original_elite, 'rating_40_99'] = df.loc[original_elite, 'rating_40_99'].clip(lower=90)
-            
-            original_very_good = df['Rating'] >= 80
-            df.loc[original_very_good, 'rating_40_99'] = df.loc[original_very_good, 'rating_40_99'].clip(lower=85)
-    
-    def _print_final_results(self, df: pd.DataFrame, original_col: str, method: str):
-        """Imprimir resultados finales con estadísticas completas"""
+        # 🔍 VALIDACIONES AUTOMÁTICAS
         final_ratings = df['rating_40_99']
+        assert final_ratings.max() == 99, f"❌ El máximo no llegó a 99 (actual: {final_ratings.max()})"
+        assert final_ratings.min() >= 40, f"❌ El mínimo bajó de 40 (actual: {final_ratings.min()})"
+        print(f"✅ VALIDACIONES PASADAS: Rango {final_ratings.min()}-{final_ratings.max()}")
         
-        print(f"\n🎯 === RESULTADOS FINALES ({method}) ===")
-        print(f"📊 Nuevas estadísticas:")
-        print(f"  • Rango: {final_ratings.min()}-{final_ratings.max()}")
-        print(f"  • Media: {final_ratings.mean():.1f}")
-        print(f"  • Std: {final_ratings.std():.1f}")
-        
-        # Distribución por rangos
-        over_95 = (final_ratings >= 95).sum()
-        over_90 = (final_ratings >= 90).sum()
-        over_87 = (final_ratings >= 87).sum()
-        over_85 = (final_ratings >= 85).sum()
-        over_80 = (final_ratings >= 80).sum()
-        
-        print(f"🎯 Nueva distribución:")
-        print(f"  • ≥95 (ÉLITE): {over_95} jugadores")
-        print(f"  • ≥90 (MUY ALTO): {over_90} jugadores")
-        print(f"  • ≥87 (ALTO): {over_87} jugadores ← ¡PROBLEMA SOLUCIONADO!")
-        print(f"  • ≥85 (BUENO): {over_85} jugadores")
-        print(f"  • ≥80 (DECENTE): {over_80} jugadores")
+        # 📊 RESULTADOS
+        method_used = "percentile" if stretched.max() == 99 else "adaptive_gauss"
+        print(f"📊 Método empleado: {method_used}")
+        print(f"📊 Distribución final:")
+        print(f"  • ≥95: {(final_ratings >= 95).sum()} jugadores")
+        print(f"  • ≥90: {(final_ratings >= 90).sum()} jugadores")
+        print(f"  • ≥87: {(final_ratings >= 87).sum()} jugadores")
         
         # Top 10 jugadores
         if 'Name' in df.columns:
-            top_10 = df.nlargest(10, 'rating_40_99')[['Name', 'rating_40_99', original_col]]
+            top_10 = df.nlargest(10, 'rating_40_99')[['Name', col, 'rating_40_99']]
             print(f"\n🌟 TOP 10 JUGADORES:")
-            for idx, row in top_10.iterrows():
-                original = row[original_col] if not pd.isna(row[original_col]) else 0
+            for i, (_, row) in enumerate(top_10.iterrows(), 1):
+                original = row[col] if not pd.isna(row[col]) else 0
                 new_rating = row['rating_40_99']
                 change = f"(+{new_rating - original:.0f})" if new_rating > original else f"({new_rating - original:.0f})"
-                print(f"  {idx+1:2d}. {row['Name']:<25} {new_rating:2d} {change}")
+                print(f"  {i:2d}. {row['Name']:<25} {new_rating:2d} {change}")
         
-        # Validación crítica
-        if over_87 == 0:
-            print(f"❌ FALLO CRÍTICO: Ningún jugador tiene rating ≥87")
-        else:
-            print(f"✅ ÉXITO: {over_87} jugadores con rating ≥87")
+        return df
+    
+    def _stretch_rating(
+        self,
+        s: pd.Series,
+        floor: int = 40,
+        ceil: int = 99,
+        mode: str = "percentile"
+    ) -> pd.Series:
+        """
+        Devuelve Serie de ints [40-99] garantizando que el valor máximo sea ceil.
+        """
+        if mode == "percentile":
+            # Mapeo percentil lineal: 0-1 → floor-ceil
+            pct = s.rank(method="min", pct=True)  # 0–1
+            scaled = floor + (ceil - floor) * pct  # mapea linealmente
+            print(f"  • Percentil: rango {pct.min():.3f}-{pct.max():.3f} → {scaled.min():.1f}-{scaled.max():.1f}")
+            
+        else:  # adaptive_gauss
+            # Z-score con sigma adaptativo para alcanzar ceil
+            z = (s - s.mean()) / s.std(ddof=0)
+            sigma_needed = (ceil - 70) / z.max() if z.max() > 0 else 1
+            scaled = 70 + sigma_needed * z
+            print(f"  • Adaptive Gauss: sigma={sigma_needed:.2f} → rango {scaled.min():.1f}-{scaled.max():.1f}")
         
-        print(f"=" * 50)
+        # Clamp y redondear
+        result = scaled.clip(floor, ceil).round().astype(int)
+        print(f"  • Final: {result.min()}-{result.max()}")
+        return result
+    
+

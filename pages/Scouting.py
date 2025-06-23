@@ -1131,10 +1131,11 @@ with tab1:
                 # Columna 10: Rating con color (usar rating calculado)
                 with cols[9]:
                     display_rating = player.get('Display_Rating', player.get('Calculated_Rating', player.get('Rating', 65)))
+                    display_rating = int(display_rating)  # Forzar a entero
                     rating_color = get_rating_color(display_rating)
                     
                     # Mostrar rating original vs calculado si son diferentes
-                    original_rating = player.get('Rating', 65)
+                    original_rating = int(player.get('Rating', 65))  # También forzar a entero
                     if abs(display_rating - original_rating) > 1:
                         tooltip = f"Original: {original_rating} → Calculado: {display_rating}"
                         rating_display = f"{display_rating} ⚡"
@@ -1242,6 +1243,7 @@ with tab2:
                     
                     # Color del badge según rating calculado (nuevo sistema 40-99)
                     display_rating = player.get('Display_Rating', player.get('Calculated_Rating', player.get('Rating', 65)))
+                    display_rating = int(display_rating)  # Forzar a entero
                     if display_rating >= 85:
                         badge_color = "#22c55e"  # Verde (Excelente)
                     elif display_rating >= 75:

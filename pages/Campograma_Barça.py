@@ -327,10 +327,10 @@ with col_campo:
         st.metric(label="Internacionales", value=f"{international_percentage:.0f}%")
 
     with col3:
-        st.metric(label="Cantera", value=f"{cantera_percentage:.0f}%")
+        st.metric(label="Canteranos", value=f"{cantera_percentage:.0f}%")
 
     with col4:
-        st.metric(label="Jóvenes Sub-23", value=f"{young_percentage:.0f}%")
+        st.metric(label="Sub-23", value=f"{young_percentage:.0f}%")
     
     # Generar el campograma dentro de la misma columna
     fig_barca, ax_barca = draw_pitch_barca()
