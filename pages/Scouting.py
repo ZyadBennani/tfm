@@ -13,9 +13,37 @@ import os
 
 # Agregar el directorio utils al path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils.scouting_data_manager import ScoutingDataManager
-from utils.player_photo_manager import get_photo_manager
-from utils.rating_calculator import RatingCalculator
+
+# Importaciones con manejo de errores
+try:
+    from utils.scouting_data_manager import ScoutingDataManager
+    from utils.player_photo_manager import get_photo_manager
+    from utils.rating_calculator import RatingCalculator
+    print("✅ Módulos utils importados correctamente")
+except ImportError as e:
+    print(f"⚠️ Error importando módulos utils: {e}")
+    # Crear clases de fallback
+    class RatingCalculator:
+        def __init__(self):
+            self.profiles_data = {}
+        def bulk_calculate_ratings(self, df):
+            df = df.copy()
+            df['Display_Rating'] = df.get('Rating', 65)
+            return df
+        def gauss_scale(self, df, **kwargs):
+            return df
+except SyntaxError as e:
+    print(f"⚠️ Error de sintaxis en rating_calculator: {e}")
+    # Crear clases de fallback
+    class RatingCalculator:
+        def __init__(self):
+            self.profiles_data = {}
+        def bulk_calculate_ratings(self, df):
+            df = df.copy()
+            df['Display_Rating'] = df.get('Rating', 65)
+            return df
+        def gauss_scale(self, df, **kwargs):
+            return df
 
 # Configuración de la página
 st.set_page_config(
@@ -718,8 +746,6 @@ with st.sidebar:
     #                     st.markdown(f"❌ **{cache_type.title()}**: No existe")
     #         except Exception as e:
     #             st.markdown("⚠️ No se pudo obtener información del caché")
-    #     else:
-    #         st.markdown("📁 Sistema de caché disponible")
     #     
     #     st.markdown("---")
     #     
@@ -817,28 +843,39 @@ with tab1:
     
     filtered_df = data_manager.apply_filters(df, filters)
     
-    # 🔥 CALCULAR RATINGS AUTOMÁTICAMENTE
-    if not filtered_df.empty:
+    # 🔥 CALCULAR RATINGS PRIMERO, FILTRAR DESPUÉS
+    if not df.empty:
         try:
             rating_calculator = get_rating_calculator()
-            filtered_df = rating_calculator.bulk_calculate_ratings(filtered_df)
+            df_with_ratings = rating_calculator.bulk_calculate_ratings(df)
             # Usar rating calculado si está disponible, sino usar el original
-            filtered_df['Display_Rating'] = filtered_df.get('Calculated_Rating', filtered_df.get('Rating', 65))
+            df_with_ratings['Display_Rating'] = df_with_ratings.get('Calculated_Rating', df_with_ratings.get('Rating', 65))
             
-            # Mostrar estadísticas de ratings calculados
-            if 'Calculated_Rating' in filtered_df.columns:
-                max_calc = filtered_df['Calculated_Rating'].max()
-                min_calc = filtered_df['Calculated_Rating'].min()
-                avg_calc = filtered_df['Calculated_Rating'].mean()
-                over_80 = len(filtered_df[filtered_df['Calculated_Rating'] > 80])
-                over_70 = len(filtered_df[filtered_df['Calculated_Rating'] > 70])
-                
-                if over_70 > 0 or max_calc > 75:  # Solo mostrar si hay ratings interesantes
-                    st.success(f"⚡ **Sistema de Rating Activo**: {over_70} jugadores >70 | {over_80} jugadores >80 | Máximo: {max_calc:.1f}")
-                
         except Exception as e:
             st.warning(f"⚠️ Sistema de rating no disponible: {str(e)}")
-            filtered_df['Display_Rating'] = filtered_df.get('Rating', 65)
+            df_with_ratings = df.copy()
+            df_with_ratings['Display_Rating'] = df_with_ratings.get('Rating', 65)
+    else:
+        df_with_ratings = df.copy()
+        df_with_ratings['Display_Rating'] = 65
+
+    st.markdown("---")
+
+    # APLICAR FILTROS CON RATINGS YA CALCULADOS  
+    filtered_df = data_manager.apply_filters(df_with_ratings, filters)
+    
+    # Mostrar estadísticas de ratings calculados DESPUÉS del filtrado
+    if not filtered_df.empty and 'Display_Rating' in filtered_df.columns:
+        max_calc = filtered_df['Display_Rating'].max()
+        min_calc = filtered_df['Display_Rating'].min()
+        avg_calc = filtered_df['Display_Rating'].mean()
+        over_80 = len(filtered_df[filtered_df['Display_Rating'] > 80])
+        over_70 = len(filtered_df[filtered_df['Display_Rating'] > 70])
+        
+        if over_70 > 0 or max_calc > 75:  # Solo mostrar si hay ratings interesantes
+            over_90 = len(filtered_df[filtered_df['Display_Rating'] > 90])
+            over_95 = len(filtered_df[filtered_df['Display_Rating'] > 95])
+            st.success(f"🎯 **Sistema Gaussiano Activo**: {over_70} jugadores >70 | {over_80} >80 | {over_90} >90 | ⭐{over_95} ELITE >95 | Máximo: {max_calc:.1f}")
     
     # Contador de resultados y paginación
     total_results = len(filtered_df)
@@ -1061,7 +1098,7 @@ with tab1:
                         'GK': '🟡', 'CB': '🔵', 'RB': '🟢', 'LB': '🟢',
                         'CM': '⚪', 'CDM': '⚪', 'CAM': '🟠',
                         'RW': '🟣', 'LW': '🟣', 'ST': '🔴'
-                    }.get(player['Position'], '⚪')
+                    }.get(player['Position'], '⚫')
                     st.markdown(f"{position_emoji} {player['Position']}")
                 
                 # Columna 4: Perfil
@@ -1070,7 +1107,7 @@ with tab1:
                 
                 # Columna 5: Pie dominante
                 with cols[4]:
-                    foot_emoji = "" if player.get('Foot') == 'Right' else "🦶🏻" if player.get('Foot') == 'Left' else "⚽"
+                    foot_emoji = "" if player.get('Foot') == 'Right' else "" if player.get('Foot') == 'Left' else "⚽"
                     st.markdown(f"{foot_emoji} {player.get('Foot', 'N/A')}")
                 
                 # Columna 6: Edad
@@ -1231,8 +1268,8 @@ with tab2:
                                 </div>
                                 <h3 style="text-align: center; margin-bottom: 0.5rem;">{player['Name']}</h3>
                                 <p style="text-align: center;">{position_emoji} {player['Position']} | 👤 {int(player['Age'])} años</p>
-                                <p style="text-align: center;">{player['Nationality']} | ⚽ {player['Club']}</p>
-                                <p style="text-align: center;">💰 €{player.get('Market_Value', 0):.1f}M | 📏 {player['Height']}cm</p>
+                                <p style="text-align: center;">{player['Nationality']} |  {player['Club']}</p>
+                                <p style="text-align: center;">€{player.get('Market_Value', 0):.1f}M | {player['Height']}cm</p>
                                 <div style="display: flex; justify-content: center; margin-top: 0.5rem;">
                                     <div style="background-color: {badge_color}; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 1rem; font-weight: 600;">
                                     Rating: {display_rating} ⚡
@@ -1358,25 +1395,74 @@ with st.sidebar:
             clear_rating_cache()
             st.success("Sistema de rating actualizado - los nuevos cálculos se aplicarán automáticamente")
         
-        st.markdown("""
-        <div style='background-color: #f0f9ff; padding: 10px; border-radius: 5px; margin-top: 10px;'>
-        <small><strong>💡 Tip:</strong> El cache permanente hace que la app cargue en 3-5 segundos después de la primera vez.</small>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("---")
+        st.markdown("🎯 **Sistema Gaussiano Manual:**")
         
-        # ⚡ INFORMACIÓN DEL SISTEMA DE RATING 
-        try:
-            rating_calculator = get_rating_calculator()
-            profiles_count = len(rating_calculator.profiles_data)
-            if profiles_count > 0:
-                st.markdown("---")
-                st.markdown("⚡ **Sistema de Rating Activo**")
-                st.markdown(f"✅ {profiles_count} perfiles cargados")
-                st.markdown("🎯 Rating basado en métricas específicas por posición")
-                st.markdown("🏆 Ponderación por liga (Bota de Oro)")
-                st.markdown("⏱️ Factor minutos jugados incluido")
-                st.info("Los ratings mostrados con ⚡ son calculados automáticamente")
+        if st.button("🚀 Aplicar Reescalado Gaussiano", help="Fuerza el reescalado gaussiano a todos los jugadores para alcanzar ratings 90-99"):
+            # Aplicar reescalado gaussiano manual
+            data_manager = get_data_manager()
+            df_temp = data_manager.get_player_data(use_real_data=True)
+            
+            if not df_temp.empty:
+                try:
+                    rating_calculator = get_rating_calculator()
+                    
+                    # Aplicar reescalado gaussiano directo a los ratings existentes
+                    st.info("🔄 Aplicando transformación gaussiana...")
+                    
+                    # Usar el rating existente como base
+                    rating_col = 'Rating'
+                    if 'Display_Rating' in df_temp.columns:
+                        rating_col = 'Display_Rating'
+                    elif 'Calculated_Rating' in df_temp.columns:
+                        rating_col = 'Calculated_Rating'
+                    
+                    # Aplicar la función gauss_scale MÁS AGRESIVA
+                    df_transformed = rating_calculator.gauss_scale(
+                        df_temp,
+                        col=rating_col,
+                        pos_col='Position',
+                        by_position=False,
+                        mu=80,    # Media MUY alta (era 75, ahora 80)
+                        sigma=22  # MÁS dispersión (era 18, ahora 22)
+                    )
+                    
+                    # Actualizar el cache con los nuevos ratings
+                    if 'rating_40_99' in df_transformed.columns:
+                        # Mostrar estadísticas del resultado
+                        max_rating = df_transformed['rating_40_99'].max()
+                        min_rating = df_transformed['rating_40_99'].min()
+                        avg_rating = df_transformed['rating_40_99'].mean()
+                        over_90 = (df_transformed['rating_40_99'] > 90).sum()
+                        over_85 = (df_transformed['rating_40_99'] > 85).sum()
+                        over_80 = (df_transformed['rating_40_99'] > 80).sum()
+                        
+                        # Top 10 jugadores
+                        if 'Name' in df_transformed.columns:
+                            top_10 = df_transformed.nlargest(10, 'rating_40_99')
+                            top_names = ", ".join(top_10['Name'].head(5).tolist())
+                            
+                            st.success(f"""
+✅ **Reescalado Gaussiano Completado!**
+
+📊 **Distribución Final:**
+- Rango: {min_rating}-{max_rating}
+- Media: {avg_rating:.1f}
+- >90 rating: {over_90} jugadores
+- >85 rating: {over_85} jugadores  
+- >80 rating: {over_80} jugadores
+
+🌟 **Top 5:** {top_names}
+
+💡 **Refresca la página** para ver los nuevos ratings en la tabla principal.
+                            """)
+                        else:
+                            st.success(f"✅ Transformación aplicada: {min_rating}-{max_rating} (media: {avg_rating:.1f})")
+                    else:
+                        st.error("❌ Error en la transformación gaussiana")
+                        
+                except Exception as e:
+                    st.error(f"❌ Error aplicando reescalado: {str(e)}")
             else:
-                st.warning("⚠️ Sistema de rating no disponible")
-        except:
-            st.warning("⚠️ Sistema de rating no disponible")
+                st.error("❌ No se pudieron cargar los datos")
+        

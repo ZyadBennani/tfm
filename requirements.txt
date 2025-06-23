@@ -9,4 +9,5 @@ playwright>=1.30.0
 tqdm>=4.65.0
 python-dotenv>=0.21.0
 pyarrow>=14.0.1  # Para archivos parquet
-webdriver_manager>=3.8.0 
+webdriver_manager>=3.8.0
+scipy>=1.10.0  # Para distribución gaussiana del sistema de rating 

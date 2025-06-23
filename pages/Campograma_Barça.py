@@ -273,37 +273,66 @@ def get_circular_player_image(player_name):
     except Exception as e:
         return None
 
-# Mostrar estadísticas del equipo
+# Estadísticas del equipo - encima del campograma
+st.markdown("---")
 
-col1, col2, col3, col4, col5, col6 = st.columns(6)
-with col1:
-    st.metric(label="GK", value="3")
-with col2:
-    st.metric(label="CB", value="5")
-with col3:
-    st.metric(label="LB/RB", value="4")
-with col4:
-    st.metric(label="CM", value="4")
-with col5:
-    st.metric(label="CAM", value="3")
-with col6:
-    st.metric(label="LW/RW/ST", value="6")
+# Datos calculados de la plantilla actual
+player_ages = {
+    "Marc Andre ter Stegen": 32, "Wojciech Szczesny": 34, "Inaki Pena": 25,
+    "Ronald Araujo": 25, "Pau Cubarsi": 17, "Andreas Christensen": 28, 
+    "Inigo Martinez": 33, "Eric Garcia": 24, "Jules Kounde": 26,
+    "Hector Fort": 18, "Gerard Martin": 22, "Alejandro Balde": 21,
+    "Marc Casado": 21, "Pedri": 22, "Frenkie de Jong": 27, "Gavi": 20,
+    "Dani Olmo": 26, "Fermin Lopez": 21, "Pablo Torre": 21,
+    "Lamine Yamal": 17, "Ferran Torres": 24, "Raphinha": 27, "Ansu Fati": 22,
+    "Robert Lewandowski": 36, "Pau Victor": 23
+}
+
+# Calcular estadísticas
+all_players = list(player_ages.keys())
+total_players = len(all_players)
+average_age = sum(player_ages.values()) / total_players
+
+# Calcular jugadores internacionales (estimación basada en jugadores conocidos)
+international_players = [
+    "Marc Andre ter Stegen", "Wojciech Szczesny", "Ronald Araujo", "Andreas Christensen",
+    "Inigo Martinez", "Jules Kounde", "Alejandro Balde", "Pedri", "Frenkie de Jong", 
+    "Gavi", "Dani Olmo", "Lamine Yamal", "Ferran Torres", "Raphinha", "Ansu Fati",
+    "Robert Lewandowski"
+]
+international_percentage = (len(international_players) / total_players) * 100
+
+# Jugadores de la cantera (estimación)
+cantera_players = ["Pau Cubarsi", "Hector Fort", "Gerard Martin", "Alejandro Balde", 
+                   "Marc Casado", "Pedri", "Gavi", "Fermin Lopez", "Pablo Torre", 
+                   "Lamine Yamal", "Ansu Fati", "Pau Victor"]
+cantera_percentage = (len(cantera_players) / total_players) * 100
+
+# Jugadores jóvenes (sub-23)
+young_players = [name for name, age in player_ages.items() if age < 23]
+young_percentage = (len(young_players) / total_players) * 100
 
 # Campograma principal
 col_legend, col_campo = st.columns([1, 4])
 
-with col_legend:
-    st.markdown("**Leyenda:**")
-    st.markdown("🔴 **ST**")
-    st.markdown("🟣 **LW-RW**")
-    st.markdown("🟠 **CAM**")
-    st.markdown("⚪ **CM-CDM**")
-    st.markdown("🟢 **LB-RB**")
-    st.markdown("🔵 **CB**")
-    st.markdown("🟡 **GK**")
-
+# Mostrar estadísticas alineadas con el campograma
 with col_campo:
-    # Generar el campograma
+    # Las métricas van dentro de la misma columna que el campograma
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(label="Edad Media", value=f"{average_age:.1f}")
+
+    with col2:
+        st.metric(label="Internacionales", value=f"{international_percentage:.0f}%")
+
+    with col3:
+        st.metric(label="Cantera", value=f"{cantera_percentage:.0f}%")
+
+    with col4:
+        st.metric(label="Jóvenes Sub-23", value=f"{young_percentage:.0f}%")
+    
+    # Generar el campograma dentro de la misma columna
     fig_barca, ax_barca = draw_pitch_barca()
     
     # Mostrar el campograma
@@ -312,6 +341,16 @@ with col_campo:
     buf.seek(0)
     st.image(buf, use_container_width=True)
     plt.close(fig_barca)
+
+with col_legend:
+    st.markdown("### **Leyenda:**")
+    st.markdown("#### 🔴 **ST** (2)")
+    st.markdown("#### 🟣 **LW-RW** (4)")
+    st.markdown("#### 🟠 **CAM** (3)")
+    st.markdown("#### ⚪ **CM-CDM** (4)")
+    st.markdown("#### 🟢 **LB-RB** (4)")
+    st.markdown("#### 🔵 **CB** (5)")
+    st.markdown("#### 🟡 **GK** (3)")
 
 # Mostrar plantilla por posiciones
 st.markdown("### Plantilla por Posiciones")

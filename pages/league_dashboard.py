@@ -182,21 +182,23 @@ def plot_phase_plotly(df, x, y, invert, title, color, x_range=None, y_range=None
     # Eje X: forzar explícitamente el rango de menor a mayor en Fase ofensiva
     if title == "Fase ofensiva":
         if x_range:
-            fig.update_xaxes(range=x_range)
+            fig.update_xaxes(range=x_range, showticklabels=False)
         else:
-            fig.update_xaxes(autorange=True)
+            fig.update_xaxes(autorange=True, showticklabels=False)
     elif invert:
         if x_range:
-            fig.update_xaxes(range=x_range[::-1])
+            fig.update_xaxes(range=x_range[::-1], showticklabels=False)
         else:
-            fig.update_xaxes(autorange="reversed")
+            fig.update_xaxes(autorange="reversed", showticklabels=False)
     else:
         if x_range:
-            fig.update_xaxes(range=x_range)
+            fig.update_xaxes(range=x_range, showticklabels=False)
         else:
-            fig.update_xaxes(autorange=True)
+            fig.update_xaxes(autorange=True, showticklabels=False)
     if y_range:
-        fig.update_yaxes(range=y_range)
+        fig.update_yaxes(range=y_range, showticklabels=False)
+    else:
+        fig.update_yaxes(showticklabels=False)
     fig.update_layout(
         title=title,
         xaxis_title=x_label or x,
