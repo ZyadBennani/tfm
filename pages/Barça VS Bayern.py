@@ -150,7 +150,6 @@ def create_radar_chart(barca_player: str, bayern_player: str, position: str, cha
                 )
             ),
             showlegend=False,
-            title=f"{position}: {barca_player} vs {bayern_player}",
             height=350,
             polar_angularaxis_rotation=90  # Rotar las etiquetas para mejor legibilidad
         )
@@ -389,11 +388,11 @@ with col2_campo:
 # Definición de las comparaciones
 comparisons = [
     ("GK", "Wojciech Szczesny", "Manuel Neuer"),
-    ("CB-L", "Inigo Martinez", "David Alaba"),
-    ("CB-R", "Pau Cubarsi", "Jerome Boateng"),
+    ("LCB", "Inigo Martinez", "David Alaba"),
+    ("RCB", "Pau Cubarsi", "Jerome Boateng"),
     ("LB", "Alejandro Balde", "Alphonso Davies"),
     ("RB", "Jules Kounde", "Benjamin Pavard"),
-    ("CDM", "Frenkie De Jong", "Joshua Kimmich"),
+    ("CM", "Frenkie De Jong", "Joshua Kimmich"),
     ("CM", "Pedri", "Leon Goretzka"),
     ("CAM", "Dani Olmo", "Thomas Muller"),
     ("LW", "Raphinha", "Kingsley Coman"),
@@ -402,7 +401,24 @@ comparisons = [
 ]
 
 # Comparaciones Individuales
-st.markdown("### Comparaciones Individuales")
+st.markdown("""
+    <div style="text-align: center; margin: 40px 0 30px 0;">
+        <h2 style="
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        ">Comparaciones Individuales</h2>
+        <h3 style="
+            font-size: 1.5em;
+            font-weight: 400;
+            color: #7f8c8d;
+            margin-top: 0;
+            letter-spacing: 0.5px;
+        ">Radares</h3>
+    </div>
+""", unsafe_allow_html=True)
 
 # Iterar sobre las comparaciones definidas
 for pos, barca_player, bayern_player in comparisons:
@@ -420,6 +436,8 @@ for pos, barca_player, bayern_player in comparisons:
             st.image(barca_img, width=200)  # Aumentado de 220 a 300
         
     with col2:
+        # Título de la posición centrado encima del radar
+        st.markdown(f"<h3 style='text-align: center; color: #2c3e50; margin-bottom: 10px;'>{pos}</h3>", unsafe_allow_html=True)
         try:
             fig = create_radar_chart(barca_player, bayern_player, pos)
             if fig:

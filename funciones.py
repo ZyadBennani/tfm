@@ -36,7 +36,7 @@ def get_player_metrics(df, player_name, team):
 # Definición de jugadores y posiciones
 barca_players = [
     "Wojciech Szczesny",      # GK
-    "Inigo Martinez", "Pau Cubarsi",  # CB-L, CB-R
+    "Inigo Martinez", "Pau Cubarsi",  # CBL, CBR
     "Alejandro Balde",            # LB
     "Jules Kounde",               # RB
     "Frenkie De Jong",            # DM
@@ -48,7 +48,7 @@ barca_players = [
 
 bayern_players = [
     "Manuel Neuer",               # GK
-    "David Alaba", "Jerome Boateng",  # CB-L, CB-R
+    "David Alaba", "Jerome Boateng",  # CBL, CBR
     "Alphonso Davies",            # LB
     "Benjamin Pavard",            # RB
     "Joshua Kimmich",             # DM
@@ -59,7 +59,7 @@ bayern_players = [
 ]
 
 positions = [
-    "GK", "CB-L", "CB-R", "LB", "RB", "DM", "CM", "AM", "LW", "RW", "ST"
+    "GK", "CBL", "CBR", "LB", "RB", "DM", "CM", "AM", "LW", "RW", "ST"
 ]
 
 # Posiciones de los jugadores
