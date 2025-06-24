@@ -17,6 +17,17 @@ show_home_button()
 
 # CSS personalizado para tema oscuro español y tablas como la imagen
 st.markdown("""
+    <!-- Importar fuentes Google Fonts clásicas y elegantes -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&family=Source+Sans+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+    /* Variables de fuentes */
+    :root {
+        --font-title: 'Playfair Display', serif;
+        --font-subtitle: 'Montserrat', sans-serif;
+        --font-body: 'Source Sans Pro', sans-serif;
+    }
+    
     <style>
     /* Tema Blaugrana Uniforme */
     .main > div {
@@ -178,6 +189,51 @@ st.markdown("""
     /* Colores de texto */
     .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6 {
         color: #2c3e50 !important;
+    }
+    
+    /* ====== TIPOGRAFÍA CLÁSICA Y ELEGANTE ====== */
+    
+    /* Aplicar fuentes a elementos generales */
+    body, .main-content, .stApp {
+        font-family: var(--font-body) !important;
+    }
+    
+    /* Títulos principales */
+    h1 {
+        font-family: var(--font-title) !important;
+        font-weight: 600 !important;
+        letter-spacing: 1px !important;
+    }
+    
+    /* Subtítulos */
+    h2, h3 {
+        font-family: var(--font-subtitle) !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    /* Títulos menores */
+    h4, h5, h6 {
+        font-family: var(--font-subtitle) !important;
+        font-weight: 400 !important;
+    }
+    
+    /* Texto de cuerpo y párrafos */
+    p, .stMarkdown, .stText, div, span {
+        font-family: var(--font-body) !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Botones con fuente elegante */
+    .stButton button {
+        font-family: var(--font-subtitle) !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    /* Selectores y controles */
+    .stSelectbox, .stSlider, .stNumberInput {
+        font-family: var(--font-body) !important;
     }
     </style>
 """, unsafe_allow_html=True)

@@ -16,6 +16,50 @@ def show_home_button():
     """Muestra un botón estilizado para volver al inicio de la aplicación"""
     # Estilos CSS para el botón de inicio
     st.markdown("""
+        <!-- Importar fuentes Google Fonts clásicas y elegantes -->
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&family=Source+Sans+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+        
+        <style>
+        /* Variables de fuentes */
+        :root {
+            --font-title: 'Playfair Display', serif;
+            --font-subtitle: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans Pro', sans-serif;
+        }
+        
+        /* Aplicar tipografía elegante globalmente */
+        .stApp, .main-content, body {
+            font-family: var(--font-body) !important;
+        }
+        
+        h1 {
+            font-family: var(--font-title) !important;
+            font-weight: 600 !important;
+            letter-spacing: 1px !important;
+        }
+        
+        h2, h3 {
+            font-family: var(--font-subtitle) !important;
+            font-weight: 500 !important;
+            letter-spacing: 0.5px !important;
+        }
+        
+        h4, h5, h6 {
+            font-family: var(--font-subtitle) !important;
+            font-weight: 400 !important;
+        }
+        
+        p, .stMarkdown, .stText, div, span {
+            font-family: var(--font-body) !important;
+            line-height: 1.6 !important;
+        }
+        
+        .stButton button {
+            font-family: var(--font-subtitle) !important;
+            font-weight: 500 !important;
+            letter-spacing: 0.5px !important;
+        }
+        
         <style>
         .fcb-home-button-v2 {
             position: fixed;
@@ -93,11 +137,15 @@ def show_page_header(title, subtitle=None, icon="⚽"):
             font-size: 2.5em !important;
             font-weight: 700 !important;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+            font-family: var(--font-title) !important;
+            letter-spacing: 1px !important;
         }}
         #{header_id} p {{
             color: rgba(255,255,255,0.9) !important;
             margin: 10px 0 0 0 !important;
             font-size: 1.1em !important;
+            font-family: var(--font-subtitle) !important;
+            font-weight: 400 !important;
         }}
         </style>
         
@@ -147,13 +195,16 @@ def show_fcb_lab_brand():
                         color: white;
                         margin: 0;
                         font-size: 1.5em;
-                        font-weight: 900;
+                        font-weight: 700;
                         letter-spacing: 1px;
+                        font-family: var(--font-title);
                     ">FCB.LAB</h2>
                     <p style="
                         color: rgba(255,255,255,0.8);
                         margin: 0;
                         font-size: 0.8em;
+                        font-family: var(--font-subtitle);
+                        font-weight: 400;
                     ">Laboratorio de Análisis</p>
                 </div>
             </div>

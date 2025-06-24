@@ -653,8 +653,11 @@ def get_image_base64(image_path):
 
 # Estilos CSS personalizados
 st.markdown("""
+    <!-- Importar fuentes Google Fonts clásicas y elegantes -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&family=Source+Sans+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
     <style>
-    /* Variables de color para tema consistente */
+    /* Variables de color y tipografía para tema consistente */
     :root {
         --background-dark: #1E1E1E;
         --text-light: #FFFFFF;
@@ -663,6 +666,10 @@ st.markdown("""
         --transition-speed: 0.3s;
         --barca-primary: #004D98;
         --barca-secondary: #a5001c;
+        /* Fuentes clásicas y elegantes */
+        --font-title: 'Playfair Display', serif;
+        --font-subtitle: 'Montserrat', sans-serif;
+        --font-body: 'Source Sans Pro', sans-serif;
     }
 
     /* Estilos generales y animaciones */
@@ -828,6 +835,58 @@ st.markdown("""
     .nav-link:hover::after {
         transform: translateX(0);
     }
+
+    /* ====== TIPOGRAFÍA CLÁSICA Y ELEGANTE ====== */
+    
+    /* Aplicar fuentes a elementos generales */
+    body, .main-content, .stApp {
+        font-family: var(--font-body) !important;
+    }
+    
+    /* Títulos principales */
+    h1 {
+        font-family: var(--font-title) !important;
+        font-weight: 600 !important;
+        letter-spacing: 1px !important;
+    }
+    
+    /* Subtítulos */
+    h2, h3 {
+        font-family: var(--font-subtitle) !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    /* Títulos menores */
+    h4, h5, h6 {
+        font-family: var(--font-subtitle) !important;
+        font-weight: 400 !important;
+    }
+    
+    /* Texto de cuerpo y párrafos */
+    p, .stMarkdown, .stText, div, span {
+        font-family: var(--font-body) !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Botones con fuente elegante */
+    .stButton button {
+        font-family: var(--font-subtitle) !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    /* Nombres de equipos en tarjetas */
+    .team-name {
+        font-family: var(--font-subtitle) !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    /* Selectores y controles */
+    .stSelectbox, .stSlider, .stNumberInput {
+        font-family: var(--font-body) !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -873,24 +932,25 @@ st.markdown("""
                 animation: pulse 4s ease-in-out infinite;
             "></div>
                          <h1 style="
-                 font-size: 1.8em;
-                 font-weight: 900;
+                 font-size: 2.0em;
+                 font-weight: 700;
                  color: white;
                  margin: 0;
-                 letter-spacing: 2px;
+                 letter-spacing: 3px;
                  text-shadow: 2px 4px 8px rgba(0,0,0,0.3);
-                 font-family: 'Arial Black', Arial, sans-serif;
+                 font-family: var(--font-title);
                  position: relative;
                  z-index: 2;
              ">FCB.LAB</h1>
              <p style="
-                 font-size: 0.9em;
+                 font-size: 1.0em;
                  color: rgba(255,255,255,0.9);
                  margin: 10px 0 15px 0;
-                 font-weight: 300;
+                 font-weight: 400;
                  letter-spacing: 1px;
                  position: relative;
                  z-index: 2;
+                 font-family: var(--font-subtitle);
                           ">Laboratorio de Análisis del FC Barcelona</p>
          </div>
      </div>
@@ -978,11 +1038,12 @@ if st.session_state.pagina_actual == 'inicio':
     st.markdown("""
         <div style="text-align: center; margin: 20px 0 15px 0;">
             <h2 style="
-                font-size: 2.2em;
-                font-weight: 700;
+                font-size: 2.4em;
+                font-weight: 600;
                 color: #2c3e50;
                 margin-bottom: 5px;
                 letter-spacing: 1px;
+                font-family: var(--font-title);
             ">🌍 Selecciona una Liga</h2>
         </div>
     """, unsafe_allow_html=True)
