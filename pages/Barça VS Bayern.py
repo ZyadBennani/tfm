@@ -11,6 +11,25 @@ import io
 import os
 from PIL import ImageDraw
 
+# Configuración de la página
+st.set_page_config(
+    page_title="Barça VS Bayern",
+    page_icon="⚽",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# Importar funciones de navegación
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.navigation import show_home_button, show_page_header
+
+# Mostrar botón de volver al inicio
+show_home_button()
+
+# Mostrar header de la página
+show_page_header("Barça VS Bayern", "Comparativa táctica y análisis de jugadores", "⚽")
+
 # Cargar datos del CSV
 @st.cache_data
 def load_player_data():
@@ -348,9 +367,6 @@ def get_circular_player_image(player_name, team):
     except Exception as e:
         st.warning(f"Error al procesar la imagen para {player_name}: {str(e)}")
         return None
-
-# Configuración de la página
-st.set_page_config(page_title="Análisis del FC Barcelona", page_icon="⚽", layout="wide")
 
 # Título
 st.title("Análisis Comparativo: FC Barcelona vs Bayern Munich")

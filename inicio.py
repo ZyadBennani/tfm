@@ -882,7 +882,7 @@ st.markdown("""
                  font-family: 'Arial Black', Arial, sans-serif;
                  position: relative;
                  z-index: 2;
-             ">FCBLAB</h1>
+             ">FCB.LAB</h1>
              <p style="
                  font-size: 0.9em;
                  color: rgba(255,255,255,0.9);

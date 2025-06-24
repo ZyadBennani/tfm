@@ -5,13 +5,23 @@ import numpy as np
 import io
 import os
 from scipy import stats
+import sys
 
 # Configuración de la página
 st.set_page_config(page_title="Peak Age Analytics", page_icon="📊", layout="wide")
 
-# Título y contexto
-st.title("📊 Career & Peak-Age Analytics")
-st.markdown("**Basado en la metodología de Anselmo Ruiz de Alarcón**")
+# Importar funciones de navegación
+sys.path.append('..')
+from utils.navigation import show_home_button, show_page_header
+
+# Mostrar botón de volver al inicio
+show_home_button()
+
+# Mostrar header de la página
+show_page_header("Peak Age Analytics", "Análisis de rendimiento por edad basado en metodología de Anselmo Ruiz", "📊")
+
+# Separador visual
+st.markdown("---")
 
 # Construcción del DataFrame (solo para cálculos internos)
 # DataFrame con los datos

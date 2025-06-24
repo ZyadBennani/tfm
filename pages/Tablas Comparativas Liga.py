@@ -8,6 +8,13 @@ import base64
 # Configuración de la página
 st.set_page_config(page_title="Tablas Comparativas Liga", page_icon="📊", layout="wide")
 
+# Importar funciones de navegación
+sys.path.append('..')
+from utils.navigation import show_home_button, show_page_header
+
+# Mostrar botón de volver al inicio
+show_home_button()
+
 # CSS personalizado para tema oscuro español y tablas como la imagen
 st.markdown("""
     <style>
@@ -591,7 +598,7 @@ def create_comparison_table(team_name, all_teams_data, metrics_extractor, table_
     <div class="section-title">{table_title}</div>
     <div class="comparison-table">
         <div class="table-row" style="background: linear-gradient(90deg, #ff6b35, #ff8a5c);">
-            <div class="table-header">KPI</div>
+            <div class="table-header">Métrica</div>
             <div class="table-header">Ranking</div>
             <div class="table-header">Valor</div>
             <div class="table-header"></div>
@@ -763,7 +770,7 @@ def display_table_with_streamlit(team_name, all_teams_data, metrics_extractor, t
             progress_percent = 50
         
         table_data.append({
-            'KPI': metric,
+            'Métrica': metric,
             'Ranking': f"#{ranking}",
             'Valor': f"{value:.2f}",
             'Progreso (%)': f"{progress_percent:.0f}%",
@@ -785,8 +792,8 @@ def display_table_with_streamlit(team_name, all_teams_data, metrics_extractor, t
         hide_index=True,
         height=dynamic_height,  # Altura dinámica basada en contenido
         column_config={
-            "KPI": st.column_config.TextColumn(
-                "📊 KPI", 
+            "Métrica": st.column_config.TextColumn(
+                "📊 Métrica", 
                 width="large",
                 help="Indicador clave de rendimiento"
             ),

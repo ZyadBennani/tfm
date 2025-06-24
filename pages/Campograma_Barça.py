@@ -16,8 +16,18 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.data_loader import DataLoader
 from utils.rating_calculator import RatingCalculator
 
+# Importar funciones de navegación
+sys.path.append('..')
+from utils.navigation import show_home_button, show_page_header
+
 # Configuración de la página
 st.set_page_config(page_title="Campograma FC Barcelona", page_icon="🔵🔴", layout="wide")
+
+# Mostrar botón de volver al inicio
+show_home_button()
+
+# Mostrar header de la página
+show_page_header("Campograma FC Barcelona", "Visualización interactiva de la plantilla 2024-25", "🔵🔴")
 
 # CSS personalizado para las métricas y player cards
 st.markdown("""

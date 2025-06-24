@@ -8,6 +8,7 @@ import numpy as np
 import plotly.graph_objects as go
 import itertools
 import glob
+import sys
 
 # Configuración de la página
 st.set_page_config(
@@ -17,7 +18,15 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Importar funciones de navegación
+sys.path.append('..')
+from utils.navigation import show_home_button, show_page_header
 
+# Mostrar botón de volver al inicio
+show_home_button()
+
+# Mostrar header de la página
+show_page_header("Análisis Propio", "Herramientas avanzadas de análisis para el FC Barcelona", "📊")
 
 # Función para cargar imágenes
 def load_image(image_path):

@@ -52,6 +52,23 @@ st.set_page_config(
     layout="wide"
 )
 
+# Importar funciones de navegación
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.navigation import show_home_button, show_page_header
+
+# Mostrar botón de volver al inicio
+show_home_button()
+
+# Añadir espacio antes del header para posicionarlo más abajo
+st.markdown("<div style='margin-top: 40px; margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+
+# Mostrar header de la página
+show_page_header("Player Scouting", "Sistema avanzado de scouting y análisis de jugadores", "🔍")
+
+# Añadir espacio adicional después del header
+st.markdown("<div style='margin-bottom: 30px;'></div>", unsafe_allow_html=True)
+
 # Inicializar el gestor de datos
 @st.cache_resource
 def get_data_manager():
