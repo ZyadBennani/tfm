@@ -9,6 +9,7 @@ from PIL import Image
 from matplotlib.colors import LinearSegmentedColormap
 import io
 import os
+import base64
 from PIL import ImageDraw
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -385,6 +386,20 @@ young_percentage = (len(young_players) / total_players) * 100
 total_market_value = sum(player_market_values.values())
 market_value_increase = 190  # Millones de euros de aumento
 
+# Datos de la temporada pasada (2023-24) para comparación
+previous_season_data = {
+    "average_age": 25.2,
+    "international_percentage": 58,  # 15 de 26 jugadores
+    "cantera_percentage": 26,  # 7 de 27 según la foto oficial
+    "young_percentage": 27  # 7 de 26 jugadores ≤ 23 años
+}
+
+# Calcular diferencias con la temporada pasada
+age_difference = average_age - previous_season_data["average_age"]
+international_difference = international_percentage - previous_season_data["international_percentage"]
+cantera_difference = cantera_percentage - previous_season_data["cantera_percentage"]
+young_difference = young_percentage - previous_season_data["young_percentage"]
+
 # Función para color del rating (igual que en scouting)
 def get_rating_color(rating):
     if rating >= 85:
@@ -441,7 +456,7 @@ def get_photo_manager_barca():
     from utils.player_photo_manager import PlayerPhotoManager
     return PlayerPhotoManager()
 
-# Función helper para crear player cards (igual que en scouting)
+# Función helper para crear player cards (usando las mismas imágenes del campograma)
 def create_player_card(player, position_emoji, position_name):
     rating = player_ratings.get(player, 75)
     additional_data = player_additional_data.get(player, {})
@@ -456,9 +471,31 @@ def create_player_card(player, position_emoji, position_name):
     else:
         badge_color = "#6b7280"  # Gris
     
-    # Obtener foto del jugador
-    photo_manager = get_photo_manager_barca()
-    photo_base64 = photo_manager.get_player_photo_base64(player, size=(80, 80))
+    # Obtener foto del jugador usando la misma función del campograma
+    def get_player_photo_base64_barca(player_name):
+        try:
+            filename = player_name.lower().replace(" ", "_") + ".png"
+            image_path = os.path.join("static", "players", "Barca", filename)
+            
+            if not os.path.exists(image_path):
+                return ""
+                
+            img = Image.open(image_path)
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # Redimensionar para cards (80x80)
+            img = img.resize((80, 80), Image.Resampling.LANCZOS)
+            
+            # Convertir a base64
+            buffer = io.BytesIO()
+            img.save(buffer, format='PNG')
+            img_str = base64.b64encode(buffer.getvalue()).decode()
+            return img_str
+        except Exception as e:
+            return ""
+    
+    photo_base64 = get_player_photo_base64_barca(player)
     
     # Obtener dorsal del jugador
     dorsal = player_dorsals.get(player, 0)
@@ -555,16 +592,32 @@ with col_campo:
     col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
-        st.metric(label="Edad Media", value=f"{average_age:.1f}")
+        st.metric(
+            label="Edad Media", 
+            value=f"{average_age:.1f} años",
+            delta=f"{age_difference:+.1f} años"
+        )
 
     with col2:
-        st.metric(label="Internacionales", value=f"{international_percentage:.0f}%")
+        st.metric(
+            label="Internacionales", 
+            value=f"{international_percentage:.0f}%",
+            delta=f"{international_difference:+.0f}%"
+        )
 
     with col3:
-        st.metric(label="Canteranos", value=f"{cantera_percentage:.0f}%")
+        st.metric(
+            label="Canteranos", 
+            value=f"{cantera_percentage:.0f}%",
+            delta=f"{cantera_difference:+.0f}%"
+        )
 
     with col4:
-        st.metric(label="Sub-23", value=f"{young_percentage:.0f}%")
+        st.metric(
+            label="Sub-23", 
+            value=f"{young_percentage:.0f}%",
+            delta=f"{young_difference:+.0f}%"
+        )
 
     with col5:
         st.metric(

@@ -757,8 +757,7 @@ with st.sidebar:
     #             else:
     #                 st.warning("⚠️ Función de limpieza no disponible")
 
-# Indicador de distribución activa
-st.info("🎯 **Distribución Gaussiana Estricta Activa**: Solo 3 jugadores con 99 | ~21 jugadores con 95+ | Distribución realista aplicada automáticamente")
+# Distribución gaussiana estricta activa en segundo plano (sin mostrar mensaje al usuario)
 
 # Panel principal
 tab1, tab2, tab3 = st.tabs(["Table View", "Card View", "Heatmap View"])
