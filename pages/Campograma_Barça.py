@@ -10,9 +10,66 @@ from matplotlib.colors import LinearSegmentedColormap
 import io
 import os
 from PIL import ImageDraw
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.data_loader import DataLoader
+from utils.rating_calculator import RatingCalculator
 
 # Configuración de la página
 st.set_page_config(page_title="Campograma FC Barcelona", page_icon="🔵🔴", layout="wide")
+
+# CSS personalizado para las métricas y player cards
+st.markdown("""
+    <style>
+    /* Estilo especial para la métrica de valor de mercado */
+    div[data-testid="metric-container"] {
+        background-color: #f0f2f6;
+        border: 1px solid #e1e5e9;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    /* Resaltar la métrica de valor total */
+    div[data-testid="metric-container"]:last-child {
+        background: linear-gradient(45deg, #004d98, #a50044);
+        color: white;
+        border: 2px solid #004d98;
+    }
+    
+    div[data-testid="metric-container"]:last-child [data-testid="metric-container"] > div > div {
+        color: white !important;
+    }
+    
+    /* Tarjetas de jugadores (copiado de Scouting) */
+    .player-card {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin: 0.5rem 0;
+        border: 1px solid #E5E7EB;
+        transition: all 0.3s ease;
+    }
+    
+    .player-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .player-card h3 {
+        font-size: 1.3rem;
+        margin-bottom: 0.3rem;
+        color: #004D98;
+    }
+    
+    .player-card p {
+        font-size: 1rem;
+        color: #4a5568;
+        margin-bottom: 0.5rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # Título
 st.title("Plantilla 2024-25")
@@ -288,6 +345,18 @@ player_ages = {
     "Robert Lewandowski": 36, "Pau Victor": 23
 }
 
+# Valores de mercado actuales de la plantilla (en millones de euros)
+player_market_values = {
+    "Marc Andre ter Stegen": 25, "Wojciech Szczesny": 3, "Inaki Pena": 8,
+    "Ronald Araujo": 70, "Pau Cubarsi": 25, "Andreas Christensen": 35, 
+    "Inigo Martinez": 20, "Eric Garcia": 15, "Jules Kounde": 55,
+    "Hector Fort": 5, "Gerard Martin": 3, "Alejandro Balde": 50,
+    "Marc Casado": 10, "Pedri": 80, "Frenkie de Jong": 60, "Gavi": 60,
+    "Dani Olmo": 60, "Fermin Lopez": 25, "Pablo Torre": 15,
+    "Lamine Yamal": 180, "Ferran Torres": 40, "Raphinha": 55, "Ansu Fati": 25,
+    "Robert Lewandowski": 15, "Pau Victor": 5
+}
+
 # Calcular estadísticas
 all_players = list(player_ages.keys())
 total_players = len(all_players)
@@ -312,13 +381,178 @@ cantera_percentage = (len(cantera_players) / total_players) * 100
 young_players = [name for name, age in player_ages.items() if age < 23]
 young_percentage = (len(young_players) / total_players) * 100
 
+# Calcular valor total de mercado
+total_market_value = sum(player_market_values.values())
+market_value_increase = 190  # Millones de euros de aumento
+
+# Función para color del rating (igual que en scouting)
+def get_rating_color(rating):
+    if rating >= 85:
+        return "#22c55e"  # Verde
+    elif rating >= 75:
+        return "#f59e0b"  # Amarillo
+    elif rating >= 65:
+        return "#ef4444"  # Rojo
+    else:
+        return "#6b7280"  # Gris
+
+# Cargar datos y calcular ratings de los jugadores del Barça
+@st.cache_data
+def get_barca_player_ratings():
+    try:
+        # Cargar datos
+        data_loader = DataLoader()
+        all_players_df = data_loader.load_all_data()
+        
+        # Calcular ratings
+        rating_calculator = RatingCalculator()
+        all_players_df = rating_calculator.bulk_calculate_ratings(all_players_df)
+        
+        # Filtrar jugadores del Barça
+        barca_players = all_players_df[all_players_df['Club'] == 'Barcelona'].copy()
+        
+        # Crear diccionario de ratings
+        player_ratings = {}
+        for _, player in barca_players.iterrows():
+            name = player['Name']
+            rating = player.get('Display_Rating', player.get('Calculated_Rating', player.get('Rating', 75)))
+            player_ratings[name] = int(rating)
+        
+        return player_ratings
+    except Exception as e:
+        # Ratings por defecto si hay error
+        return {
+            "Marc Andre ter Stegen": 85, "Wojciech Szczesny": 82, "Inaki Pena": 75,
+            "Ronald Araujo": 84, "Pau Cubarsi": 78, "Andreas Christensen": 83, 
+            "Inigo Martinez": 80, "Eric Garcia": 76, "Jules Kounde": 85,
+            "Hector Fort": 72, "Gerard Martin": 70, "Alejandro Balde": 81,
+            "Marc Casado": 76, "Pedri": 89, "Frenkie de Jong": 86, "Gavi": 85,
+            "Dani Olmo": 87, "Fermin Lopez": 79, "Pablo Torre": 75,
+            "Lamine Yamal": 88, "Ferran Torres": 82, "Raphinha": 84, "Ansu Fati": 80,
+            "Robert Lewandowski": 88, "Pau Victor": 74
+        }
+
+# Obtener ratings de los jugadores
+player_ratings = get_barca_player_ratings()
+
+# Helper para obtener foto del jugador (copiado de scouting)
+@st.cache_resource
+def get_photo_manager_barca():
+    from utils.player_photo_manager import PlayerPhotoManager
+    return PlayerPhotoManager()
+
+# Función helper para crear player cards (igual que en scouting)
+def create_player_card(player, position_emoji, position_name):
+    rating = player_ratings.get(player, 75)
+    additional_data = player_additional_data.get(player, {})
+    
+    # Color del badge según rating
+    if rating >= 85:
+        badge_color = "#22c55e"  # Verde
+    elif rating >= 75:
+        badge_color = "#f59e0b"  # Amarillo
+    elif rating >= 65:
+        badge_color = "#ef4444"  # Rojo
+    else:
+        badge_color = "#6b7280"  # Gris
+    
+    # Obtener foto del jugador
+    photo_manager = get_photo_manager_barca()
+    photo_base64 = photo_manager.get_player_photo_base64(player, size=(80, 80))
+    
+    # Obtener dorsal del jugador
+    dorsal = player_dorsals.get(player, 0)
+    
+    return f"""
+        <div class="player-card">
+            <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 1rem;">
+                <img src="data:image/png;base64,{photo_base64}" 
+                     style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; 
+                            border: 3px solid #004D98; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                <div style="background-color: #004D98; color: white; border-radius: 50%; 
+                            width: 35px; height: 35px; display: flex; align-items: center; 
+                            justify-content: center; font-weight: bold; font-size: 1.2rem; 
+                            border: 2px solid white; margin-top: 0.5rem;">
+                    {dorsal}
+                </div>
+            </div>
+            <h3 style="text-align: center; margin-bottom: 0.5rem;">{player}</h3>
+            <p style="text-align: center;">{position_name} | {player_ages.get(player, 25)} años</p>
+            <p style="text-align: center;">{additional_data.get('nationality', 'España')} | Barcelona</p>
+            <p style="text-align: center;">€{additional_data.get('market_value', 0):.1f}M | {additional_data.get('height', '180cm')}</p>
+            <div style="display: flex; justify-content: center; margin-top: 0.5rem;">
+                <div style="background-color: {badge_color}; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 1rem; font-weight: 600;">
+                    Rating: {rating}
+                </div>
+            </div>
+        </div>
+    """
+
+# Números de dorsal de cada jugador
+player_dorsals = {
+    "Marc Andre ter Stegen": 1,
+    "Wojciech Szczesny": 25,
+    "Inaki Pena": 13,
+    "Ronald Araujo": 4,
+    "Pau Cubarsi": 2,
+    "Alejandro Balde": 3,
+    "Inigo Martinez": 5,
+    "Andreas Christensen": 15,
+    "Jules Kounde": 23,
+    "Eric Garcia": 24,
+    "Hector Fort": 32,
+    "Gerard Martin": 35,
+    "Gavi": 6,
+    "Fermin Lopez": 16,
+    "Marc Casado": 17,
+    "Pedri": 8,
+    "Dani Olmo": 20,
+    "Frenkie de Jong": 21,
+    "Pablo Torre": 14,
+    "Robert Lewandowski": 9,
+    "Ansu Fati": 10,
+    "Raphinha": 11,
+    "Ferran Torres": 7,
+    "Pau Victor": 18,
+    "Lamine Yamal": 19
+}
+
+# Datos adicionales de los jugadores para las cards
+player_additional_data = {
+    "Marc Andre ter Stegen": {"nationality": "Alemania", "height": "187cm", "market_value": 25},
+    "Wojciech Szczesny": {"nationality": "Polonia", "height": "196cm", "market_value": 3},
+    "Inaki Pena": {"nationality": "España", "height": "184cm", "market_value": 8},
+    "Ronald Araujo": {"nationality": "Uruguay", "height": "188cm", "market_value": 70},
+    "Pau Cubarsi": {"nationality": "España", "height": "182cm", "market_value": 25},
+    "Andreas Christensen": {"nationality": "Dinamarca", "height": "187cm", "market_value": 35},
+    "Inigo Martinez": {"nationality": "España", "height": "182cm", "market_value": 20},
+    "Eric Garcia": {"nationality": "España", "height": "182cm", "market_value": 15},
+    "Jules Kounde": {"nationality": "Francia", "height": "178cm", "market_value": 55},
+    "Hector Fort": {"nationality": "España", "height": "184cm", "market_value": 5},
+    "Gerard Martin": {"nationality": "España", "height": "180cm", "market_value": 3},
+    "Alejandro Balde": {"nationality": "España", "height": "175cm", "market_value": 50},
+    "Marc Casado": {"nationality": "España", "height": "182cm", "market_value": 10},
+    "Pedri": {"nationality": "España", "height": "174cm", "market_value": 80},
+    "Frenkie de Jong": {"nationality": "Países Bajos", "height": "180cm", "market_value": 60},
+    "Gavi": {"nationality": "España", "height": "173cm", "market_value": 60},
+    "Dani Olmo": {"nationality": "España", "height": "179cm", "market_value": 60},
+    "Fermin Lopez": {"nationality": "España", "height": "174cm", "market_value": 25},
+    "Pablo Torre": {"nationality": "España", "height": "173cm", "market_value": 15},
+    "Lamine Yamal": {"nationality": "España", "height": "180cm", "market_value": 180},
+    "Ferran Torres": {"nationality": "España", "height": "184cm", "market_value": 40},
+    "Raphinha": {"nationality": "Brasil", "height": "176cm", "market_value": 55},
+    "Ansu Fati": {"nationality": "España", "height": "178cm", "market_value": 25},
+    "Robert Lewandowski": {"nationality": "Polonia", "height": "185cm", "market_value": 15},
+    "Pau Victor": {"nationality": "España", "height": "181cm", "market_value": 5}
+}
+
 # Campograma principal
 col_legend, col_campo = st.columns([1, 4])
 
 # Mostrar estadísticas alineadas con el campograma
 with col_campo:
     # Las métricas van dentro de la misma columna que el campograma
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.metric(label="Edad Media", value=f"{average_age:.1f}")
@@ -331,6 +565,13 @@ with col_campo:
 
     with col4:
         st.metric(label="Sub-23", value=f"{young_percentage:.0f}%")
+
+    with col5:
+        st.metric(
+            label="Valor Total", 
+            value=f"€{total_market_value}M",
+            delta=f"+€{market_value_increase}M"
+        )
     
     # Generar el campograma dentro de la misma columna
     fig_barca, ax_barca = draw_pitch_barca()
@@ -370,85 +611,66 @@ position_groups = {
 }
 
 with tab1:
-    st.markdown("<h4 style='text-align: center;'> Porteros</h4>", unsafe_allow_html=True)
-    cols = st.columns(3)  # 3 porteros
+    st.markdown("<h3 style='margin-bottom: 1.5rem; text-align: center;'>🟡 Porteros</h3>", unsafe_allow_html=True)
+    
+    # Mostrar cards en grid de 3 columnas
+    cols = st.columns(3)
     for i, player in enumerate(position_groups["GK"]):
         with cols[i]:
-            st.markdown(f"**{player}**")
-            player_img = get_circular_player_image(player)
-            if player_img:
-                st.image(player_img, width=85)
-            else:
-                st.write("Imagen no disponible")
+            st.markdown(create_player_card(player, "🟡", "GK"), unsafe_allow_html=True)
 
 with tab2:
-    st.markdown("<h4 style='text-align: center;'> Centrales</h4>", unsafe_allow_html=True)
-    cols = st.columns(5)  # 5 centrales en una línea
+    st.markdown("<h3 style='margin-bottom: 1.5rem; text-align: center;'>🔵 Centrales</h3>", unsafe_allow_html=True)
+    
+    # Mostrar cards en grid de 5 columnas para centrales
+    cols = st.columns(5)
     for i, player in enumerate(position_groups["CB"]):
         with cols[i]:
-            st.markdown(f"**{player}**")
-            player_img = get_circular_player_image(player)
-            if player_img:
-                st.image(player_img, width=85)
-            else:
-                st.write("Imagen no disponible")
+            st.markdown(create_player_card(player, "🔵", "CB"), unsafe_allow_html=True)
 
 with tab3:
-    st.markdown("<h4 style='text-align: center;'> Laterales</h4>", unsafe_allow_html=True)
-    cols = st.columns(4)  # 4 laterales en una línea
+    st.markdown("<h3 style='margin-bottom: 1.5rem; text-align: center;'>🟢 Laterales</h3>", unsafe_allow_html=True)
+    
+    # Mostrar cards en grid de 4 columnas para laterales
+    cols = st.columns(4)
     for i, player in enumerate(position_groups["LB-RB"]):
         with cols[i]:
-            st.markdown(f"**{player}**")
-            player_img = get_circular_player_image(player)
-            if player_img:
-                st.image(player_img, width=85)
-            else:
-                st.write("Imagen no disponible")
+            st.markdown(create_player_card(player, "🟢", "LB-RB"), unsafe_allow_html=True)
 
 with tab4:
-    st.markdown("<h4 style='text-align: center;'> Centrocampistas</h4>", unsafe_allow_html=True)
-    cols = st.columns(4)  # 4 centrocampistas en una línea
+    st.markdown("<h3 style='margin-bottom: 1.5rem; text-align: center;'>⚪ Centrocampistas</h3>", unsafe_allow_html=True)
+    
+    # Mostrar cards en grid de 4 columnas para centrocampistas
+    cols = st.columns(4)
     for i, player in enumerate(position_groups["CM-CDM"]):
         with cols[i]:
-            st.markdown(f"**{player}**")
-            player_img = get_circular_player_image(player)
-            if player_img:
-                st.image(player_img, width=85)
-            else:
-                st.write("Imagen no disponible")
+            st.markdown(create_player_card(player, "⚪", "CM-CDM"), unsafe_allow_html=True)
 
 with tab5:
-    st.markdown("<h4 style='text-align: center;'> Mediapuntas</h4>", unsafe_allow_html=True)
-    cols = st.columns(3)  # 3 mediapuntas
+    st.markdown("<h3 style='margin-bottom: 1.5rem; text-align: center;'>🟠 Mediapuntas</h3>", unsafe_allow_html=True)
+    
+    # Mostrar cards en grid de 3 columnas para mediapuntas
+    cols = st.columns(3)
     for i, player in enumerate(position_groups["CAM"]):
         with cols[i]:
-            st.markdown(f"**{player}**")
-            player_img = get_circular_player_image(player)
-            if player_img:
-                st.image(player_img, width=85)
-            else:
-                st.write("Imagen no disponible")
+            st.markdown(create_player_card(player, "🟠", "CAM"), unsafe_allow_html=True)
 
 with tab6:
-    st.markdown("<h4 style='text-align: center;'> Extremos</h4>", unsafe_allow_html=True)
-    cols = st.columns(4)  # 4 extremos en una línea
+    st.markdown("<h3 style='margin-bottom: 1.5rem; text-align: center;'>🟣 Extremos</h3>", unsafe_allow_html=True)
+    
+    # Mostrar cards en grid de 4 columnas para extremos
+    cols = st.columns(4)
     for i, player in enumerate(position_groups["LW-RW"]):
         with cols[i]:
-            st.markdown(f"**{player}**")
-            player_img = get_circular_player_image(player)
-            if player_img:
-                st.image(player_img, width=85)
-            else:
-                st.write("Imagen no disponible")
+            st.markdown(create_player_card(player, "🟣", "LW-RW"), unsafe_allow_html=True)
 
 with tab7:
-    st.markdown("<h4 style='text-align: center;'> Delanteros</h4>", unsafe_allow_html=True)
-    cols = st.columns(2)  # 2 delanteros en una línea
+    st.markdown("<h3 style='margin-bottom: 1.5rem; text-align: center;'>🔴 Delanteros</h3>", unsafe_allow_html=True)
+    
+    # Mostrar cards en grid de 2 columnas para delanteros
+    cols = st.columns(2)
     for i, player in enumerate(position_groups["ST"]):
         with cols[i]:
-            st.markdown(f"**{player}**")
-            player_img = get_circular_player_image(player)
-            if player_img:
-                st.image(player_img, width=85)
-            else:
-                st.write("Imagen no disponible") 
+            st.markdown(create_player_card(player, "🔴", "ST"), unsafe_allow_html=True)
+
+ 
