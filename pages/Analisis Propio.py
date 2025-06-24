@@ -1,791 +1,548 @@
 import streamlit as st
+import os
+from PIL import Image
+import base64
 import pandas as pd
-import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-from matplotlib.colors import LinearSegmentedColormap
-import io
-import os
-from PIL import Image, ImageDraw
-from datetime import datetime, timedelta
+import plotly.graph_objects as go
+import itertools
+import glob
 
 # Configuración de la página
 st.set_page_config(
-    page_title="Análisis Propio",
+    page_title="Análisis Propio - FC Barcelona",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Estilos CSS modernos
+
+
+# Función para cargar imágenes
+def load_image(image_path):
+    try:
+        return Image.open(image_path)
+    except:
+        return None
+
+# Función para obtener la ruta de la imagen del equipo
+def get_team_logo_path(team_name):
+    """Obtiene la ruta del logo de un equipo específico de cualquier liga"""
+    # Buscar en todas las listas de equipos para encontrar el archivo correcto
+    all_teams_with_paths = [
+        (LALIGA_TEAMS, "LA_LIGA", "SQUADRE"),
+        (PREMIER_TEAMS, "PREMIER LEAGUE", "SQUADRE"),
+        (SERIE_A_TEAMS, "SERIE_A", "SQUADRE_24-25"),
+        (BUNDESLIGA_TEAMS, "BUNDES", "SQUADRE"),
+        (LIGUE1_TEAMS, "LIGUE_1", "SQUADRE")
+    ]
+    
+    for teams_list, league_folder, squadre_folder in all_teams_with_paths:
+        for name, logo_file in teams_list:
+            if team_name == name:
+                logo_path = os.path.join("static", "wetransfer_players_2025-06-18_1752", "LOGHI_PNG", league_folder, squadre_folder, logo_file)
+                if os.path.exists(logo_path):
+                    return logo_path
+    
+    # Fallback: buscar en static/logos si no se encuentra en las carpetas reales
+    filename = team_name.lower().replace(" ", "_") + ".png"
+    return os.path.join("static", "logos", filename)
+
+# Función para obtener la ruta del logo de la liga
+def get_league_logo_path(league_name):
+    # Mapeo de nombres de liga a rutas específicas donde están los logos reales
+    league_mapping = {
+        "La Liga Española": os.path.join("static", "wetransfer_players_2025-06-18_1752", "LOGHI_PNG", "LA_LIGA", "LOGO", "La_Liga.png"),
+        "Premier League": os.path.join("static", "wetransfer_players_2025-06-18_1752", "LOGHI_PNG", "PREMIER LEAGUE", "Premier League.png"),
+        "Serie A": os.path.join("static", "wetransfer_players_2025-06-18_1752", "LOGHI_PNG", "SERIE_A", "LOGO", "Serie_A.png"),
+        "Bundesliga": os.path.join("static", "wetransfer_players_2025-06-18_1752", "LOGHI_PNG", "BUNDES", "LOGO", "Bundesliga.png"),
+        "Ligue 1": os.path.join("static", "wetransfer_players_2025-06-18_1752", "LOGHI_PNG", "LIGUE_1", "LOGO", "Ligue_1.png")
+    }
+    
+    # Obtener la ruta específica para la liga
+    league_path = league_mapping.get(league_name)
+    
+    if league_path and os.path.exists(league_path):
+        return league_path
+    
+    # Fallback a los logos temporales si no se encuentra el original
+    return os.path.join("static", "leagues", league_name.lower().replace(" ", "_") + ".png")
+
+# Listas globales de equipos para todas las ligas (NECESARIAS PARA TODAS LAS FUNCIONES)
+LALIGA_TEAMS = [
+    ("Barcelona", "Barcelona.png"),
+    ("Real Madrid", "real_madrid.png"),
+    ("Atletico de Madrid", "atletico_de_madrid.png"),
+    ("Athletic Club", "athletic_club.png"),
+    ("Real Sociedad", "real_sociedad.png"),
+    ("Sevilla", "Sevilla.png"),
+    ("Valencia", "valencia.png"),
+    ("Real Betis", "real_betis.png"),
+    ("Villarreal", "villareal.png"),
+    ("Girona", "girona.png"),
+    ("Celta de Vigo", "celta_de_vigo.png"),
+    ("Rayo Vallecano", "rayo_vallecano.png"),
+    ("Osasuna", "osasuna.png"),
+    ("Getafe", "getafe.png"),
+    ("Alaves", "Alaves.png"),
+    ("Espanyol", "espanyol.png"),
+    ("Las Palmas", "las_palmas.png"),
+    ("Mallorca", "mallorca.png"),
+    ("Leganes", "Leganes.png"),
+    ("Real Valladolid", "real_valladolid.png"),
+]
+
+PREMIER_TEAMS = [
+    ("Manchester City", "manchester_city.png"),
+    ("Arsenal", "arsenal.png"),
+    ("Manchester United", "manchester_united.png"),
+    ("Liverpool", "liverpool.png"),
+    ("Newcastle", "Newcastle.png"),
+    ("Brighton", "brighton.png"),
+    ("Aston Villa", "aston_villa.png"),
+    ("Tottenham", "Tottenham.png"),
+    ("Brentford", "brentford.png"),
+    ("Chelsea", "chelsea.png"),
+    ("Crystal Palace", "crystal_palace.png"),
+    ("Wolves", "Wolves.png"),
+    ("West Ham", "West_Ham.png"),
+    ("Bournemouth", "bournemouth.png"),
+    ("Nottingham Forest", "nottingham_forest.png"),
+    ("Fulham", "fulham.png"),
+    ("Everton", "everton.png"),
+    ("Luton Town", "luton_town.png"),
+    ("Burnley", "burnley.png"),
+    ("Sheffield United", "sheffield_united.png"),
+]
+
+SERIE_A_TEAMS = [
+    ("Atalanta", "Atalanta.png"),
+    ("Bologna", "Bologna.png"),
+    ("Cagliari", "Cagliari.png"),
+    ("Como", "Como.png"),
+    ("Empoli", "Empoli.png"),
+    ("Fiorentina", "Fiorentina.png"),
+    ("Genoa", "Genoa.png"),
+    ("Hellas Verona", "Hellas_Verona.png"),
+    ("Inter", "Inter.png"),
+    ("Juventus", "Juventus.png"),
+    ("Lazio", "Lazio.png"),
+    ("Lecce", "Lecce.png"),
+    ("Milan", "Milan.png"),
+    ("Monza", "Monza.png"),
+    ("Napoli", "Napoli.png"),
+    ("Parma", "Parma.png"),
+    ("Roma", "Roma.png"),
+    ("Torino", "Torino.png"),
+    ("Udinese", "Udinese.png"),
+    ("Venezia", "Venezia.png"),
+]
+
+BUNDESLIGA_TEAMS = [
+    ("Augsburg", "Augsburg.png"),
+    ("Bayer Leverkusen", "Bayer_Leverkusen.png"),
+    ("Bayern Munich", "Bayern_Munich.png"),
+    ("Bochum", "Bochum.png"),
+    ("Borussia Dortmund", "Borussia_Dortmund.png"),
+    ("Borussia Mönchengladbach", "Borussia_Mönchengladbach.png"),
+    ("Eintracht Frankfurt", "Eintracht_Frankfurt.png"),
+    ("Freiburg", "Freiburg.png"),
+    ("Heidenheim", "Heidenheim.png"),
+    ("Hoffenheim", "Hoffenheim.png"),
+    ("Holstein Kiel", "Holstein_Kiel.png"),
+    ("Mainz 05", "Mainz_05.png"),
+    ("RB Leipzig", "RB_Leipzig.png"),
+    ("St Pauli", "St_Pauli.png"),
+    ("Stuttgart", "Stuttgart.png"),
+    ("Union Berlin", "Union_Berlin.png"),
+    ("Werder Bremen", "Werder_Bremen.png"),
+    ("Wolfsburg", "Wolfsburg.png"),
+]
+
+LIGUE1_TEAMS = [
+    ("Angers", "Angers.png"),
+    ("Auxerre", "Auxerre.png"),
+    ("Brest", "Brest.png"),
+    ("Le Havre", "Le_Havre.png"),
+    ("Lens", "Lens.png"),
+    ("Lille", "Lille.png"),
+    ("Lyon", "Lyon.png"),
+    ("Marseille", "Marseille.png"),
+    ("Monaco", "Monaco.png"),
+    ("Montpellier", "Montpellier.png"),
+    ("Nantes", "Nantes.png"),
+    ("Nice", "Nice.png"),
+    ("PSG", "Paris_Saint-Germain.png"),
+    ("Reims", "Reims.png"),
+    ("Rennes", "Rennes.png"),
+    ("Saint Etienne", "Saint Etienne.png"),
+    ("Strasbourg", "Strasbourg.png"),
+    ("Toulouse", "Toulouse.png"),
+]
+
+
+
+# Función para cargar estadísticas de La Liga (NECESARIA ANTES QUE LAS OTRAS)
+def load_laliga_team_stats(per90=True):
+    """Carga estadísticas de equipos de La Liga con datos consistentes"""
+    teams = [name for name, _ in LALIGA_TEAMS]
+    np.random.seed(42)  # Seed fijo para datos consistentes
+    
+    rows = []
+    for team in teams:
+        row = {
+            'Team': team,
+            'PPDA/90': np.random.uniform(5, 14),
+            'CtrShots/90': np.random.uniform(0.2, 3.0),
+            'CP_succes/90': np.random.uniform(0.2, 0.8),
+            'ShotsOT/90': np.random.uniform(1.5, 6.0),
+            'DeepPass/90': np.random.uniform(6, 22),
+            'PSxGA/90': np.random.uniform(0.6, 2.5),
+            'ProgPass/90': np.random.uniform(15, 45),
+            'xG/90': np.random.uniform(0.6, 2.2),
+        }
+        rows.append(row)
+    
+    return pd.DataFrame(rows)
+
+# Función para cargar estadísticas de Premier League
+
+
+# Función principal para gráficas de análisis de fases
+def plot_phase_plotly(df, x, y, invert, title, color, x_range=None, y_range=None, selected_team=None, x_label=None, y_label=None):
+    """Crea gráfica interactiva con logos de equipos (adaptado de League Dashboard)"""
+    from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+    
+    fig = go.Figure()
+    
+    # Calcular tamaño proporcional al rango de ejes
+    if x_range is not None:
+        x_span = x_range[1] - x_range[0]
+    else:
+        x_span = df[x].max() - df[x].min()
+    if y_range is not None:
+        y_span = y_range[1] - y_range[0]
+    else:
+        y_span = df[y].max() - df[y].min()
+    
+    # Calcular distancia mínima entre puntos
+    coords = list(zip(df[x], df[y]))
+    min_dist = None
+    if len(coords) > 1:
+        min_dist = min(np.hypot(a[0]-b[0], a[1]-b[1]) for a, b in itertools.combinations(coords, 2))
+    else:
+        min_dist = min(x_span, y_span)
+    
+    # Autozoom: logos entre 8% y 16% del rango, según densidad
+    min_size = 0.08
+    max_size = 0.16
+    if min_dist is not None and max(x_span, y_span) > 0:
+        density_factor = min(1.0, max(0.0, min_dist / (0.25 * max(x_span, y_span))))
+        logo_frac = min_size + (max_size - min_size) * density_factor
+    else:
+        logo_frac = 0.12
+    
+    logo_sizex = x_span * logo_frac
+    logo_sizey = y_span * logo_frac
+    
+    # Añadir logos y marcadores para cada equipo
+    for _, row in df.iterrows():
+        team = row['Team']
+        is_selected = (selected_team is not None and team == selected_team)
+        
+        # Tamaño especial si es el equipo seleccionado
+        if is_selected:
+            sizex = logo_sizex * 1.7
+            sizey = logo_sizey * 1.7
+            # Dibuja un círculo grande detrás del logo
+            fig.add_trace(go.Scatter(
+                x=[row[x]],
+                y=[row[y]],
+                mode="markers",
+                marker=dict(size=70, color="rgba(165,0,68,0.25)", line=dict(width=4, color="#A50044")),
+                hoverinfo="skip",
+                showlegend=False
+            ))
+        else:
+            sizex = logo_sizex
+            sizey = logo_sizey
+        
+        # Marcador invisible para hover
+        fig.add_trace(go.Scatter(
+            x=[row[x]],
+            y=[row[y]],
+            mode="markers",
+            marker=dict(size=1, color='rgba(0,0,0,0)', symbol="circle"),
+            name=team,
+            text=f"<b>{team}</b><br>{x_label or x}: {row[x]:.2f}<br>{y_label or y}: {row[y]:.2f}",
+            hoverinfo="text"
+        ))
+        
+        # Añadir imagen del logo usando la función actualizada
+        logo_full_path = get_team_logo_path(team)
+        if os.path.exists(logo_full_path):
+            fig.add_layout_image(
+                dict(
+                    source=Image.open(logo_full_path),
+                    x=row[x],
+                    y=row[y],
+                    xref="x",
+                    yref="y",
+                    sizex=sizex,
+                    sizey=sizey,
+                    xanchor="center",
+                    yanchor="middle",
+                    layer="above",
+                    sizing="contain",
+                    opacity=1.0
+                )
+            )
+    
+    # Líneas de la mediana
+    x_med = df[x].median()
+    y_med = df[y].median()
+    x_min, x_max = (x_range if x_range else (df[x].min(), df[x].max()))
+    y_min, y_max = (y_range if y_range else (df[y].min(), df[y].max()))
+    
+    # Fondos de cuadrantes
+    fig.add_shape(type="rect", x0=x_min, x1=x_med, y0=y_med, y1=y_max, fillcolor="rgba(255,255,200,0.32)", line_width=0, layer="below")
+    fig.add_shape(type="rect", x0=x_med, x1=x_max, y0=y_med, y1=y_max, fillcolor="rgba(200,255,200,0.32)", line_width=0, layer="below")
+    fig.add_shape(type="rect", x0=x_min, x1=x_med, y0=y_min, y1=y_med, fillcolor="rgba(200,220,255,0.32)", line_width=0, layer="below")
+    fig.add_shape(type="rect", x0=x_med, x1=x_max, y0=y_min, y1=y_med, fillcolor="rgba(255,200,200,0.32)", line_width=0, layer="below")
+    
+    # Líneas de mediana
+    fig.add_shape(type="line", x0=x_med, x1=x_med, y0=y_min, y1=y_max, line=dict(dash="dash", color="gray"))
+    fig.add_shape(type="line", x0=x_min, x1=x_max, y0=y_med, y1=y_med, line=dict(dash="dash", color="gray"))
+    
+    # Configurar ejes
+    if invert:
+        if x_range:
+            fig.update_xaxes(range=x_range[::-1], showticklabels=False)
+        else:
+            fig.update_xaxes(autorange="reversed", showticklabels=False)
+    else:
+        if x_range:
+            fig.update_xaxes(range=x_range, showticklabels=False)
+        else:
+            fig.update_xaxes(autorange=True, showticklabels=False)
+    
+    if y_range:
+        fig.update_yaxes(range=y_range, showticklabels=False)
+    else:
+        fig.update_yaxes(showticklabels=False)
+    
+    fig.update_layout(
+        title=title,
+        xaxis_title=x_label or x,
+        yaxis_title=y_label or y,
+        plot_bgcolor="#F8F9FA",
+        paper_bgcolor="#FFFFFF",
+        showlegend=False,
+        margin=dict(l=40, r=40, t=60, b=40),
+        font=dict(family="Arial", size=14),
+        transition=dict(duration=600, easing="cubic-in-out")
+    )
+    return fig
+
+# Función para mostrar análisis de fases genérica para cualquier liga
+def mostrar_analisis_fases(selected_team, liga="La Liga Española"):
+    """Muestra las 4 gráficas de análisis de fases de juego para la liga especificada"""
+    # Cargar datos según la liga
+    if liga == "La Liga Española":
+        df = load_laliga_team_stats(per90=True)
+    elif liga == "Premier League":
+        df = load_premier_team_stats(per90=True)
+    elif liga == "Serie A":
+        df = load_serie_a_team_stats(per90=True)
+    elif liga == "Bundesliga":
+        df = load_bundesliga_team_stats(per90=True)
+    elif liga == "Ligue 1":
+        df = load_ligue1_team_stats(per90=True)
+    else:
+        df = load_laliga_team_stats(per90=True)  # Fallback
+    
+    colors = ["#1E88E5", "#43A047", "#FB8C00", "#8E24AA"]
+    phases = [
+        ("PPDA", "Contraataques con disparo", False,  "Transición ofensiva"),
+        ("Pérdidas altas recuperadas", "Disparos a puerta recibidos", False, "Transición defensiva"),
+        ("DeepPass", "xG de tiros a puerta", False,  "Fase defensiva"),
+        ("Pases progresivos", "xG", False, "Fase ofensiva"),
+    ]
+    
+    # Calcular rangos globales para cada métrica
+    axis_ranges = {}
+    # Mapeo de nombres mostrados a nombres de columnas (corregido para datos reales)
+    metric_mapping = {
+        "PPDA": "PPDA/90",
+        "Contraataques con disparo": "CtrShots/90",
+        "Pérdidas altas recuperadas": "CP_succes/90", 
+        "Disparos a puerta recibidos": "ShotsOT/90",
+        "DeepPass": "DeepPass/90",
+        "xG de tiros a puerta": "PSxGA/90",
+        "Pases progresivos": "ProgPass/90",
+        "xG": "xG/90"
+    }
+    
+    for (x, y, inv, title), color in zip(phases, colors):
+        # Mapear nombres de display a nombres de columna
+        x_col = metric_mapping.get(x, x)
+        y_col = metric_mapping.get(y, y)
+        
+        x_min, x_max = df[x_col].min(), df[x_col].max()
+        y_min, y_max = df[y_col].min(), df[y_col].max()
+        x_margin = (x_max - x_min) * 0.15
+        y_margin = (y_max - y_min) * 0.15
+        axis_ranges[(x, y)] = ([x_min - x_margin, x_max + x_margin], [y_min - y_margin, y_max + y_margin])
+        
+    cols = st.columns(2)
+    for i, ((x, y, inv, title), color) in enumerate(zip(phases, colors)):
+        # Mapear nombres de display a nombres de columna
+        x_col = metric_mapping.get(x, x)
+        y_col = metric_mapping.get(y, y)
+        
+        x_range, y_range = axis_ranges[(x, y)]
+        fig = plot_phase_plotly(df, x_col, y_col, inv, title, color, x_range=x_range, y_range=y_range, selected_team=selected_team, x_label=x, y_label=y)
+        with cols[i % 2]:
+            st.plotly_chart(fig, use_container_width=True)
+
+# Función para mostrar rankings genérica para cualquier liga
+def mostrar_rankings_liga(selected_team, liga="La Liga Española"):
+    """Muestra rankings top 10 por métrica con selector interactivo para la liga especificada"""
+    # Cargar datos según la liga
+    if liga == "La Liga Española":
+        df = load_laliga_team_stats(per90=True)
+        teams_list = LALIGA_TEAMS
+    elif liga == "Premier League":
+        df = load_premier_team_stats(per90=True)
+        teams_list = PREMIER_TEAMS
+    elif liga == "Serie A":
+        df = load_serie_a_team_stats(per90=True)
+        teams_list = SERIE_A_TEAMS
+    elif liga == "Bundesliga":
+        df = load_bundesliga_team_stats(per90=True)
+        teams_list = BUNDESLIGA_TEAMS
+    elif liga == "Ligue 1":
+        df = load_ligue1_team_stats(per90=True)
+        teams_list = LIGUE1_TEAMS
+    else:
+        df = load_laliga_team_stats(per90=True)
+        teams_list = LALIGA_TEAMS
+    
+    st.subheader("🏅 Top 10 por métrica")
+    
+    metric_options = [
+        ("PPDA/90", "PPDA"),
+        ("CtrShots/90", "Contraataques con disparo"),
+        ("CP_succes/90", "Pérdidas altas recuperadas"),
+        ("ShotsOT/90", "Disparos a puerta recibidos"),
+        ("DeepPass/90", "DeepPass"),
+        ("PSxGA/90", "xG de tiros a puerta"),
+        ("ProgPass/90", "Pases progresivos"),
+        ("xG/90", "xG"),
+    ]
+    
+    metric_key = st.selectbox("Selecciona métrica para ranking", [m[1] for m in metric_options], index=0, key="ranking_metric_selector")
+    metric_col = [m[0] for m in metric_options if m[1] == metric_key][0]
+    
+    # Ordenar ranking (mayor a menor, salvo PPDA y PSxGA que menor es mejor)
+    asc_metrics = ["PPDA/90", "PSxGA/90"]
+    ascending = metric_col in asc_metrics
+    top10 = df.sort_values(metric_col, ascending=ascending).head(10)
+    
+    # Mostrar ranking
+    st.markdown("<div style='height: 8px'></div>", unsafe_allow_html=True)
+    for idx, (_, row) in enumerate(top10.iterrows()):
+        logo_file = [logo for name, logo in teams_list if name == row['Team']]
+        logo_path = os.path.join("static", "logos", logo_file[0]) if logo_file else None
+        
+        if logo_file and os.path.exists(logo_path):
+            with open(logo_path, "rb") as img_f:
+                img_bytes = img_f.read()
+                img_b64 = base64.b64encode(img_bytes).decode()
+            logo_html = f"<img src='data:image/png;base64,{img_b64}' height='28' style='vertical-align:middle;margin-right:8px;'>"
+        else:
+            logo_html = ""
+        
+        highlight = "background:#ffe5f0;border-radius:8px;" if row['Team'] == selected_team else ""
+        st.markdown(f"<div style='display:flex;align-items:center;{highlight}padding:4px 8px;margin-bottom:2px;'><span style='width:24px;font-weight:bold;'>{idx+1}</span>{logo_html}<span style='flex:1;'>{row['Team']}</span><span style='font-weight:bold;'>{row[metric_col]:.2f}</span></div>", unsafe_allow_html=True)
+
+
+
+# Función para convertir imagen a base64
+def get_image_base64(image_path):
+    try:
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode()
+    except Exception as e:
+        print(f"Error loading image {image_path}: {str(e)}")
+        return ""
+
+
+
+# Estilos CSS para tema del Barcelona
 st.markdown("""
     <style>
-        /* Variables globales */
-        :root {
-            --primary-color: #004D98;
-            --secondary-color: #A50044;
-            --background-light: #f8f9fa;
-            --text-color: #2C3E50;
-            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+    /* Variables globales del Barcelona */
+    :root {
+        --primary-color: #004D98;
+        --secondary-color: #A50044;
+        --background-light: #f8f9fa;
+        --text-color: #2C3E50;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
 
-        /* Estilos generales */
-        .main {
-            background-color: var(--background-light);
-            color: var(--text-color);
-        }
+    /* Estilos generales */
+    .main {
+        background-color: var(--background-light);
+        color: var(--text-color);
+    }
 
-        /* Tarjetas modernas */
-        .modern-card {
-            background-color: white;
-            padding: 1.5rem;
-            border-radius: 15px;
-            box-shadow: var(--card-shadow);
-            margin: 1rem 0;
-            transition: transform 0.2s ease;
-        }
-
-        .modern-card:hover {
-            transform: translateY(-5px);
-        }
-
-        /* Tabs personalizados */
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 24px;
-            background-color: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: var(--card-shadow);
-            margin-bottom: 2rem;
-        }
-
-        .stTabs [data-baseweb="tab"] {
-            height: 60px;
-            padding: 15px 30px;
-            background-color: #f8f9fa;
-            border: none;
-            color: var(--text-color);
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .stTabs [data-baseweb="tab"]:hover {
-            background-color: #e9ecef;
-            transform: translateY(-2px);
-        }
-
-        .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 8px;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Subtabs para análisis táctico */
-        .subtabs {
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: var(--card-shadow);
-        }
-
-        .subtab-button {
-            padding: 10px 20px;
-            margin: 5px;
-            border: none;
-            border-radius: 5px;
-            background-color: #f8f9fa;
-            color: var(--text-color);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .subtab-button:hover {
-            background-color: #e9ecef;
-        }
-
-        .subtab-button.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        /* Métricas y KPIs */
-        .metric-container {
-            background: white;
-            padding: 1rem;
-            border-radius: 10px;
-            box-shadow: var(--card-shadow);
-        }
-
-        .metric-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .metric-label {
-            color: var(--text-color);
-            font-size: 1rem;
-        }
-
-        /* Gráficos y visualizaciones */
-        .chart-container {
-            background: white;
-            padding: 1rem;
-            border-radius: 10px;
-            box-shadow: var(--card-shadow);
-            margin: 1rem 0;
-        }
-
-        /* Animaciones */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease forwards;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# Ocultar menú y footer
-st.markdown("""
-    <style>
+    /* Ocultar menú y footer */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
 
-# Definir la ruta base de assets
-ASSETS_BASE_PATH = r"C:\Users\zyadb\MASTER\REORGANIZACION\assets"
-
-# Posiciones de los jugadores del Barcelona
-barca_positions = {
-    "Wojciech Szczesny": (4, 32.5),
-    "Pau Cubarsi": (20, 21),
-    "Inigo Martinez": (20, 43),
-    "Jules Kounde": (35, 5),
-    "Alejandro Balde": (35, 60),
-    "Frenkie De Jong": (47, 20),
-    "Pedri": (47, 45),
-    "Dani Olmo": (66, 32.5),
-    "Lamine Yamal": (77, 5),
-    "Raphinha": (77, 60),
-    "Robert Lewandowski": (85, 32.5),
-}
-
-# Función para crear un degradado blaugrana
-def create_blaugrana_gradient(ax):
-    colors = ['#132976', '#ae1515']
-    n_bins = 100
-    cm = LinearSegmentedColormap.from_list('blaugrana', colors, N=n_bins)
-    gradient = np.linspace(10, 256).reshape(1, -1)
-    gradient = np.vstack((gradient, gradient))
-    ax.imshow(gradient, aspect='auto', cmap=cm, extent=[-5, 105, -5, 70], alpha=0.8)
-
-# Función para dibujar el campo
-def draw_pitch():
-    # Reducir el tamaño del campo
-    fig, ax = plt.subplots(figsize=(8, 5))
-    
-    create_blaugrana_gradient(ax)
-    
-    # Límites del campo
-    ax.plot([0, 100, 100, 0, 0], [0, 0, 65, 65, 0], color="white", linewidth=2)
-    ax.plot([50, 50], [0, 65], color="white", linewidth=2)
-
-    # Círculo central
-    centre_circle = patches.Circle((50, 32.5), 9.15, color="white", fill=False, linewidth=2)
-    ax.add_patch(centre_circle)
-
-    # Áreas de penalti
-    ax.plot([0, 16.5, 16.5, 0], [20, 20, 45, 45], color="white", linewidth=2)
-    ax.plot([100, 83.5, 83.5, 100], [20, 20, 45, 45], color="white", linewidth=2)
-
-    # Áreas pequeñas
-    ax.plot([0, 5.5, 5.5, 0], [27, 27, 38, 38], color="white", linewidth=2)
-    ax.plot([100, 94.5, 94.5, 100], [27, 27, 38, 38], color="white", linewidth=2)
-
-    # Puntos de penalti
-    ax.scatter([11, 89], [32.5, 32.5], color="white", s=30)
-
-    # Arcos de área
-    ax.add_patch(patches.Arc((11, 32.5), 20, 20, angle=0, theta1=300, theta2=60, color="white", linewidth=2))
-    ax.add_patch(patches.Arc((89, 32.5), 20, 20, angle=0, theta1=120, theta2=240, color="white", linewidth=2))
-
-    # Ajustes visuales
-    ax.set_xlim(-5, 105)
-    ax.set_ylim(-5, 70)
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_frame_on(False)
-
-    # Función para cargar y procesar imagen circular para el campo
-    def get_player_image_for_field(player_name):
-        try:
-            filename = player_name.lower().replace(" ", "_") + ".jpg"
-            image_path = os.path.join(ASSETS_BASE_PATH, "imagenes_jugadores_barca", filename)
-            
-            if not os.path.exists(image_path):
-                return None
-                
-            img = Image.open(image_path)
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
-            
-            # Crear imagen circular
-            size = (80, 80)
-            img = img.resize(size, Image.Resampling.LANCZOS)
-            
-            mask = Image.new('L', size, 0)
-            draw = ImageDraw.Draw(mask)
-            draw.ellipse((0, 0, size[0], size[1]), fill=255)
-            
-            output = Image.new('RGB', size, (0, 0, 0))
-            output.paste(img, (0, 0))
-            output.putalpha(mask)
-            
-            return output
-        except Exception as e:
-            return None
-
-    # Añadir jugadores al campo
-    for player, (x, y) in barca_positions.items():
-        # Cargar imagen del jugador
-        player_img = get_player_image_for_field(player)
-        
-        if player_img:
-            # Convertir la imagen de PIL a un formato que matplotlib pueda usar
-            player_img_array = np.array(player_img)
-            
-            # Aumentar significativamente el tamaño de las imágenes
-            imagebox = OffsetImage(player_img_array, zoom=0.4)
-            ab = AnnotationBbox(imagebox, (x, y + 2),
-                              frameon=False,
-                              box_alignment=(0.5, 0.5))
-            ax.add_artist(ab)
-        
-        # Solo añadir el nombre del jugador, sin punto
-        ax.text(x, y - 5, player, fontsize=8, color="white", ha='center', 
-                     fontweight='bold', bbox=dict(facecolor='black', alpha=0.5, edgecolor='none'))
-    
-    return fig, ax
-
-# Título principal con diseño moderno
+# Título principal con tema del Barcelona
 st.markdown("""
-    <div class="modern-card animate-fade-in">
-        <h1 style="color: var(--primary-color); margin-bottom: 0.5rem;">Análisis Propio: FC Barcelona</h1>
-        <p style="color: var(--text-color); font-size: 1.2rem;">
-            Análisis detallado del estilo de juego y rendimiento del equipo
-        </p>
+    <div style="
+        text-align: center;
+        padding: 2rem;
+        background: linear-gradient(135deg, #004D98, #A50044);
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 25px rgba(0, 77, 152, 0.3);
+    ">
+        <h1 style="
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        ">📊 Análisis de Fases - FC Barcelona</h1>
+        <p style="
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+            margin: 10px 0 0 0;
+        ">Análisis comparativo vs La Liga Española</p>
     </div>
 """, unsafe_allow_html=True)
 
-# Crear pestañas principales con iconos más grandes
-tabs = st.tabs([
-    "📊  Panel General  ",
-    "⚔️  Análisis Táctico  ",
-    "👥  Rendimiento Individual  ",
-    "📈  Estadísticas del Equipo  ",
-    "🎯  Análisis de Rivales  "
-])
+# Selector de equipo a resaltar
+team_names = [name for name, _ in LALIGA_TEAMS]
+selected_team = st.selectbox("🎯 Equipo a resaltar en análisis", team_names, index=0, key="team_selector")
 
-# 1. Panel General
-with tabs[0]:
-    st.markdown("""
-        <div class="modern-card">
-            <h2>Resumen de Rendimiento</h2>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # Métricas clave
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">65%</div>
-                <div class="metric-label">Posesión Media</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">88%</div>
-                <div class="metric-label">Precisión de Pases</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with col3:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">2.8</div>
-                <div class="metric-label">Goles por Partido</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with col4:
-        st.markdown("""
-            <div class="metric-container">
-                <div class="metric-value">58%</div>
-                <div class="metric-label">Duelos Ganados</div>
-            </div>
-        """, unsafe_allow_html=True)
+# Mostrar el ranking
+mostrar_rankings_liga(selected_team, "La Liga Española")
 
-    # Gráfico de forma reciente
-    st.markdown("""
-        <div class="chart-container">
-            <h3>Forma Reciente</h3>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # Crear datos de ejemplo para la forma reciente
-    fechas = pd.date_range(end=datetime.now(), periods=10, freq='D')
-    rendimiento = np.random.normal(75, 15, 10)
-    rendimiento = np.clip(rendimiento, 0, 100)
-    
-    fig_forma = go.Figure()
-    fig_forma.add_trace(go.Scatter(
-        x=fechas,
-        y=rendimiento,
-        mode='lines+markers',
-        name='Rendimiento',
-        line=dict(color='#004D98', width=3),
-        marker=dict(size=8, color='#A50044')
-    ))
-    
-    fig_forma.update_layout(
-        title='Evolución del Rendimiento',
-        xaxis_title='Fecha',
-        yaxis_title='Índice de Rendimiento',
-        template='plotly_white',
-        height=400
-    )
-    
-    st.plotly_chart(fig_forma, use_container_width=True)
+st.markdown("---")  # Separador visual
 
-# 2. Análisis Táctico
-with tabs[1]:
-    st.markdown("""
-        <div class="modern-card">
-            <h2>Análisis Táctico del Equipo</h2>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # Subtabs para las fases del juego
-    fase_seleccionada = st.radio(
-        "Selecciona la fase de juego",
-        ["Fase Ofensiva", "Fase Defensiva", "Balón Parado", "Transición Defensiva", "Transición Ofensiva"],
-        horizontal=True
-    )
-    
-    if fase_seleccionada == "Fase Ofensiva":
-        st.markdown("""
-            <div class="chart-container">
-                <h3>Métricas Ofensivas</h3>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # Métricas ofensivas
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Posesión", "65%", "+5%")
-        with col2:
-            st.metric("xG/90", "2.1", "+0.3")
-        with col3:
-            st.metric("Tiros/90", "15.3", "+2.1")
-        with col4:
-            st.metric("Pases Completados", "89%", "+3%")
-        
-        # Gráfico radar ofensivo
-        metrics_offensive = ['Posesión', 'xG/90', 'Tiros/90', 'Pases %', 'Centros/90', 'Toques área/90', 'Duelos Of. %', 'Regates/90']
-        valores = np.random.uniform(60, 90, len(metrics_offensive))
-        
-        fig_radar = go.Figure()
-        fig_radar.add_trace(go.Scatterpolar(
-            r=valores,
-            theta=metrics_offensive,
-            fill='toself',
-            name='Métricas Ofensivas',
-            line_color='#004D98'
-        ))
-        
-        fig_radar.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
-            showlegend=False,
-            height=400
-        )
-        
-        st.plotly_chart(fig_radar, use_container_width=True)
-        
-    elif fase_seleccionada == "Fase Defensiva":
-        st.markdown("""
-            <div class="chart-container">
-                <h3>Métricas Defensivas</h3>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # Métricas defensivas
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Tiros Concedidos/90", "8.2", "-1.3")
-        with col2:
-            st.metric("xG Concedido/90", "0.8", "-0.2")
-        with col3:
-            st.metric("Duelos Def. Ganados", "72%", "+4%")
-        with col4:
-            st.metric("Intercepciones/90", "12.5", "+1.8")
-        
-        # Gráfico radar defensivo
-        metrics_defensive = ['Tiros Conc./90', 'xG Conc./90', 'Duelos Def. %', 'Interc./90', 'Despejes/90', 'Entradas %', 'Presión %', 'Duelos Aéreos %']
-        valores = np.random.uniform(60, 90, len(metrics_defensive))
-        
-        fig_radar = go.Figure()
-        fig_radar.add_trace(go.Scatterpolar(
-            r=valores,
-            theta=metrics_defensive,
-            fill='toself',
-            name='Métricas Defensivas',
-            line_color='#A50044'
-        ))
-        
-        fig_radar.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
-            showlegend=False,
-            height=400
-        )
-        
-        st.plotly_chart(fig_radar, use_container_width=True)
-        
-    elif fase_seleccionada == "Balón Parado":
-        st.markdown("""
-            <div class="chart-container">
-                <h3>Métricas de Balón Parado</h3>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # Métricas de balón parado
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("xG Córners", "0.35", "+0.05")
-        with col2:
-            st.metric("Goles Córner/90", "0.22", "+0.08")
-        with col3:
-            st.metric("Eficiencia Penaltis", "85%", "+5%")
-        with col4:
-            st.metric("Córners Ganados/90", "6.5", "+0.8")
-        
-        # Gráfico radar balón parado
-        metrics_set_pieces = ['xG Córners', 'Goles Córner/90', 'xG Tiros Libres', 'Eficiencia Penaltis', 'Córners Ganados/90']
-        valores = np.random.uniform(60, 90, len(metrics_set_pieces))
-        
-        fig_radar = go.Figure()
-        fig_radar.add_trace(go.Scatterpolar(
-            r=valores,
-            theta=metrics_set_pieces,
-            fill='toself',
-            name='Balón Parado',
-            line_color='#004D98'
-        ))
-        
-        fig_radar.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
-            showlegend=False,
-            height=400
-        )
-        
-        st.plotly_chart(fig_radar, use_container_width=True)
-        
-    elif fase_seleccionada == "Transición Defensiva":
-        st.markdown("""
-            <div class="chart-container">
-                <h3>Métricas de Transición Defensiva</h3>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # Métricas de transición defensiva
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Recuperaciones ≤10s", "8.5", "+1.2")
-        with col2:
-            st.metric("PPDA", "7.8", "-0.5")
-        with col3:
-            st.metric("Contras Concedidas/90", "2.3", "-0.8")
-        with col4:
-            st.metric("Tiempo Reacción (s)", "2.8", "-0.3")
-        
-        # Gráfico radar transición defensiva
-        metrics_def_transition = ['Recuperaciones ≤10s', 'Duelos Def. Trans.', 'PPDA', 'Contras Concedidas', 'Tiempo Reacción']
-        valores = np.random.uniform(60, 90, len(metrics_def_transition))
-        
-        fig_radar = go.Figure()
-        fig_radar.add_trace(go.Scatterpolar(
-            r=valores,
-            theta=metrics_def_transition,
-            fill='toself',
-            name='Transición Defensiva',
-            line_color='#A50044'
-        ))
-        
-        fig_radar.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
-            showlegend=False,
-            height=400
-        )
-        
-        st.plotly_chart(fig_radar, use_container_width=True)
-        
-    else:  # Transición Ofensiva
-        st.markdown("""
-            <div class="chart-container">
-                <h3>Métricas de Transición Ofensiva</h3>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # Métricas de transición ofensiva
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Contraataques/90", "4.5", "+0.8")
-        with col2:
-            st.metric("xG Contras", "0.45", "+0.12")
-        with col3:
-            st.metric("Pases/Contra", "3.2", "+0.3")
-        with col4:
-            st.metric("Vel. Progresión", "4.2 m/s", "+0.5")
-        
-        # Gráfico radar transición ofensiva
-        metrics_off_transition = ['Contraataques/90', 'xG Contras', 'Pases/Contra', 'Vel. Progresión', 'Eficiencia']
-        valores = np.random.uniform(60, 90, len(metrics_off_transition))
-        
-        fig_radar = go.Figure()
-        fig_radar.add_trace(go.Scatterpolar(
-            r=valores,
-            theta=metrics_off_transition,
-            fill='toself',
-            name='Transición Ofensiva',
-            line_color='#004D98'
-        ))
-        
-        fig_radar.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
-            showlegend=False,
-            height=400
-        )
-        
-        st.plotly_chart(fig_radar, use_container_width=True)
+# Título para las gráficas
+st.subheader("📊 Análisis de Fases de Juego")
 
-# 3. Rendimiento Individual
-with tabs[2]:
-    st.markdown("""
-        <div class="modern-card">
-            <h2>Análisis de Jugadores</h2>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # Selector de jugadores
-    jugadores = list(barca_positions.keys())
-    jugador_seleccionado = st.selectbox('Seleccionar Jugador', jugadores)
-    
-    # Estadísticas del jugador
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("""
-            <div class="chart-container">
-                <h3>Estadísticas Clave</h3>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # Gráfico radar de ejemplo
-        categorias = ['Pases', 'Tiros', 'Regates', 'Tackles', 'Intercepciones']
-        valores = np.random.uniform(60, 90, len(categorias))
-        
-        fig_radar = go.Figure()
-        fig_radar.add_trace(go.Scatterpolar(
-            r=valores,
-            theta=categorias,
-            fill='toself',
-            name=jugador_seleccionado
-        ))
-        
-        fig_radar.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
-            showlegend=False
-        )
-        
-        st.plotly_chart(fig_radar, use_container_width=True)
-    
-    with col2:
-        st.markdown("""
-            <div class="chart-container">
-                <h3>Evolución de Rendimiento</h3>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # Gráfico de evolución
-        fechas = pd.date_range(end=datetime.now(), periods=10, freq='D')
-        rendimiento = np.random.normal(75, 10, 10)
-        
-        fig_evolucion = go.Figure()
-        fig_evolucion.add_trace(go.Scatter(
-            x=fechas,
-            y=rendimiento,
-            mode='lines+markers',
-            name='Rendimiento'
-        ))
-        
-        fig_evolucion.update_layout(
-            xaxis_title='Fecha',
-            yaxis_title='Rendimiento',
-            height=300
-        )
-        
-        st.plotly_chart(fig_evolucion, use_container_width=True)
+# Mostrar las 4 gráficas
+mostrar_analisis_fases(selected_team, "La Liga Española")
 
-# 4. Estadísticas del Equipo
-with tabs[3]:
-    st.markdown("""
-        <div class="modern-card">
-            <h2>Estadísticas Detalladas del Equipo</h2>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # Métricas avanzadas
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown("""
-            <div class="metric-container">
-                <h3>Ataque</h3>
-                <div class="metric-value">2.8</div>
-                <div class="metric-label">Goles por partido</div>
-                <div class="metric-value">16.5</div>
-                <div class="metric-label">Tiros por partido</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("""
-            <div class="metric-container">
-                <h3>Posesión</h3>
-                <div class="metric-value">65%</div>
-                <div class="metric-label">Posesión media</div>
-                <div class="metric-value">88%</div>
-                <div class="metric-label">Precisión de pases</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown("""
-            <div class="metric-container">
-                <h3>Defensa</h3>
-                <div class="metric-value">0.8</div>
-                <div class="metric-label">Goles recibidos por partido</div>
-                <div class="metric-value">85%</div>
-                <div class="metric-label">Duelos aéreos ganados</div>
-            </div>
-        """, unsafe_allow_html=True)
 
-    # Gráfico de distribución de goles
-    st.markdown("""
-        <div class="chart-container">
-            <h3>Distribución de Goles</h3>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # Datos de ejemplo para la distribución de goles
-    minutos = list(range(0, 91, 15))
-    goles = np.random.poisson(lam=2, size=len(minutos)-1)
-    
-    fig_goles = go.Figure()
-    fig_goles.add_trace(go.Bar(
-        x=[f"{m}-{m+14}" for m in minutos[:-1]],
-        y=goles,
-        marker_color='#004D98'
-    ))
-    
-    fig_goles.update_layout(
-        xaxis_title='Minutos',
-        yaxis_title='Número de Goles',
-        height=400
-    )
-    
-    st.plotly_chart(fig_goles, use_container_width=True)
 
-# 5. Análisis de Rivales
-with tabs[4]:
-    st.markdown("""
-        <div class="modern-card">
-            <h2>Análisis Comparativo con Rivales</h2>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # Selector de rival
-    rivales = ["Real Madrid", "Atlético Madrid", "Bayern Munich", "Manchester City"]
-    rival_seleccionado = st.selectbox('Seleccionar Rival', rivales)
-    
-    # Comparativa de estadísticas
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("""
-            <div class="chart-container">
-                <h3>Comparativa de Estadísticas</h3>
-            </div>
-        """, unsafe_allow_html=True)
-    
-        # Gráfico de comparación
-        metricas = ['Posesión', 'Pases', 'Tiros', 'Presión', 'Duelos']
-        barca_stats = np.random.uniform(60, 90, len(metricas))
-        rival_stats = np.random.uniform(50, 85, len(metricas))
-        
-        fig_comp = go.Figure()
-        fig_comp.add_trace(go.Bar(
-            name='Barcelona',
-            x=metricas,
-            y=barca_stats,
-            marker_color='#004D98'
-        ))
-        fig_comp.add_trace(go.Bar(
-            name=rival_seleccionado,
-            x=metricas,
-            y=rival_stats,
-            marker_color='#DC052D'
-        ))
-        
-        fig_comp.update_layout(
-            barmode='group',
-            height=400
-        )
-        
-        st.plotly_chart(fig_comp, use_container_width=True)
-    
-    with col2:
-        st.markdown("""
-            <div class="chart-container">
-                <h3>Historial de Enfrentamientos</h3>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # Datos de ejemplo para el historial
-        fechas = pd.date_range(end=datetime.now(), periods=5, freq='M')
-        resultados_barca = np.random.randint(0, 4, 5)
-        resultados_rival = np.random.randint(0, 3, 5)
-        
-        # Crear tabla de resultados
-        resultados_df = pd.DataFrame({
-            'Fecha': fechas.strftime('%d/%m/%Y'),
-            'Barcelona': resultados_barca,
-            rival_seleccionado: resultados_rival
-        })
-        
-        st.table(resultados_df)
