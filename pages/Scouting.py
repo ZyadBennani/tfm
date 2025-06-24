@@ -62,8 +62,7 @@ def get_data_manager():
 def get_photo_manager_cached():
     return get_photo_manager()
 
-# Inicializar el calculador de rating
-@st.cache_resource
+# Inicializar el calculador de rating - SIN CACHE para nuevos cambios
 def get_rating_calculator():
     return RatingCalculator()
 
@@ -72,7 +71,7 @@ def clear_rating_cache():
     """Limpiar cache del rating calculator"""
     if 'get_rating_calculator' in st.session_state:
         del st.session_state['get_rating_calculator']
-    get_rating_calculator.clear()
+    # get_rating_calculator.clear()  # Ya no hay cache
 
 # Estilos CSS personalizados
 st.markdown("""
@@ -758,6 +757,9 @@ with st.sidebar:
     #             else:
     #                 st.warning("⚠️ Función de limpieza no disponible")
 
+# Indicador de distribución activa
+st.info("🎯 **Distribución Gaussiana Estricta Activa**: Solo 3 jugadores con 99 | ~21 jugadores con 95+ | Distribución realista aplicada automáticamente")
+
 # Panel principal
 tab1, tab2, tab3 = st.tabs(["Table View", "Card View", "Heatmap View"])
 
@@ -835,16 +837,23 @@ with tab1:
     
     filtered_df = data_manager.apply_filters(df, filters)
     
-    # 🔥 CALCULAR RATINGS PRIMERO, FILTRAR DESPUÉS
+    # 🔥 CALCULAR RATINGS CON DISTRIBUCIÓN GAUSSIANA ESTRICTA (SIEMPRE ACTIVA)
     if not df.empty:
         try:
-            rating_calculator = get_rating_calculator()
+            # Crear calculador con distribución gaussiana estricta (SIEMPRE)
+            rating_calculator = RatingCalculator()
+            
+            # Aplicar distribución gaussiana estricta automáticamente
             df_with_ratings = rating_calculator.bulk_calculate_ratings(df)
-            # Usar rating calculado si está disponible, sino usar el original
-            df_with_ratings['Display_Rating'] = df_with_ratings.get('Calculated_Rating', df_with_ratings.get('Rating', 65))
+            
+            # Usar rating calculado si está disponible
+            df_with_ratings['Display_Rating'] = df_with_ratings.get('Display_Rating', 
+                                               df_with_ratings.get('Calculated_Rating', 
+                                               df_with_ratings.get('Rating', 65)))
             
         except Exception as e:
-            st.warning(f"⚠️ Sistema de rating no disponible: {str(e)}")
+            st.error(f"❌ Error en sistema de rating: {str(e)}")
+            st.info("Usando ratings originales como fallback")
             df_with_ratings = df.copy()
             df_with_ratings['Display_Rating'] = df_with_ratings.get('Rating', 65)
     else:
@@ -1011,8 +1020,10 @@ with tab1:
         else:
             st.info("No hay métricas válidas seleccionadas.")
     else:
-        # Aplicar ordenación si está definida
+        # Inicializar datos sin ordenación inicial
         sorted_df = filtered_df.copy()
+        
+        # Aplicar ordenación solo si ya está definida (para mostrar el estado actual)
         if hasattr(st.session_state, 'sort_column') and st.session_state.sort_column:
             try:
                 if st.session_state.sort_column == 'Foot':
@@ -1048,10 +1059,8 @@ with tab1:
             except Exception as e:
                 st.warning(f"Error al ordenar por {st.session_state.sort_column}: {str(e)}")
         
-        # Actualizar el total de páginas basado en los datos ordenados
+        # Calcular paginación inicial
         total_pages = max(1, (len(sorted_df) + players_per_page - 1) // players_per_page)
-        
-        # Aplicar paginación después de la ordenación
         start_idx = (st.session_state.current_page - 1) * players_per_page
         end_idx = start_idx + players_per_page
         paginated_df = sorted_df.iloc[start_idx:end_idx].copy()
@@ -1149,8 +1158,50 @@ with tab1:
                             
                             # Resetear a la primera página cuando se cambia el ordenamiento
                             st.session_state.current_page = 1
+                            
+                            # Aplicar ordenamiento inmediatamente
+                            if st.session_state.sort_column:
+                                try:
+                                    if st.session_state.sort_column == 'Foot':
+                                        # Ordenación especial para pie: Zurdos primero, luego derechos
+                                        foot_order = {'Left': 0, 'Right': 1}
+                                        sorted_df['foot_sort'] = sorted_df['Foot'].map(foot_order).fillna(2)
+                                        sorted_df = sorted_df.sort_values('foot_sort', ascending=st.session_state.sort_ascending)
+                                        sorted_df = sorted_df.drop('foot_sort', axis=1)
+                                    elif st.session_state.sort_column == 'Profile':
+                                        # Ordenación especial para perfil
+                                        profile_order = {'Completo': 0, 'Ofensivo': 1, 'Defensivo': 2, 'Técnico': 3, 'Físico': 4, 'TBD': 5}
+                                        sorted_df['profile_sort'] = sorted_df.get('Profile', 'TBD').map(profile_order).fillna(5)
+                                        sorted_df = sorted_df.sort_values('profile_sort', ascending=st.session_state.sort_ascending)
+                                        sorted_df = sorted_df.drop('profile_sort', axis=1)
+                                    elif st.session_state.sort_column in ['Salary_Annual', 'Market_Value']:
+                                        # Manejar valores nulos/cero en salarios y valores de mercado
+                                        col_name = st.session_state.sort_column
+                                        if col_name == 'Salary_Annual':
+                                            # Usar Salary si Salary_Annual no existe
+                                            if col_name not in sorted_df.columns and 'Salary' in sorted_df.columns:
+                                                col_name = 'Salary'
+                                        elif col_name == 'Market_Value':
+                                            # Usar 'Market Value' si 'Market_Value' no existe
+                                            if col_name not in sorted_df.columns and 'Market Value' in sorted_df.columns:
+                                                col_name = 'Market Value'
+                                        
+                                        if col_name in sorted_df.columns:
+                                            sorted_df = sorted_df.sort_values(col_name, ascending=st.session_state.sort_ascending, na_position='last')
+                                    else:
+                                        # Ordenación normal para otras columnas
+                                        if st.session_state.sort_column in sorted_df.columns:
+                                            sorted_df = sorted_df.sort_values(st.session_state.sort_column, ascending=st.session_state.sort_ascending, na_position='last')
+                                except Exception as e:
+                                    st.warning(f"Error al ordenar por {st.session_state.sort_column}: {str(e)}")
             
             st.markdown("---")
+            
+            # Actualizar paginación después del ordenamiento inmediato
+            total_pages = max(1, (len(sorted_df) + players_per_page - 1) // players_per_page)
+            start_idx = (st.session_state.current_page - 1) * players_per_page
+            end_idx = start_idx + players_per_page
+            paginated_df = sorted_df.iloc[start_idx:end_idx].copy()
             
             # Mostrar cada jugador
             for idx, (_, player) in enumerate(paginated_df.iterrows()):

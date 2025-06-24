@@ -494,8 +494,15 @@ class RatingCalculator:
         return max(40, min(95, base))  # ELIMINADO EL LÍMITE 85 - ahora 95
     
     def bulk_calculate_ratings(self, players_df: pd.DataFrame) -> pd.DataFrame:
-        """Calcular ratings masivamente con reescalado gaussiano automático"""
-        ratings = []
+        """🎯 DISTRIBUCIÓN GAUSSIANA PERFECTA - Solo 3 jugadores con 99, distribución realista"""
+        if len(players_df) == 0:
+            return players_df
+            
+        players_df = players_df.copy()
+        
+        # PASO 1: Calcular ratings base
+        print("🔄 Calculando ratings base...")
+        raw_ratings = []
         for idx, player in players_df.iterrows():
             try:
                 position = player.get('Position', 'CM')
@@ -503,29 +510,319 @@ class RatingCalculator:
                 if profile == 'All Profiles' or pd.isna(profile):
                     profile = self._get_default_profile(position)
                 rating = self.calculate_player_rating(player.to_dict(), position, profile)
-                ratings.append(rating)
+                raw_ratings.append(rating)
             except:
-                ratings.append(65.0)
+                raw_ratings.append(65.0)
         
-        players_df = players_df.copy()
-        players_df['Calculated_Rating'] = ratings
+        players_df['Raw_Rating'] = raw_ratings
         
-        # 🎯 APLICAR REESCALADO GAUSSIANO AUTOMÁTICO MÁS AGRESIVO
-        print("🔄 Aplicando reescalado gaussiano...")
-        players_df = self.gauss_scale(
-            players_df, 
-            col='Calculated_Rating',
-            pos_col='Position',
-            by_position=False,  # Global para mejor distribución
-            mu=78,              # Media MÁS alta (era 72, ahora 78)
-            sigma=18            # MÁS dispersión (era 15, ahora 18)
-        )
-        
-        # Usar el rating reescalado como el rating final a mostrar
-        if 'rating_40_99' in players_df.columns:
-            players_df['Display_Rating'] = players_df['rating_40_99']
+        # PASO 2: Aplicar distribución gaussiana PERFECTA
+        print("🎯 Aplicando distribución gaussiana perfecta...")
+        players_df = self._apply_perfect_gaussian_distribution(players_df)
         
         return players_df
+    
+    def _apply_perfect_gaussian_distribution(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        🏆 DISTRIBUCIÓN GAUSSIANA PERFECTA
+        - Solo 3 jugadores con 99 (Mbappé, Haaland, Lamine Yamal, Pedri, Dembélé)
+        - Distribución gaussiana μ=80, σ=10
+        - Pico en 76-85 (40-45% de jugadores)
+        - Reproducible con seed=42
+        """
+        if len(df) == 0:
+            return df
+            
+        # Jugadores élite candidatos para rating 99
+        elite_candidates = ['Kylian Mbappé', 'Erling Haaland', 'Lamine Yamal', 'Pedri', 'Ousmane Dembélé']
+        
+        # Seed fijo para reproducibilidad
+        np.random.seed(42)
+        
+        # Crear overall_score basado en múltiples factores
+        df = self._calculate_overall_score(df)
+        
+        # Ordenar por overall_score (descendente)
+        df_sorted = df.sort_values('overall_score', ascending=False).copy()
+        n = len(df_sorted)
+        
+        print(f"📊 Procesando {n} jugadores...")
+        
+        if n < 10:  # Si hay muy pocos jugadores, usar distribución simple
+            ratings = np.linspace(99, 40, n).astype(int)
+            df_sorted['Display_Rating'] = ratings
+            df_sorted['Calculated_Rating'] = df_sorted['Raw_Rating']
+            return df_sorted.sort_index()
+        
+        # Crear percentiles (0 = top, 1 = bottom)
+        percentiles = np.linspace(0.001, 0.999, n)  # Evitar extremos exactos 0 y 1
+        
+        # Aplicar distribución gaussiana inversa (μ=80, σ=10)
+        try:
+            if stats is not None:
+                # Método ideal con scipy
+                gaussian_values = stats.norm.ppf(1 - percentiles, loc=80, scale=10)
+            else:
+                raise ImportError("Usar fallback manual")
+        except:
+            # Fallback manual sin scipy - aproximación gaussiana
+            gaussian_values = []
+            for p in (1 - percentiles):
+                if p <= 0.001:
+                    val = 40
+                elif p >= 0.999:
+                    val = 99
+                else:
+                    # Aproximación de la distribución normal inversa
+                    # Transformación Box-Muller simplificada
+                    z = np.sqrt(-2 * np.log(max(0.001, min(0.999, p))))
+                    if p < 0.5:
+                        z = -z
+                    val = 80 + 10 * z
+                gaussian_values.append(val)
+            gaussian_values = np.array(gaussian_values)
+        
+        # Redondear y recortar a rango 40-99
+        ratings = np.clip(np.round(gaussian_values), 40, 99).astype(int)
+        
+        # 🏆 POST-AJUSTE MANUAL ESTRICTO - DISTRIBUCIÓN PERFECTA
+        
+        # 1. SOLO 3 JUGADORES CON 99 (ya funciona perfecto)
+        top_3_indices = []
+        
+        # Buscar jugadores élite en la base de datos
+        for i, row in df_sorted.iterrows():
+            name = row.get('Name', '')
+            if any(elite in name for elite in elite_candidates) and len(top_3_indices) < 3:
+                idx_in_sorted = df_sorted.index.get_loc(i)
+                top_3_indices.append(idx_in_sorted)
+                print(f"⭐ Elite encontrado: {name} (posición {idx_in_sorted + 1})")
+        
+        # Completar con los mejores por overall_score si no hay suficientes élite
+        while len(top_3_indices) < 3:
+            for i in range(n):
+                if i not in top_3_indices:
+                    top_3_indices.append(i)
+                    player_name = df_sorted.iloc[i]['Name']
+                    print(f"⭐ Top player: {player_name} (posición {i + 1})")
+                    break
+        
+        # Asignar 99 solo a los top 3
+        for i in range(n):
+            if i in top_3_indices:
+                ratings[i] = 99
+            elif ratings[i] == 99:  # Degradar otros que tenían 99
+                ratings[i] = 98
+        
+        # 2. APLICAR LÓGICA ESTRICTA PARA TODOS LOS RATINGS ALTOS
+        # Usar la misma metodología que para el 99: asignación específica por posición
+        
+        # Definir cuotas estrictas para cada rating
+        cuotas = {
+            98: 4,   # Solo 4 jugadores con 98
+            97: 4,   # Solo 4 jugadores con 97
+            96: 5,   # Solo 5 jugadores con 96
+            95: 5    # Solo 5 jugadores con 95
+        }
+        
+        # Total: 3(99) + 4(98) + 4(97) + 5(96) + 5(95) = 21 jugadores con 95+
+        
+        # Resetear todos los ratings altos a un máximo temporal de 94
+        for i in range(n):
+            if i not in top_3_indices and ratings[i] >= 95:
+                ratings[i] = min(ratings[i], 94)
+        
+        # Asignar ratings altos de forma controlada
+        # Buscar los mejores candidatos excluyendo los que ya tienen 99
+        available_indices = [i for i in range(n) if i not in top_3_indices]
+        
+        # Ordenar por overall_score (ya están ordenados, pero asegurar)
+        for rating_target in [98, 97, 96, 95]:
+            quota = cuotas[rating_target]
+            assigned_count = 0
+            
+            # Asignar a los mejores disponibles
+            for i in available_indices:
+                if assigned_count >= quota:
+                    break
+                    
+                # Solo asignar si el jugador no tiene ya un rating más alto
+                if ratings[i] < rating_target:
+                    ratings[i] = rating_target
+                    assigned_count += 1
+                    player_name = df_sorted.iloc[i]['Name']
+                    print(f"   Asignado rating {rating_target}: {player_name}")
+            
+            # Remover los asignados de la lista de disponibles
+            available_indices = [i for i in available_indices if ratings[i] < rating_target]
+        
+        # 3. DEGRADAR AGRESIVAMENTE CUALQUIER RATING ALTO RESTANTE
+        # Cualquier jugador que aún tenga 95+ y no esté en las cuotas debe bajar
+        total_95_plus = np.sum(ratings >= 95)
+        expected_95_plus = 3 + sum(cuotas.values())  # 3(99) + cuotas
+        
+        if total_95_plus > expected_95_plus:
+            # Encontrar excesos y degradarlos
+            excess_indices = []
+            for i in range(n):
+                if i not in top_3_indices and ratings[i] >= 95:
+                    # Verificar si este índice debería tener rating alto
+                    should_keep = False
+                    current_quota_check = 0
+                    for rating_target in [98, 97, 96, 95]:
+                        if ratings[i] >= rating_target:
+                            current_quota_check += 1
+                            if current_quota_check <= cuotas[rating_target]:
+                                should_keep = True
+                                break
+                    
+                    if not should_keep:
+                        excess_indices.append(i)
+            
+            # Degradar excesos a 90-94
+            for i in excess_indices:
+                ratings[i] = np.random.randint(90, 95)
+                player_name = df_sorted.iloc[i]['Name']
+                print(f"   Degradado: {player_name} → {ratings[i]}")
+        
+        # 4. REFORZAR PICO 76-85 (objetivo: 42% del total)
+        target_peak_count = int(n * 0.42)
+        current_peak_count = np.sum((ratings >= 76) & (ratings <= 85))
+        
+        if current_peak_count < target_peak_count:
+            deficit = target_peak_count - current_peak_count
+            
+            # Mover jugadores hacia el pico desde abajo y arriba
+            candidates_below = np.where((ratings >= 65) & (ratings <= 75))[0]
+            candidates_above = np.where((ratings >= 86) & (ratings <= 94))[0]
+            
+            # Distribuir el déficit entre mover hacia arriba y hacia abajo
+            move_up_count = min(len(candidates_below), deficit // 2)
+            move_down_count = min(len(candidates_above), deficit - move_up_count)
+            
+            # Mover hacia arriba (65-75 → 76-85)
+            for i in candidates_below[:move_up_count]:
+                ratings[i] = np.random.randint(76, 86)
+            
+            # Mover hacia abajo (86-94 → 76-85)  
+            for i in candidates_above[:move_down_count]:
+                ratings[i] = np.random.randint(76, 86)
+        
+        # 5. ASEGURAR RANGO 40-99
+        ratings = np.clip(ratings, 40, 99)
+        
+        # Asignar ratings finales
+        df_sorted['Display_Rating'] = ratings.astype(int)
+        df_sorted['Calculated_Rating'] = df_sorted['Raw_Rating']
+        
+        # 📊 ESTADÍSTICAS FINALES CON CUOTAS ESTRICTAS
+        print("\n🎯 DISTRIBUCIÓN FINAL ESTRICTA:")
+        print(f"   Rating 99: {np.sum(ratings == 99)} jugadores (objetivo: 3)")
+        print(f"   Rating 98: {np.sum(ratings == 98)} jugadores (objetivo: 4)")
+        print(f"   Rating 97: {np.sum(ratings == 97)} jugadores (objetivo: 4)")
+        print(f"   Rating 96: {np.sum(ratings == 96)} jugadores (objetivo: 5)")
+        print(f"   Rating 95: {np.sum(ratings == 95)} jugadores (objetivo: 5)")
+        print(f"   TOTAL 95+: {np.sum(ratings >= 95)} jugadores (objetivo: 21)")
+        print(f"   Rating 90-94: {np.sum((ratings >= 90) & (ratings <= 94))} jugadores")
+        print(f"   Rating 76-85 (pico): {np.sum((ratings >= 76) & (ratings <= 85))} jugadores ({np.sum((ratings >= 76) & (ratings <= 85))/n*100:.1f}%) (objetivo: 40-45%)")
+        print(f"   Media: {np.mean(ratings):.1f} (objetivo: ~80)")
+        print(f"   Desviación: {np.std(ratings):.1f} (objetivo: ~10)")
+        print(f"   Rango: {np.min(ratings)}-{np.max(ratings)}")
+        
+        # Mostrar jugadores con ratings altos
+        elite_players = df_sorted[ratings == 99]['Name'].tolist()
+        print(f"   ⭐ Jugadores con 99: {', '.join(elite_players)}")
+        
+        top_98 = df_sorted[ratings == 98]['Name'].tolist()
+        if top_98:
+            print(f"   🔥 Jugadores con 98: {', '.join(top_98[:3])}{'...' if len(top_98) > 3 else ''}")
+        
+        top_97 = df_sorted[ratings == 97]['Name'].tolist()
+        if top_97:
+            print(f"   💎 Jugadores con 97: {', '.join(top_97[:3])}{'...' if len(top_97) > 3 else ''}")
+        
+        return df_sorted.sort_index()
+    
+    def _calculate_overall_score(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Calcular overall_score basado en múltiples factores para determinar el ranking"""
+        df = df.copy()
+        
+        # Factores que contribuyen al overall_score
+        factors = []
+        weights = []
+        
+        # Rating base (40%)
+        if 'Raw_Rating' in df.columns:
+            factors.append(df['Raw_Rating'])
+            weights.append(0.4)
+        
+        # Valor de mercado (25%) - Factor más importante
+        market_cols = ['Market_Value', 'Market Value']
+        for col in market_cols:
+            if col in df.columns:
+                market_values = pd.to_numeric(df[col], errors='coerce').fillna(0)
+                if market_values.max() > 0:
+                    # Normalizar a escala 0-100
+                    market_factor = (market_values / market_values.max()) * 100
+                    factors.append(market_factor)
+                    weights.append(0.25)
+                break
+        
+        # Edad (factor de potencial) (15%)
+        if 'Age' in df.columns:
+            # Curva que favorece a jóvenes talentos y jugadores en su prime
+            age_factor = np.where(
+                df['Age'] <= 23,  # Jóvenes talentos
+                100 - (df['Age'] - 16) * 2,  # Máximo a los 16, baja gradualmente
+                np.where(
+                    df['Age'] <= 29,  # Prime years
+                    90 - (df['Age'] - 23) * 3,  # Baja más rápido después de 23
+                    60 - (df['Age'] - 29) * 2   # Declive después de 29
+                )
+            )
+            age_factor = np.clip(age_factor, 10, 100)  # Mínimo 10, máximo 100
+            factors.append(age_factor)
+            weights.append(0.15)
+        
+        # Liga (calidad) (10%)
+        league_cols = ['League', 'Liga']
+        for col in league_cols:
+            if col in df.columns:
+                league_factor = df[col].map({
+                    'Premier League': 95, 'La Liga': 95, 'Serie A': 90, 
+                    'Bundesliga': 90, 'Ligue 1': 85,
+                    'Liga Portugal': 75, 'Eredivisie': 75, 'Süper Lig': 70
+                }).fillna(60)
+                factors.append(league_factor)
+                weights.append(0.1)
+                break
+        
+        # Salario (10%)
+        salary_cols = ['Salary_Annual', 'Salary']
+        for col in salary_cols:
+            if col in df.columns:
+                salary_values = pd.to_numeric(df[col], errors='coerce').fillna(0)
+                if salary_values.max() > 0:
+                    salary_factor = (salary_values / salary_values.max()) * 100
+                    factors.append(salary_factor)
+                    weights.append(0.1)
+                break
+        
+        # Calcular overall_score ponderado
+        if factors:
+            # Normalizar pesos para que sumen 1
+            weights = np.array(weights)
+            weights = weights / weights.sum()
+            
+            overall_scores = np.zeros(len(df))
+            for factor, weight in zip(factors, weights):
+                overall_scores += factor * weight
+        else:
+            # Fallback: usar Raw_Rating
+            overall_scores = df.get('Raw_Rating', np.random.uniform(40, 99, len(df)))
+        
+        df['overall_score'] = overall_scores
+        return df
     
     def _get_default_profile(self, position: str) -> str:
         """Perfil por defecto"""
