@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import os
 import sys
+import base64
 
 # Configuración de la página
 st.set_page_config(page_title="Tablas Comparativas Liga", page_icon="📊", layout="wide")
@@ -205,6 +206,76 @@ team_file_mapping = {
     "Valencia": "Team Stats Valencia.xlsx",
     "Villarreal": "Team Stats Villarreal.xlsx"
 }
+
+# Lista de equipos de La Liga con sus logos (igual que en inicio.py)
+LALIGA_TEAMS = [
+    ("Barcelona", "Barcelona.png"),
+    ("Real Madrid", "real_madrid.png"),
+    ("Atlético Madrid", "atletico_de_madrid.png"),
+    ("Athletic Bilbao", "athletic_club.png"),
+    ("Real Sociedad", "real_sociedad.png"),
+    ("Sevilla", "Sevilla.png"),
+    ("Valencia", "valencia.png"),
+    ("Real Betis", "real_betis.png"),
+    ("Villarreal", "villareal.png"),
+    ("Girona", "girona.png"),
+    ("Celta de Vigo", "celta_de_vigo.png"),
+    ("Rayo Vallecano", "rayo_vallecano.png"),
+    ("Osasuna", "osasuna.png"),
+    ("Getafe", "getafe.png"),
+    ("Deportivo Alavés", "Alaves.png"),
+    ("Espanyol", "espanyol.png"),
+    ("Las Palmas", "las_palmas.png"),
+    ("Mallorca", "mallorca.png"),
+    ("Leganés", "Leganes.png"),
+    ("Real Valladolid", "real_valladolid.png"),
+]
+
+# Función para obtener la ruta del logo de un equipo (igual que en inicio.py)
+def get_team_logo_path(team_name):
+    """Obtiene la ruta del logo de un equipo específico de La Liga"""
+    # Buscar en la lista de equipos de La Liga
+    for name, logo_file in LALIGA_TEAMS:
+        if team_name == name:
+            logo_path = os.path.join("static", "wetransfer_players_2025-06-18_1752", "LOGHI_PNG", "LA_LIGA", "SQUADRE", logo_file)
+            if os.path.exists(logo_path):
+                return logo_path
+    
+    # Fallback: buscar en assets/logos equipos/la_liga si no se encuentra
+    fallback_mapping = {
+        "Athletic Bilbao": "Athletic_Club.png",
+        "Atlético Madrid": "Atlético_de_Madrid.png", 
+        "Barcelona": "Barcelona.png",
+        "Celta de Vigo": "Celta_de_Vigo.png",
+        "Deportivo Alavés": "Alavés.png",
+        "Espanyol": "Espanyol.png",
+        "Getafe": "Getafe.png",
+        "Girona": "Girona.png",
+        "Las Palmas": "Las_Palmas.png",
+        "Leganés": "Leganés.png",
+        "Mallorca": "Mallorca.png",
+        "Osasuna": "Osasuna.png",
+        "Rayo Vallecano": "Rayo_Vallecano.png",
+        "Real Betis": "Real_Betis.png",
+        "Real Madrid": "Real_Madrid.png",
+        "Real Sociedad": "Real_Sociedad.png",
+        "Real Valladolid": "Real_Valladolid.png",
+        "Sevilla": "Sevilla.png",
+        "Valencia": "Valencia.png",
+        "Villarreal": "Villareal.png"
+    }
+    
+    logo_file = fallback_mapping.get(team_name, "Barcelona.png")
+    return os.path.join("assets", "logos equipos", "la_liga", logo_file)
+
+# Función para convertir imagen a base64 (igual que en inicio.py)
+def get_image_base64(image_path):
+    try:
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode()
+    except Exception as e:
+        print(f"Error loading image {image_path}: {str(e)}")
+        return ""
 
 # Función para cargar datos de equipo
 @st.cache_data
@@ -564,21 +635,7 @@ def create_comparison_table(team_name, all_teams_data, metrics_extractor, table_
     
     return table_html
 
-# Selección de equipo con diseño mejorado
-st.markdown("""
-<div style="
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
-    border-radius: 15px;
-    margin: 20px 0;
-    text-align: center;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-">
-    <h3 style="color: white; margin: 0; font-weight: bold; font-size: 1.3rem;">
-        🏟️ Seleccionar Equipo para Análisis Comparativo
-    </h3>
-</div>
-""", unsafe_allow_html=True)
+
 
 selected_team = st.selectbox(
     "Equipo:",
@@ -598,25 +655,32 @@ if selected_team not in all_teams_data:
     st.error(f"❌ No se pudieron cargar los datos de {selected_team}")
     st.stop()
 
-# Mostrar información del equipo seleccionado con diseño mejorado
-st.markdown(f"""
-<div style="
-    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-    padding: 25px;
-    border-radius: 15px;
-    margin: 30px 0;
-    text-align: center;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-    border: 3px solid rgba(255, 255, 255, 0.2);
-">
-    <h1 style="color: white; margin: 0; font-weight: bold; font-size: 2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-        ⚽ Análisis Comparativo: {selected_team}
-    </h1>
-    <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 1.1rem;">
-        📊 Datos comparativos vs. los 20 equipos de La Liga Española
-    </p>
-</div>
-""", unsafe_allow_html=True)
+# Mostrar solo el logo del equipo seleccionado en grande y centrado
+logo_path = get_team_logo_path(selected_team)
+
+# Verificar si el archivo existe y mostrarlo usando el sistema de inicio.py
+if os.path.exists(logo_path):
+    # Añadir estilos CSS para el logo más pequeño y centrado
+    st.markdown("""
+    <style>
+    .big-team-logo {
+        width: 120px;
+        height: auto;
+        margin: 20px auto;
+        display: block;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Mostrar el logo usando base64 como en inicio.py
+    st.markdown(f"""
+    <div style="text-align: center; margin: 20px 0;">
+        <img src="data:image/png;base64,{get_image_base64(logo_path)}" class="big-team-logo" alt="{selected_team}"/>
+    </div>
+    """, unsafe_allow_html=True)
+else:
+    st.warning(f"Logo no encontrado para {selected_team} en: {logo_path}")
 
 # Crear y mostrar tabla de construcción
 construction_table = create_comparison_table(
@@ -710,12 +774,16 @@ def display_table_with_streamlit(team_name, all_teams_data, metrics_extractor, t
     # Crear DataFrame
     df = pd.DataFrame(table_data)
     
+    # Calcular altura dinámica basada en el número de filas
+    # Cada fila ocupa aproximadamente 35px + header (40px) + padding ajustado
+    dynamic_height = len(df) * 35 + 50
+    
     # Mostrar con diseño mejorado y colores personalizados
     st.dataframe(
         df,
         use_container_width=True,
         hide_index=True,
-        height=400,  # Altura fija para consistencia
+        height=dynamic_height,  # Altura dinámica basada en contenido
         column_config={
             "KPI": st.column_config.TextColumn(
                 "📊 KPI", 
@@ -778,9 +846,6 @@ display_table_with_streamlit(
     "FASE DE CONSTRUCCIÓN"
 )
 
-# Espaciado entre secciones
-st.markdown("<br><br>", unsafe_allow_html=True)
-
 # TÍTULO 2: FASE OFENSIVA
 st.markdown("""
 <div style="
@@ -804,9 +869,6 @@ display_table_with_streamlit(
     extract_offensive_metrics, 
     "FASE OFENSIVA"
 )
-
-# Espaciado entre secciones
-st.markdown("<br><br>", unsafe_allow_html=True)
 
 # TÍTULO 3: FASE DEFENSIVA
 st.markdown("""
@@ -832,9 +894,6 @@ display_table_with_streamlit(
     "FASE DEFENSIVA"
 )
 
-# Espaciado entre secciones
-st.markdown("<br><br>", unsafe_allow_html=True)
-
 # TÍTULO 4: BALÓN PARADO
 st.markdown("""
 <div style="
@@ -859,8 +918,4 @@ display_table_with_streamlit(
     "BALÓN PARADO"
 )
 
-# Footer informativo con diseño mejorado
-st.markdown("<br><br>", unsafe_allow_html=True)
-
-
-
+# Footer informativo - removido para evitar espacios vacíos
