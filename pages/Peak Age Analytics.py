@@ -157,11 +157,6 @@ def plot_peak_age(df):
     ax.set_xlabel('Edad (años)', fontsize=14, fontweight='bold', color=text_color)
     ax.set_ylabel('Rendimiento Relativo', fontsize=14, fontweight='bold', color=text_color, labelpad=20)
     
-    # Título moderno
-    ax.set_title('PEAK AGE ANALYTICS\nCurvas de Rendimiento por Posición (Career Performance)', 
-                fontsize=18, fontweight='bold', pad=25, color=text_color,
-                bbox=dict(boxstyle="round,pad=0.5", facecolor='#333333', alpha=0.8))
-    
     # Grid sutil
     ax.grid(True, axis='x', alpha=0.2, linestyle='-', color=grid_color)
     ax.set_axisbelow(True)
@@ -188,7 +183,7 @@ def plot_peak_age(df):
     
     # Leyenda de fases de carrera
     phases_y = 0.95
-    ax.text(0.98, phases_y, '🚀 Desarrollo (18-22)', transform=ax.transAxes, 
+    ax.text(0.98, phases_y, '🚀 Desarrollo (Pre-Peak)', transform=ax.transAxes, 
             ha='right', va='top', color='#FFD93D', fontsize=10, fontweight='bold')
     ax.text(0.98, phases_y - 0.05, '⭐ Prime (Peak)', transform=ax.transAxes, 
             ha='right', va='top', color='#6BCF7F', fontsize=10, fontweight='bold')
@@ -205,8 +200,7 @@ def plot_peak_age(df):
     return fig
 
 # Visualización principal
-st.markdown("---")
-st.markdown("## 2. Visualización: Career Performance Curves")
+st.markdown("## 1. Visualización: Curvas de rendimiento por posición y edad")
 
 # Crear y mostrar el gráfico
 fig = plot_peak_age(df_prime)
@@ -216,7 +210,7 @@ st.pyplot(fig)
 
 # Análisis e interpretación
 st.markdown("---")
-st.markdown("## 3. Análisis e Interpretación")
+st.markdown("## 2. Análisis e Interpretación")
 
 col1, col2, col3 = st.columns(3)
 
@@ -254,7 +248,7 @@ with col3:
 
 # Aplicaciones prácticas
 st.markdown("---")
-st.markdown("## 4. Aplicaciones Prácticas")
+st.markdown("## 3. Aplicaciones Prácticas")
 
 st.markdown("""
 ### 🎯 Para Directores Deportivos:

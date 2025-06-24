@@ -6,6 +6,11 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.colors import LinearSegmentedColormap
 
+# Cargar datos del CSV
+@st.cache_data
+def load_player_data():
+    return pd.read_csv('Datos/radares_normalizados.csv', sep=';')
+
 def get_player_metrics(df, player_name, team):
     try:
         player_data = df[(df['Jugador'].str.strip() == player_name) & 
@@ -105,29 +110,40 @@ def create_radar_chart(barca_player: str, bayern_player: str, position: str, cha
             st.write("Datos disponibles en el CSV:")
             st.write(df[['Jugador', 'Equipo']].to_dict('records'))
             return None
-            
-        categories = list(metrics_barca.keys())
+        
+        # SOLUCIÓN: Asegurar que ambos jugadores tengan las mismas categorías
+        # Obtener todas las categorías de ambos jugadores
+        all_categories = set(metrics_barca.keys()) | set(metrics_bayern.keys())
+        categories = sorted(list(all_categories))
+        
+        # Completar datos faltantes con 0 para cada jugador
+        barca_values = [metrics_barca.get(cat, 0) for cat in categories]
+        bayern_values = [metrics_bayern.get(cat, 0) for cat in categories]
         
         fig = go.Figure()
         
-        # Datos Barcelona
+        # Datos Barcelona - usando los valores alineados
         fig.add_trace(go.Scatterpolar(
-            r=list(metrics_barca.values()),
+            r=barca_values,
             theta=categories,
             fill='toself',
             name=barca_player,
             line_color='#004D98',  # Azul Barça
-            fillcolor='rgba(0, 77, 152, 0.3)'
+            fillcolor='rgba(0, 77, 152, 0.3)',
+            connectgaps=True,  # Conectar gaps entre puntos
+            line=dict(color='#004D98', width=2)  # Línea más definida
         ))
         
-        # Datos Bayern
+        # Datos Bayern - usando los valores alineados
         fig.add_trace(go.Scatterpolar(
-            r=list(metrics_bayern.values()),
+            r=bayern_values,
             theta=categories,
             fill='toself',
             name=bayern_player,
             line_color='#DC052D',  # Rojo Bayern
-            fillcolor='rgba(220, 5, 45, 0.3)'
+            fillcolor='rgba(220, 5, 45, 0.3)',
+            connectgaps=True,  # Conectar gaps entre puntos
+            line=dict(color='#DC052D', width=2)  # Línea más definida
         ))
         
         # Actualizar layout
