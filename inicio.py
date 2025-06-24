@@ -662,7 +662,7 @@ st.markdown("""
         --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         --transition-speed: 0.3s;
         --barca-primary: #004D98;
-        --barca-secondary: #A50044;
+        --barca-secondary: #a5001c;
     }
 
     /* Estilos generales y animaciones */
@@ -855,7 +855,7 @@ st.markdown("""
         <div style="
             width: 100%;
             margin: 0;
-            background: linear-gradient(135deg, #004D98, #A50044);
+            background: linear-gradient(135deg, #004D98, #a5001c);
             border-radius: 20px;
             box-shadow: 0 8px 25px rgba(0, 77, 152, 0.3);
             padding: 20px;

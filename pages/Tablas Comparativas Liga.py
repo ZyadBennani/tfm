@@ -18,35 +18,39 @@ show_home_button()
 # CSS personalizado para tema oscuro español y tablas como la imagen
 st.markdown("""
     <style>
-    /* Tema oscuro español */
+    /* Tema Blaugrana Uniforme */
     .main > div {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f0f 100%);
-        color: white;
-    }
-    
-    /* Título principal */
-    .main-title {
-        text-align: center;
-        font-size: 3rem;
-        font-weight: bold;
-        color: #ff6b35 !important;
-        margin-bottom: 2rem;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 50%, #f8f9fa 100%);
+        color: #2c3e50;
     }
     
     /* Asegurar que los títulos sean visibles */
     h1, h2, h3, h4, h5, h6 {
-        color: #ff6b35 !important;
+        color: #004D98 !important;
+    }
+    
+    /* Título específico del header - debe ser blanco */
+    .header-title {
+        color: white !important;
+        font-size: 2.5rem !important;
+        font-weight: bold !important;
+        margin: 0 !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+    }
+    
+    /* Forzar título blanco con máxima especificidad */
+    div h1.header-title {
+        color: white !important;
     }
     
     /* Contenedor de tabla */
     .table-container {
-        background: linear-gradient(135deg, #2c1810 0%, #1a1a2e 100%);
-        border: 2px solid #ff6b35;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 2px solid #004D98;
         border-radius: 15px;
         padding: 2rem;
         margin: 1rem 0;
-        box-shadow: 0 8px 32px rgba(255, 107, 53, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 77, 152, 0.2);
         backdrop-filter: blur(10px);
     }
     
@@ -55,7 +59,7 @@ st.markdown("""
         text-align: center;
         font-size: 1.8rem;
         font-weight: bold;
-        color: #ff6b35;
+        color: #a5001c;
         margin-bottom: 2rem;
         text-transform: uppercase;
         letter-spacing: 2px;
@@ -64,15 +68,15 @@ st.markdown("""
     /* Tabla personalizada como la imagen */
     .comparison-table {
         width: 100%;
-        background-color: rgba(44, 24, 16, 0.9);
+        background-color: rgba(248, 249, 250, 0.9);
         border-radius: 10px;
         overflow: hidden;
-        border: 1px solid #ff6b35;
+        border: 1px solid #004D98;
     }
     
     /* Header de tabla */
     .table-header {
-        background: linear-gradient(90deg, #ff6b35, #ff8a5c);
+        background: linear-gradient(90deg, #004D98, #a5001c);
         color: white;
         padding: 15px;
         font-weight: bold;
@@ -86,20 +90,20 @@ st.markdown("""
     .table-row {
         display: grid;
         grid-template-columns: 2fr 1fr 1fr 3fr 1.5fr 1fr;
-        border-bottom: 1px solid rgba(255, 107, 53, 0.3);
-        background-color: rgba(26, 26, 46, 0.8);
+        border-bottom: 1px solid rgba(0, 77, 152, 0.3);
+        background-color: rgba(255, 255, 255, 0.8);
         padding: 12px 15px;
         align-items: center;
     }
     
     .table-row:hover {
-        background-color: rgba(255, 107, 53, 0.1);
+        background-color: rgba(0, 77, 152, 0.1);
         transition: background-color 0.3s ease;
     }
     
     /* Celdas de tabla */
     .table-cell {
-        color: white;
+        color: #2c3e50;
         font-size: 0.9rem;
         text-align: center;
     }
@@ -107,13 +111,13 @@ st.markdown("""
     .table-cell.metric-name {
         text-align: left;
         font-weight: 500;
-        color: #e8e8e8;
+        color: #2c3e50;
     }
     
     .table-cell.ranking {
         font-weight: bold;
-        color: #ffdd00;
-        background: rgba(255, 221, 0, 0.1);
+        color: #d6c700;
+        background: rgba(214, 199, 0, 0.1);
         border-radius: 20px;
         padding: 5px 10px;
         display: inline-block;
@@ -121,21 +125,21 @@ st.markdown("""
     
     .table-cell.value {
         font-weight: bold;
-        color: #4CAF50;
+        color: #a5001c;
     }
     
     /* Barra de progreso como la imagen */
     .progress-container {
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(240, 240, 240, 0.8);
         border-radius: 10px;
         height: 20px;
         position: relative;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(0, 77, 152, 0.2);
     }
     
     .progress-bar {
-        background: linear-gradient(90deg, #1e88e5, #42a5f5);
+        background: linear-gradient(90deg, #004D98, #a5001c);
         height: 100%;
         border-radius: 10px;
         transition: width 0.5s ease;
@@ -160,10 +164,10 @@ st.markdown("""
     
     /* Selectores de equipos */
     .stSelectbox > div > div {
-        background-color: #2c1810;
-        border: 2px solid #ff6b35;
+        background-color: #ffffff;
+        border: 2px solid #004D98;
         border-radius: 10px;
-        color: white;
+        color: #2c3e50;
     }
     
     /* Ocultar elementos de Streamlit */
@@ -173,13 +177,29 @@ st.markdown("""
     
     /* Colores de texto */
     .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6 {
-        color: white !important;
+        color: #2c3e50 !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Título principal
-st.markdown('<h1 class="main-title">TABLAS COMPARATIVAS LIGA ESPAÑOLA</h1>', unsafe_allow_html=True)
+# Header principal con gradiente blaugrana
+st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, #004D98, #a5001c);
+        padding: 2rem;
+        border-radius: 20px;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 25px rgba(0, 77, 152, 0.3);
+        ">
+        <h1 class="header-title">📊 Tablas Comparativas Liga Española</h1>
+        <p style="
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+            margin: 10px 0 0 0;
+        ">Análisis comparativo de equipos de La Liga</p>
+    </div>
+""", unsafe_allow_html=True)
 
 # Lista de equipos de LaLiga
 laliga_teams = [

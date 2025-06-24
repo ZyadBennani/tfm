@@ -617,7 +617,7 @@ with st.sidebar:
        
         st.markdown("##### Situación Contractual")
         # Contrato - ajustar según filtros especiales
-        contract_options = ["Todos", 2024, 2025, 2026, 2027, 2028, 2029, 2030]
+        contract_options = ["Todos", 2025, 2026, 2027, 2028, 2029, 2030]
         default_contract = 'Todos'
         if st.session_state.get('free_market_filter', False):
             default_contract = 2025

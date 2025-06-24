@@ -28,6 +28,8 @@ show_home_button()
 # Mostrar header de la página
 show_page_header("Análisis Propio", "Herramientas avanzadas de análisis para el FC Barcelona", "📊")
 
+
+
 # Función para cargar imágenes
 def load_image(image_path):
     try:
@@ -495,7 +497,7 @@ st.markdown("""
     /* Variables globales del Barcelona */
     :root {
         --primary-color: #004D98;
-        --secondary-color: #A50044;
+        --secondary-color: #a5001c;
         --background-light: #f8f9fa;
         --text-color: #2C3E50;
         --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -518,24 +520,11 @@ st.markdown("""
     <div style="
         text-align: center;
         padding: 2rem;
-        background: linear-gradient(135deg, #004D98, #A50044);
+        background: linear-gradient(135deg, #004D98, #a5001c);
         border-radius: 15px;
         margin-bottom: 2rem;
         box-shadow: 0 8px 25px rgba(0, 77, 152, 0.3);
-    ">
-        <h1 style="
-            color: white;
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin: 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        ">📊 Análisis de Fases - FC Barcelona</h1>
-        <p style="
-            color: rgba(255,255,255,0.9);
-            font-size: 1.2rem;
-            margin: 10px 0 0 0;
-        ">Análisis comparativo vs La Liga Española</p>
-    </div>
+        
 """, unsafe_allow_html=True)
 
 # Selector de equipo a resaltar
