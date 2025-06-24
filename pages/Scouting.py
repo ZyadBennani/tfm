@@ -630,16 +630,28 @@ with st.sidebar:
     
     # 🎯 SECCIÓN 3: FILTROS AVANZADOS
     with st.expander("🎯 **Análisis Avanzado**", expanded=False):
-        metrics_90 = st.multiselect(
-            "Métricas de Rendimiento/90",
-            ["xG", "xA", "Passes Completed", "Tackles", "Interceptions", "Distance Covered"],
-            default=st.session_state.get('metrics_90', []),
-            key="metrics_90",
-            help="Selecciona métricas para encontrar jugadores destacados"
-        )
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            metrics_90 = st.multiselect(
+                "Métricas de Rendimiento/90",
+                ["xG", "xA", "Passes Completed", "Tackles", "Interceptions", "Distance Covered"],
+                default=st.session_state.get('metrics_90', []),
+                key="metrics_90",
+                help="Selecciona métricas para encontrar jugadores destacados"
+            )
+        
+        with col2:
+            min_minutes = st.selectbox(
+                "Mínimo de Minutos",
+                options=[1000, 2000, 3000, 4000, 5000, 6000],
+                index=0,
+                key="min_minutes_filter",
+                help="Filtro de minutos jugados para el Top 10"
+            )
         
         if metrics_90:
-            st.info(f"TOP 10 jugadores con mejor {', '.join(metrics_90)} (mínimo 1000 minutos jugados)")
+            st.info(f"TOP 10 jugadores con mejor {', '.join(metrics_90)} (mínimo {min_minutes} minutos jugados)")
 
     # ⚡ SECCIÓN 4: FILTROS RÁPIDOS
     with st.expander("⚡ **Filtros Rápidos**", expanded=False):
@@ -932,10 +944,13 @@ with tab1:
 
     # --- LÓGICA DE FILTRO POR MÉTRICAS (mantener al final) ---
     if metrics_90:
+        # Obtener el valor de minutos mínimos del selectbox
+        min_minutes = st.session_state.get('min_minutes_filter', 1000)
+        
         top_sets = []
         for metric in metrics_90:
             if metric in filtered_df.columns:
-                # Filtrar jugadores con más de 1000 minutos jugados
+                # Filtrar jugadores con más del mínimo de minutos seleccionado
                 minutes_columns = ['Minutes', 'Min', 'Minutos', 'Playing_Time', 'MP']
                 minutes_col = None
                 
@@ -945,9 +960,9 @@ with tab1:
                         minutes_col = col
                         break
                 
-                # Si hay columna de minutos, filtrar por más de 1000 minutos
+                # Si hay columna de minutos, filtrar por más del mínimo seleccionado
                 if minutes_col:
-                    qualified_df = filtered_df[filtered_df[minutes_col] > 1000]
+                    qualified_df = filtered_df[filtered_df[minutes_col] > min_minutes]
                 else:
                     # Si no hay datos de minutos, usar todos los jugadores
                     qualified_df = filtered_df
