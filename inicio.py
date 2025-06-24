@@ -958,13 +958,16 @@ st.markdown("""
 
 # Botones principales con espaciado reducido
 st.markdown('<div style="margin-top: 10px; margin-bottom: 10px;">', unsafe_allow_html=True)
-col1, col2, col3, col4 = st.columns([1,2,2,1])
+col1, col2, col3, col4, col5 = st.columns([0.5,2,2,2,0.5])
 with col2:
-    if st.button("Analisis Propio", key="barca_analysis", use_container_width=True):
+    if st.button("Análisis Propio", key="barca_analysis", use_container_width=True):
         st.switch_page("pages/Analisis Propio.py")
 with col3:
     if st.button("Barça VS Bayern", key="barca_bayern", use_container_width=True):
         st.switch_page("pages/Barça VS Bayern.py")
+with col4:
+    if st.button("Tablas Comparativas", key="tablas_comparativas", use_container_width=True):
+        st.switch_page("pages/Tablas Comparativas Liga.py")
 st.markdown('</div>', unsafe_allow_html=True)
 
 # Separador visual
