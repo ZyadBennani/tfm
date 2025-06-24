@@ -215,28 +215,28 @@ def load_team_data(team_name):
         # Leer Excel con header correcto
         df = pd.read_excel(file_path, header=0)  # Primera fila como headers
         
-        # Debug: mostrar info del archivo
-        if team_name == "Barcelona":  # Solo para debug
-            st.write(f"**DEBUG - Archivo {team_name}:**")
-            st.write(f"- Dimensiones: {df.shape}")
-            st.write(f"- Todas las columnas: {list(df.columns)}")
-            if len(df) >= 2:
-                st.write(f"- Línea 2 (promedios equipo):")
-                for col in df.columns[:15]:  # Mostrar primeras 15 columnas
-                    st.write(f"  {col}: {df.iloc[1][col]}")
-            if len(df) >= 3:
-                st.write(f"- Línea 3 (datos rivales):")
-                for col in df.columns[:15]:  # Mostrar primeras 15 columnas
-                    st.write(f"  {col}: {df.iloc[2][col]}")
-            
-            # Buscar columnas que contienen palabras clave para métricas ofensivas
-            st.write("**Columnas relacionadas con métricas ofensivas:**")
-            offensive_keywords = ['counterattack', 'cross', 'passes', 'deep', 'touch', 'penalty', 'area', 'box']
-            for col in df.columns:
-                for keyword in offensive_keywords:
-                    if keyword.lower() in col.lower():
-                        st.write(f"  - {col}: {df.iloc[1][col] if len(df) >= 2 else 'N/A'}")
-                        break
+        # Debug: comentado para que no se muestre al usuario final
+        # if team_name == "Barcelona":  # Solo para debug
+        #     st.write(f"**DEBUG - Archivo {team_name}:**")
+        #     st.write(f"- Dimensiones: {df.shape}")
+        #     st.write(f"- Todas las columnas: {list(df.columns)}")
+        #     if len(df) >= 2:
+        #         st.write(f"- Línea 2 (promedios equipo):")
+        #         for col in df.columns[:15]:  # Mostrar primeras 15 columnas
+        #             st.write(f"  {col}: {df.iloc[1][col]}")
+        #     if len(df) >= 3:
+        #         st.write(f"- Línea 3 (datos rivales):")
+        #         for col in df.columns[:15]:  # Mostrar primeras 15 columnas
+        #             st.write(f"  {col}: {df.iloc[2][col]}")
+        #     
+        #     # Buscar columnas que contienen palabras clave para métricas ofensivas
+        #     st.write("**Columnas relacionadas con métricas ofensivas:**")
+        #     offensive_keywords = ['counterattack', 'cross', 'passes', 'deep', 'touch', 'penalty', 'area', 'box']
+        #     for col in df.columns:
+        #         for keyword in offensive_keywords:
+        #             if keyword.lower() in col.lower():
+        #                 st.write(f"  - {col}: {df.iloc[1][col] if len(df) >= 2 else 'N/A'}")
+        #                 break
         
         # Usar línea 2 (índice 1) para promedios del equipo
         team_stats = df.iloc[1] if len(df) >= 2 else df.iloc[0]
@@ -454,30 +454,39 @@ def extract_set_pieces_metrics(team_data):
         except:
             return default_value
     
-    # Métricas propias de balón parado usando safe_extract_metric
-    set_pieces = safe_extract_metric('Free kicks', 8)
+    # Métricas propias de balón parado usando datos reales de Wyscout
     
-    # Remates a BP % (aproximación usando free kicks como base)
-    shots_from_set_pieces_pct = 37.5  # Porcentaje típico
+    # 1. Set pieces - usar "Set pieces / with shots" (total de jugadas de balón parado)
+    set_pieces = safe_extract_metric('Set pieces / with shots', 22)
     
-    corners = safe_extract_metric('Corners', 6)
+    # 2. Set pieces with shot - usar "Free kicks / with shots" (tiros libres con remate)
+    set_pieces_with_shot = safe_extract_metric('Free kicks / with shots', 1.2)
     
-    # % remates en corners (aproximación)
-    corner_shots_pct = 33.3  # Porcentaje típico
+    # 3. Corners - usar "Corners / with shots" (total de córners)
+    corners = safe_extract_metric('Corners / with shots', 4.3)
     
-    # Métricas rivales de balón parado (estimaciones basadas en datos)
-    rival_set_pieces = safe_extract_metric('Free kicks', 8)  # Mismo valor por ahora
-    rival_shots_from_set_pieces_pct = 35  # Porcentaje típico
-    rival_corners = safe_extract_metric('Corners', 6)  # Mismo valor por ahora
-    rival_corner_shots_pct = 30  # Porcentaje típico
+    # 4. Corners with shot - calcular % basado en córners (aproximación)
+    corner_shots_pct = (corners / set_pieces * 100) if set_pieces > 0 else 20
+    
+    # 5. Set pieces rival - usar mismos datos como base (se puede mejorar con datos rivales)
+    rival_set_pieces = safe_extract_metric('Set pieces / with shots', 22)
+    
+    # 6. Set pieces with shot rival - estimación basada en datos propios
+    rival_set_pieces_with_shot = safe_extract_metric('Free kicks / with shots', 1.2) * 0.9  # Ligeramente menor
+    
+    # 7. Corners rival - usar mismos datos como base
+    rival_corners = safe_extract_metric('Corners / with shots', 4.3)
+    
+    # 8. Corners with shot rival - estimación
+    rival_corner_shots_pct = corner_shots_pct * 0.85  # Ligeramente menor
     
     return {
         "Set pieces": set_pieces,
-        "Set pieces with shot": shots_from_set_pieces_pct,
+        "Set pieces with shot": set_pieces_with_shot,
         "Corners": corners,
         "Corners with shot": corner_shots_pct,
         "Set pieces rival": rival_set_pieces,
-        "Set pieces with shot rival": rival_shots_from_set_pieces_pct,
+        "Set pieces with shot rival": rival_set_pieces_with_shot,
         "Corners rival": rival_corners,
         "Corners with shot rival": rival_corner_shots_pct
     }
@@ -555,10 +564,28 @@ def create_comparison_table(team_name, all_teams_data, metrics_extractor, table_
     
     return table_html
 
-# Selección de equipo
-st.markdown("---")
-st.markdown("### Seleccionar Equipo para Análisis")
-selected_team = st.selectbox("Equipo:", laliga_teams, index=2)  # Barcelona por defecto
+# Selección de equipo con diseño mejorado
+st.markdown("""
+<div style="
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    border-radius: 15px;
+    margin: 20px 0;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+">
+    <h3 style="color: white; margin: 0; font-weight: bold; font-size: 1.3rem;">
+        🏟️ Seleccionar Equipo para Análisis Comparativo
+    </h3>
+</div>
+""", unsafe_allow_html=True)
+
+selected_team = st.selectbox(
+    "Equipo:",
+    laliga_teams,
+    index=2,  # Barcelona por defecto
+    help="Selecciona un equipo de La Liga para ver su análisis comparativo"
+)
 
 # Cargar datos de todos los equipos
 all_teams_data = load_all_teams_data()
@@ -571,9 +598,25 @@ if selected_team not in all_teams_data:
     st.error(f"❌ No se pudieron cargar los datos de {selected_team}")
     st.stop()
 
-# Mostrar información del equipo seleccionado
-st.markdown("---")
-st.markdown(f"## Análisis Comparativo: **{selected_team}**")
+# Mostrar información del equipo seleccionado con diseño mejorado
+st.markdown(f"""
+<div style="
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    padding: 25px;
+    border-radius: 15px;
+    margin: 30px 0;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    border: 3px solid rgba(255, 255, 255, 0.2);
+">
+    <h1 style="color: white; margin: 0; font-weight: bold; font-size: 2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+        ⚽ Análisis Comparativo: {selected_team}
+    </h1>
+    <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 1.1rem;">
+        📊 Datos comparativos vs. los 20 equipos de La Liga Española
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
 # Crear y mostrar tabla de construcción
 construction_table = create_comparison_table(
@@ -606,37 +649,37 @@ def display_table_with_streamlit(team_name, all_teams_data, metrics_extractor, t
             'values': values
         }
     
-    # Debug: Mostrar columnas disponibles y estadísticas
-    if team_name == selected_team:
-        with st.expander("🔍 DEBUG - Información del archivo y estadísticas"):
-            team_data = all_teams_data[team_name]
-            
-            st.write("**Información del archivo Excel:**")
-            st.write(f"- Tipo de datos: {type(team_data)}")
-            st.write(f"- Forma: {team_data.shape if hasattr(team_data, 'shape') else 'No shape'}")
-            
-            st.write("**Primeras 20 columnas/índices:**")
-            indices = list(team_data.index)
-            st.write(indices[:20])
-            
-            st.write("**Buscar columnas específicas:**")
-            search_terms = ['Counterattacks', 'Crosses', 'Passes to final third', 'Deep completed passes', 'Touches in penalty area', 'Penalty area entries']
-            for term in search_terms:
-                matches = [col for col in indices if term.lower() in str(col).lower()]
-                st.write(f"- {term}: {matches if matches else 'No encontrado'}")
-            
-            st.write("**Valores de métricas extraídas:**")
-            extracted_metrics = metrics_extractor(team_data)
-            for key, value in extracted_metrics.items():
-                st.write(f"- {key}: {value}")
-            
-            st.write("**Estadísticas de la liga por métrica:**")
-            for metric in selected_metrics.keys():
-                values = [teams_metrics[team][metric] for team in teams_metrics.keys()]
-                st.write(f"**{metric}**: Min={min(values):.2f}, Max={max(values):.2f}, Avg={sum(values)/len(values):.2f}")
-                st.write(f"  - Valores únicos: {len(set(values))} de {len(values)} equipos")
-                if len(set(values)) <= 3:
-                    st.write(f"  - Valores encontrados: {sorted(set(values))}")
+    # Debug: Comentado para que no se muestre al usuario final
+    # if team_name == selected_team:
+    #     with st.expander("🔍 DEBUG - Información del archivo y estadísticas"):
+    #         team_data = all_teams_data[team_name]
+    #         
+    #         st.write("**Información del archivo Excel:**")
+    #         st.write(f"- Tipo de datos: {type(team_data)}")
+    #         st.write(f"- Forma: {team_data.shape if hasattr(team_data, 'shape') else 'No shape'}")
+    #         
+    #         st.write("**Primeras 20 columnas/índices:**")
+    #         indices = list(team_data.index)
+    #         st.write(indices[:20])
+    #         
+    #         st.write("**Buscar columnas específicas:**")
+    #         search_terms = ['Counterattacks', 'Crosses', 'Passes to final third', 'Deep completed passes', 'Touches in penalty area', 'Penalty area entries']
+    #         for term in search_terms:
+    #             matches = [col for col in indices if term.lower() in str(col).lower()]
+    #             st.write(f"- {term}: {matches if matches else 'No encontrado'}")
+    #         
+    #         st.write("**Valores de métricas extraídas:**")
+    #         extracted_metrics = metrics_extractor(team_data)
+    #         for key, value in extracted_metrics.items():
+    #             st.write(f"- {key}: {value}")
+    #         
+    #         st.write("**Estadísticas de la liga por métrica:**")
+    #         for metric in selected_metrics.keys():
+    #             values = [teams_metrics[team][metric] for team in teams_metrics.keys()]
+    #             st.write(f"**{metric}**: Min={min(values):.2f}, Max={max(values):.2f}, Avg={sum(values)/len(values):.2f}")
+    #             st.write(f"  - Valores únicos: {len(set(values))} de {len(values)} equipos")
+    #             if len(set(values)) <= 3:
+    #                 st.write(f"  - Valores encontrados: {sorted(set(values))}")
     
     # No poner título aquí - se pondrá fuera de la función
     
@@ -667,23 +710,65 @@ def display_table_with_streamlit(team_name, all_teams_data, metrics_extractor, t
     # Crear DataFrame
     df = pd.DataFrame(table_data)
     
-    # Mostrar con colores personalizados
+    # Mostrar con diseño mejorado y colores personalizados
     st.dataframe(
         df,
         use_container_width=True,
         hide_index=True,
+        height=400,  # Altura fija para consistencia
         column_config={
-            "KPI": st.column_config.TextColumn("📊 KPI", width="large"),
-            "Ranking": st.column_config.TextColumn("🏆 Ranking", width="small"),
-            "Valor": st.column_config.TextColumn("📈 Valor", width="medium"),
-            "Progreso (%)": st.column_config.ProgressColumn("📊 Progreso", min_value=0, max_value=100),
-            "Min / Max": st.column_config.TextColumn("📏 Min/Max", width="medium"),
-            "Promedio Liga": st.column_config.TextColumn("⚖️ Promedio", width="medium")
+            "KPI": st.column_config.TextColumn(
+                "📊 KPI", 
+                width="large",
+                help="Indicador clave de rendimiento"
+            ),
+            "Ranking": st.column_config.TextColumn(
+                "🏆 Ranking", 
+                width="small",
+                help="Posición en La Liga (1-20)"
+            ),
+            "Valor": st.column_config.TextColumn(
+                "📈 Valor", 
+                width="medium",
+                help="Valor del equipo seleccionado"
+            ),
+            "Progreso (%)": st.column_config.ProgressColumn(
+                "📊 Progreso", 
+                min_value=0, 
+                max_value=100,
+                help="Posición relativa entre min y max de la liga"
+            ),
+            "Min / Max": st.column_config.TextColumn(
+                "📏 Min/Max", 
+                width="medium",
+                help="Valores mínimo y máximo de la liga"
+            ),
+            "Promedio Liga": st.column_config.TextColumn(
+                "⚖️ Promedio", 
+                width="medium",
+                help="Promedio de todos los equipos de La Liga"
+            )
         }
     )
 
+# Espaciado y diseño mejorado
+st.markdown("<br>", unsafe_allow_html=True)
+
 # TÍTULO 1: FASE DE CONSTRUCCIÓN
-st.info("🏗️ FASE DE CONSTRUCCIÓN")
+st.markdown("""
+<div style="
+    background: linear-gradient(90deg, #1f4e79, #2980b9);
+    padding: 15px 25px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+">
+    <h2 style="color: white; margin: 0; font-weight: bold; font-size: 1.5rem;">
+        🏗️ FASE DE CONSTRUCCIÓN
+    </h2>
+</div>
+""", unsafe_allow_html=True)
 
 # Mostrar tabla simplificada
 display_table_with_streamlit(
@@ -693,11 +778,24 @@ display_table_with_streamlit(
     "FASE DE CONSTRUCCIÓN"
 )
 
-# Añadir separador
-st.markdown("---")
+# Espaciado entre secciones
+st.markdown("<br><br>", unsafe_allow_html=True)
 
 # TÍTULO 2: FASE OFENSIVA
-st.error("⚔️ FASE OFENSIVA")
+st.markdown("""
+<div style="
+    background: linear-gradient(90deg, #c0392b, #e74c3c);
+    padding: 15px 25px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+">
+    <h2 style="color: white; margin: 0; font-weight: bold; font-size: 1.5rem;">
+        ⚔️ FASE OFENSIVA
+    </h2>
+</div>
+""", unsafe_allow_html=True)
 
 # Tabla de métricas ofensivas
 display_table_with_streamlit(
@@ -707,11 +805,24 @@ display_table_with_streamlit(
     "FASE OFENSIVA"
 )
 
-# Añadir separador
-st.markdown("---")
+# Espaciado entre secciones
+st.markdown("<br><br>", unsafe_allow_html=True)
 
 # TÍTULO 3: FASE DEFENSIVA
-st.success("🛡️ FASE DEFENSIVA")
+st.markdown("""
+<div style="
+    background: linear-gradient(90deg, #27ae60, #2ecc71);
+    padding: 15px 25px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+">
+    <h2 style="color: white; margin: 0; font-weight: bold; font-size: 1.5rem;">
+        🛡️ FASE DEFENSIVA
+    </h2>
+</div>
+""", unsafe_allow_html=True)
 
 # Tabla de métricas defensivas
 display_table_with_streamlit(
@@ -721,11 +832,24 @@ display_table_with_streamlit(
     "FASE DEFENSIVA"
 )
 
-# Añadir separador
-st.markdown("---")
+# Espaciado entre secciones
+st.markdown("<br><br>", unsafe_allow_html=True)
 
 # TÍTULO 4: BALÓN PARADO
-st.warning("⚽ BALÓN PARADO")
+st.markdown("""
+<div style="
+    background: linear-gradient(90deg, #f39c12, #e67e22);
+    padding: 15px 25px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+">
+    <h2 style="color: white; margin: 0; font-weight: bold; font-size: 1.5rem;">
+        ⚽ BALÓN PARADO
+    </h2>
+</div>
+""", unsafe_allow_html=True)
 
 # Tabla de métricas de balón parado
 display_table_with_streamlit(
@@ -735,9 +859,8 @@ display_table_with_streamlit(
     "BALÓN PARADO"
 )
 
-# Footer informativo
-st.markdown("---")
-st.markdown("### Información de las Tablas")
+# Footer informativo con diseño mejorado
+st.markdown("<br><br>", unsafe_allow_html=True)
 
-col1, col2 = st.columns(2)
+
 
