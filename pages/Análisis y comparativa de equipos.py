@@ -12,8 +12,8 @@ import sys
 
 # Configuración de la página
 st.set_page_config(
-    page_title="Análisis Propio - FC Barcelona",
-    page_icon="📊",
+    page_title="Análisis y comparativa de equipos",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -26,7 +26,7 @@ from utils.navigation import show_home_button, show_page_header
 show_home_button()
 
 # Mostrar header de la página
-show_page_header("Análisis Propio", "Herramientas avanzadas de análisis para el FC Barcelona", "📊")
+show_page_header("Análisis y comparativa de equipos")
 
 # --- BLOQUE DE CSS GLOBAL FCB.LAB ---
 st.markdown('''
@@ -645,14 +645,8 @@ st.markdown("""
 
 # Título principal con tema del Barcelona
 st.markdown("""
-    <div style="
-        text-align: center;
-        padding: 2rem;
-        background: linear-gradient(135deg, #004D98, #a5001c);
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        box-shadow: 0 8px 25px rgba(0, 77, 152, 0.3);
-        
+    <div class="main-header">
+    </div>
 """, unsafe_allow_html=True)
 
 # Selector de equipo a resaltar

@@ -167,7 +167,7 @@ def show_home_button():
     ''', unsafe_allow_html=True)
     """
 
-def show_page_header(title, subtitle=None, icon="⚽"):
+def show_page_header(title, subtitle=None, icon=None):
     """Muestra un header consistente para todas las páginas"""
     # Crear un ID único para evitar conflictos de cache
     header_id = f"fcb_header_{random.randint(1000, 9999)}"
@@ -204,7 +204,7 @@ def show_page_header(title, subtitle=None, icon="⚽"):
         </style>
         
         <div id="{header_id}">
-            <h1>{icon} {title}</h1>
+            <h1>{title}</h1>
             {f'<p>{subtitle}</p>' if subtitle else ''}
         </div>
     """, unsafe_allow_html=True)

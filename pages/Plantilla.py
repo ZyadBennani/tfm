@@ -27,7 +27,7 @@ st.set_page_config(page_title="Campograma FC Barcelona", page_icon="🔵🔴", l
 show_home_button()
 
 # Mostrar header de la página
-show_page_header("Campograma FC Barcelona", "Visualización interactiva de la plantilla 2024-25", "🔵🔴")
+show_page_header("Plantilla FC Barcelona 2024-2025")
 
 # --- BLOQUE DE CSS GLOBAL FCB.LAB ---
 st.markdown('''
@@ -212,8 +212,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Título
-st.title("Plantilla 2024-25")
 
 # Definición completa de la plantilla del Barça organizada por posiciones
 barca_full_squad = {
@@ -336,12 +334,16 @@ def draw_pitch_barca():
     # Función para cargar y procesar imagen circular para el campo
     def get_player_image_for_field(player_name):
         try:
-            filename = player_name.lower().replace(" ", "_") + ".png"
-            image_path = os.path.join("static", "players", "Barca", filename)
-            
+            if player_name == "Robert Lewandowski":
+                image_path = os.path.join("static", "wetransfer_players_2025-06-18_1752", "Players", "Robert Lewandowski.png")
+                if not os.path.exists(image_path):
+                    filename = player_name.lower().replace(" ", "_") + ".png"
+                    image_path = os.path.join("static", "players", "Barca", filename)
+            else:
+                filename = player_name.lower().replace(" ", "_") + ".png"
+                image_path = os.path.join("static", "players", "Barca", filename)
             if not os.path.exists(image_path):
                 return None
-                
             img = Image.open(image_path)
             if img.mode != 'RGB':
                 img = img.convert('RGB')
@@ -471,8 +473,6 @@ def get_circular_player_image(player_name):
     except Exception as e:
         return None
 
-# Estadísticas del equipo - encima del campograma
-st.markdown("---")
 
 # Datos calculados de la plantilla actual
 player_ages = {
@@ -614,12 +614,16 @@ def create_player_card(player, position_emoji, position_name):
     # Obtener foto del jugador usando la misma función del campograma
     def get_player_photo_base64_barca(player_name):
         try:
-            filename = player_name.lower().replace(" ", "_") + ".png"
-            image_path = os.path.join("static", "players", "Barca", filename)
-            
+            if player_name == "Robert Lewandowski":
+                image_path = os.path.join("static", "wetransfer_players_2025-06-18_1752", "Players", "Robert Lewandowski.png")
+                if not os.path.exists(image_path):
+                    filename = player_name.lower().replace(" ", "_") + ".png"
+                    image_path = os.path.join("static", "players", "Barca", filename)
+            else:
+                filename = player_name.lower().replace(" ", "_") + ".png"
+                image_path = os.path.join("static", "players", "Barca", filename)
             if not os.path.exists(image_path):
                 return ""
-                
             img = Image.open(image_path)
             if img.mode != 'RGB':
                 img = img.convert('RGB')
@@ -778,13 +782,13 @@ with col_campo:
 
 with col_legend:
     st.markdown("### **Leyenda:**")
-    st.markdown("#### 🔴 **ST** (2)")
-    st.markdown("#### 🟣 **LW-RW** (4)")
-    st.markdown("#### 🟠 **CAM** (3)")
-    st.markdown("#### ⚪ **CM-CDM** (4)")
-    st.markdown("#### 🟢 **LB-RB** (4)")
-    st.markdown("#### 🔵 **CB** (5)")
     st.markdown("#### 🟡 **GK** (3)")
+    st.markdown("#### 🔵 **CB** (5)")
+    st.markdown("#### 🟢 **LB-RB** (4)")
+    st.markdown("#### ⚪ **CM-CDM** (4)")
+    st.markdown("#### 🟠 **CAM** (3)")
+    st.markdown("#### 🟣 **LW-RW** (4)")
+    st.markdown("#### 🔴 **ST** (2)")
 
 # Mostrar plantilla por posiciones
 st.markdown("### Plantilla por Posiciones")

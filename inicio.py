@@ -12,7 +12,7 @@ import glob
 # Configuración de la página
 st.set_page_config(
     page_title="ScoutVision",
-    page_icon="⚽",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -586,25 +586,19 @@ def mostrar_equipos(liga):
     # Obtener lista de equipos según la liga
     if liga == "La Liga":
         team_names = [name for name, _ in LALIGA_TEAMS]
-        liga_key = "laliga"
     elif liga == "Premier League":
         team_names = [name for name, _ in PREMIER_TEAMS]
-        liga_key = "premier"
     elif liga == "Serie A":
         team_names = [name for name, _ in SERIE_A_TEAMS]
-        liga_key = "serie_a"
     elif liga == "Bundesliga":
         team_names = [name for name, _ in BUNDESLIGA_TEAMS]
-        liga_key = "bundesliga"
     elif liga == "Ligue 1":
         team_names = [name for name, _ in LIGUE1_TEAMS]
-        liga_key = "ligue1"
     else:
         team_names = [name for name, _ in LALIGA_TEAMS]
-        liga_key = "laliga"
     
-    # Selector de equipo global
-    selected_team = st.selectbox("🎯 Equipo a resaltar en análisis", team_names, index=0, key=f"{liga_key}_team_selector")
+    # Selector de equipo global (idéntico a Analisis Propio)
+    selected_team = st.selectbox("🎯 Equipo a resaltar en análisis", team_names, index=0, key="team_selector")
     
     # Mostrar el ranking
     mostrar_rankings_liga(selected_team, liga)
@@ -628,7 +622,6 @@ def mostrar_grid_equipos(liga):
             if i + j < len(equipos):
                 equipo = equipos[i + j]
                 with col:
-                    st.markdown('<div class="team-card">', unsafe_allow_html=True)
                     logo_path = get_team_logo_path(equipo)
                     if os.path.exists(logo_path):
                         st.markdown(f'<img src="data:image/png;base64,{get_image_base64(logo_path)}" class="team-logo" alt="{equipo}"/>', unsafe_allow_html=True)
@@ -637,7 +630,6 @@ def mostrar_grid_equipos(liga):
                             <div class="placeholder-image">Logo {equipo}</div>
                         """, unsafe_allow_html=True)
                     st.markdown(f'<div class="team-name">{equipo}</div>', unsafe_allow_html=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
                     if st.button(f"Ver {equipo}", key=f"btn_{equipo}"):
                         st.session_state.equipo_seleccionado = equipo
                         st.rerun()
@@ -666,6 +658,10 @@ st.markdown("""
         --transition-speed: 0.3s;
         --barca-primary: #004D98;
         --barca-secondary: #a5001c;
+        --header-gradient: linear-gradient(90deg, #004D98 0%, #a5001c 100%);
+        --header-shadow: 0 8px 32px 0 rgba(0,77,152,0.18), 0 1.5px 8px 0 rgba(165,0,28,0.10);
+        --header-radius: 18px;
+        --header-font: 'Playfair Display', serif;
         /* Fuentes clásicas y elegantes */
         --font-title: 'Playfair Display', serif;
         --font-subtitle: 'Montserrat', sans-serif;
@@ -678,9 +674,13 @@ st.markdown("""
     }
 
     .main-content {
-        margin-top: 10px;
-        padding: 15px;
-        animation: fadeIn 0.5s ease;
+        margin-top: 0px;
+        margin-bottom: 30px;
+        padding: 0 32px 24px 32px;
+        border-radius: 24px;
+        min-height: 0;
+        background: none;
+        box-shadow: none;
     }
 
     @keyframes fadeIn {
@@ -750,7 +750,6 @@ st.markdown("""
         background: rgba(255,255,255,0.85) !important;
         border: 2px solid #004D98 !important;
         border-radius: 12px !important;
-        color: #2c3e50 !important;
         box-shadow: 0 2px 8px rgba(0,77,152,0.08);
         font-family: var(--font-body) !important;
         font-size: 1.05em !important;
@@ -862,12 +861,12 @@ st.markdown("""
 
     .centered-header {
         text-align: center;
-        padding: 30px;
+        padding: 40px 24px 32px 24px;
         background: linear-gradient(135deg, var(--barca-primary), var(--barca-secondary));
         color: var(--text-light);
-        border-radius: 15px;
-        margin-bottom: 30px;
-        box-shadow: var(--card-shadow);
+        border-radius: 22px;
+        margin-bottom: 40px;
+        box-shadow: 0 10px 32px 0 rgba(0,77,152,0.18), 0 2px 12px 0 rgba(165,0,28,0.10);
     }
 
     .centered-header h1 {
@@ -969,12 +968,155 @@ st.markdown("""
     .stSelectbox, .stSlider, .stNumberInput {
         font-family: var(--font-body) !important;
     }
+
+    /* ====== LAYOUT Y ESPACIADO PROFESIONAL FCB.LAB ====== */
+    
+    .main-content {
+        margin-top: 30px;
+        margin-bottom: 30px;
+        padding: 32px 32px 24px 32px;
+        border-radius: 24px;
+        min-height: 80vh;
+        background: none;
+    }
+    .centered-header {
+        margin-bottom: 40px;
+        padding: 40px 24px 32px 24px;
+        border-radius: 22px;
+        box-shadow: 0 10px 32px 0 rgba(0,77,152,0.18), 0 2px 12px 0 rgba(165,0,28,0.10);
+    }
+    .liga-card, .team-card {
+        margin: 18px 10px 28px 10px;
+        padding: 32px 18px 24px 18px;
+        border-radius: 20px;
+        min-height: 220px;
+        box-shadow: 0 8px 32px 0 rgba(0,77,152,0.13), 0 1.5px 8px 0 rgba(165,0,28,0.08);
+    }
+    .liga-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .team-card {
+        min-width: 180px;
+        max-width: 220px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+    }
+    .table-container {
+        margin: 32px 0 40px 0;
+        padding: 32px 18px 24px 18px;
+        border-radius: 18px;
+        box-shadow: 0 6px 24px 0 rgba(0,77,152,0.10);
+    }
+    .section-title {
+        margin: 36px 0 18px 0;
+        padding-bottom: 8px;
+        font-size: 2em;
+        font-weight: 600;
+        border-bottom: 1.5px solid #eaeaea;
+        letter-spacing: 1px;
+    }
+    .stButton button {
+        margin: 8px 0 16px 0;
+        padding: 14px 32px;
+        font-size: 1.12em;
+        border-radius: 32px;
+    }
+    .stButton {
+        margin-bottom: 12px;
+    }
+    .stSelectbox, .stTextInput, .stNumberInput, .stSlider {
+        margin-bottom: 18px !important;
+    }
+    .stSelectbox > div > div, .stTextInput > div > input, .stNumberInput > div > input, .stSlider > div {
+        padding: 10px 16px !important;
+        min-height: 44px;
+    }
+    /* Separadores visuales */
+    hr, .fcb-divider {
+        border: none;
+        border-top: 1.5px solid #eaeaea;
+        margin: 36px 0 36px 0;
+        height: 0;
+        background: none;
+    }
+    .fcb-divider-strong {
+        border: none;
+        border-top: 2.5px solid #004D98;
+        margin: 48px 0 48px 0;
+        height: 0;
+        background: none;
+    }
+    /* Grid system para secciones principales */
+    .fcb-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 32px 24px;
+        margin: 32px 0 32px 0;
+    }
+    .fcb-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px 24px;
+        margin: 32px 0 32px 0;
+    }
+    .fcb-grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 32px 24px;
+        margin: 32px 0 32px 0;
+    }
+    /* Ajuste de white space en tablas y listas */
+    .comparison-table, .table-header, .table-row, .table-cell {
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+    .table-header {
+        margin-bottom: 8px;
+    }
+    .table-row {
+        margin-bottom: 4px;
+    }
+    /* Fix: Forzar color negro visible en el texto seleccionado de los selectbox y fondo blanco */
+    .stSelectbox div[data-baseweb="select"] span,
+    .stSelectbox div[data-baseweb="select"] input,
+    .stSelectbox div[data-baseweb="select"] {
+        color: #000 !important;
+        background: #fff !important;
+        caret-color: #000 !important;
+    }
+    /* Fin layout y espaciado profesional */
+
+    /* BLOQUE DE CSS GLOBAL PARA HEADERS Y TITULOS UNIFORMES */
+    .main-header, .section-title, .table-header {
+        background: var(--header-gradient);
+        color: #fff !important;
+        border-radius: var(--header-radius);
+        box-shadow: var(--header-shadow);
+        font-family: var(--header-font);
+        font-weight: 700;
+        padding: 1.2rem 2rem;
+        margin-bottom: 1.5rem;
+        letter-spacing: 1px;
+        text-shadow: 1px 2px 8px rgba(0,0,0,0.10);
+        border: none;
+        font-size: 2.2em;
+        display: flex;
+        align-items: center;
+        gap: 0.7em;
+        justify-content: center;
+    }
+    .main-header, .main-header span {
+        color: #fff !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # Contenedor principal
-st.markdown('<div class="main-content">', unsafe_allow_html=True)
-
 # Inicializar variables de estado
 if 'pagina_actual' not in st.session_state:
     st.session_state.pagina_actual = 'inicio'
@@ -985,57 +1127,9 @@ if 'equipo_seleccionado' not in st.session_state:
 
 # Sección principal con título FCBLAB
 st.markdown("""
-    <div style="
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 0 auto;
-        margin-bottom: 15px;
-        max-width: 600px;
-    ">
-        <div style="
-            width: 100%;
-            margin: 0;
-            background: linear-gradient(135deg, #004D98, #a5001c);
-            border-radius: 20px;
-            box-shadow: 0 8px 25px rgba(0, 77, 152, 0.3);
-            padding: 20px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        ">
-            <div style="
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-                animation: pulse 4s ease-in-out infinite;
-            "></div>
-                         <h1 style="
-                 font-size: 2.0em;
-                 font-weight: 700;
-                 color: white;
-                 margin: 0;
-                 letter-spacing: 3px;
-                 text-shadow: 2px 4px 8px rgba(0,0,0,0.3);
-                 font-family: var(--font-title);
-                 position: relative;
-                 z-index: 2;
-             ">FCB.LAB</h1>
-             <p style="
-                 font-size: 1.0em;
-                 color: rgba(255,255,255,0.9);
-                 margin: 10px 0 15px 0;
-                 font-weight: 400;
-                 letter-spacing: 1px;
-                 position: relative;
-                 z-index: 2;
-                 font-family: var(--font-subtitle);
-                          ">Laboratorio de Análisis del FC Barcelona</p>
-         </div>
-     </div>
+    <div class="main-header">
+        <span style='font-size:2.0em; width: 100%; text-align: center; display: block;'>FCB.LAB</span>
+    </div>
 """, unsafe_allow_html=True)
 
 # Logo del Barça centrado debajo del título
@@ -1102,14 +1196,14 @@ st.markdown("""
 st.markdown('<div style="margin-top: 10px; margin-bottom: 10px;">', unsafe_allow_html=True)
 col1, col2, col3, col4, col5 = st.columns([0.5,2,2,2,0.5])
 with col2:
-    if st.button("Análisis Propio", key="barca_analysis", use_container_width=True):
-        st.switch_page("pages/Analisis Propio.py")
+    if st.button("Análisis y comparativa de equipos", key="barca_analysis", use_container_width=True):
+        st.switch_page("pages/Análisis y comparativa de equipos.py")
 with col3:
     if st.button("Barça VS Bayern", key="barca_bayern", use_container_width=True):
         st.switch_page("pages/Barça VS Bayern.py")
 with col4:
-    if st.button("Tablas Comparativas", key="tablas_comparativas", use_container_width=True):
-        st.switch_page("pages/Tablas Comparativas Liga.py")
+    if st.button("Análisis Propio", key="tablas_comparativas", use_container_width=True):
+        st.switch_page("pages/Análisis Propio.py")
 st.markdown('</div>', unsafe_allow_html=True)
 
 # Separador visual
@@ -1166,10 +1260,6 @@ if st.session_state.pagina_actual == 'inicio':
     # Si hay una liga seleccionada, mostrar sus equipos
     if st.session_state.liga_seleccionada:
         mostrar_equipos(st.session_state.liga_seleccionada)
-
-   
-# Cerrar el contenedor principal
-st.markdown('</div>', unsafe_allow_html=True)
 
 
 

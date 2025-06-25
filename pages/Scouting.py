@@ -339,22 +339,7 @@ st.markdown("""
 if 'shortlist' not in st.session_state:
     st.session_state.shortlist = []
 
-shortlist_count = len(st.session_state.shortlist)
 
-# Título principal con contador de shortlist integrado
-st.markdown(f"""
-    <div style='background-color: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;'>
-        <div style='display: flex; align-items: center; gap: 0.5rem;'>
-            <span style='font-size: 2.2rem;'>⚽</span>
-            <span style='font-size: 2rem; font-weight: 600; color: #1a1a1a;'>Player Scouting</span>
-            <span style='font-size: 1.2rem; background: linear-gradient(135deg, #004D98 0%, #A50044 100%); color: white; padding: 0.2rem 0.5rem; border-radius: 15px; margin-left: 1rem;'>⚡ Rating System</span>
-        </div>
-        <div style='display: flex; align-items: center; gap: 0.5rem;'>
-            <span style='font-size: 1.2rem;'>📋</span> 
-            <span style='background-color: #A50044; color: white; padding: 0.4rem 0.8rem; border-radius: 50%; font-size: 1rem; font-weight: 600; min-width: 2rem; text-align: center;'>{shortlist_count}</span>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
 
 # Diccionario de perfiles por posición - ACTUALIZADO CON TODOS LOS PERFILES
 position_profiles = {
@@ -1269,7 +1254,7 @@ with tab1:
                 
                 # Columna 5: Pie dominante
                 with cols[4]:
-                    foot_emoji = "" if player.get('Foot') == 'Right' else "" if player.get('Foot') == 'Left' else "⚽"
+                    foot_emoji = "" if player.get('Foot') == 'Right' else "" if player.get('Foot') == 'Left' else ""
                     st.markdown(f"{foot_emoji} {player.get('Foot', 'N/A')}")
                 
                 # Columna 6: Edad
@@ -1528,105 +1513,5 @@ st.download_button(
 ) 
 
 # ⭐ PANEL DE INFORMACIÓN DEL CACHE (en sidebar)
-with st.sidebar:
-    st.markdown("---")
-    with st.expander("🚀 Estado del Cache", expanded=False):
-        data_manager = get_data_manager()
-        cache_info = data_manager.loader.get_cache_info()
-        
-        st.markdown(f"**Tamaño Total:** {cache_info.get('total_size_mb', 0)} MB")
-        
-        for cache_type, info in cache_info.items():
-            if isinstance(info, dict) and 'exists' in info:
-                status_icon = "✅" if info['exists'] else "⏳"
-                st.markdown(f"**{cache_type.title()}:** {status_icon}")
-                if info['exists']:
-                    st.markdown(f"  - Tamaño: {info.get('size_mb', 0)} MB")
-                    st.markdown(f"  - Modificado: {info.get('modified', 'N/A')}")
-        
-        st.markdown("---")
-        st.markdown("**⚠️ Gestión del Cache:**")
-        
-        if st.button("🗑️ Limpiar Cache", help="Solo usar si hay problemas"):
-            data_manager.loader.clear_cache('all')
-            st.success("Cache limpiado - refresca la página manualmente")
-        
-        if st.button("🔄 Regenerar Cache", help="Fuerza la regeneración completa"):
-            data_manager.loader.force_rebuild_cache()
-            st.success("Cache regenerado - refresca la página manualmente")
-        
-        if st.button("⚡ Limpiar Cache Rating", help="Recalcula todos los ratings con el nuevo sistema"):
-            clear_rating_cache()
-            st.success("Sistema de rating actualizado - los nuevos cálculos se aplicarán automáticamente")
-        
-        st.markdown("---")
-        st.markdown("🎯 **Sistema Gaussiano Manual:**")
-        
-        if st.button("🚀 Aplicar Reescalado Gaussiano", help="Fuerza el reescalado gaussiano a todos los jugadores para alcanzar ratings 90-99"):
-            # Aplicar reescalado gaussiano manual
-            data_manager = get_data_manager()
-            df_temp = data_manager.get_player_data(use_real_data=True)
-            
-            if not df_temp.empty:
-                try:
-                    rating_calculator = get_rating_calculator()
-                    
-                    # Aplicar reescalado gaussiano directo a los ratings existentes
-                    st.info("🔄 Aplicando transformación gaussiana...")
-                    
-                    # Usar el rating existente como base
-                    rating_col = 'Rating'
-                    if 'Display_Rating' in df_temp.columns:
-                        rating_col = 'Display_Rating'
-                    elif 'Calculated_Rating' in df_temp.columns:
-                        rating_col = 'Calculated_Rating'
-                    
-                    # Aplicar la función gauss_scale MÁS AGRESIVA
-                    df_transformed = rating_calculator.gauss_scale(
-                        df_temp,
-                        col=rating_col,
-                        pos_col='Position',
-                        by_position=False,
-                        mu=80,    # Media MUY alta (era 75, ahora 80)
-                        sigma=22  # MÁS dispersión (era 18, ahora 22)
-                    )
-                    
-                    # Actualizar el cache con los nuevos ratings
-                    if 'rating_40_99' in df_transformed.columns:
-                        # Mostrar estadísticas del resultado
-                        max_rating = df_transformed['rating_40_99'].max()
-                        min_rating = df_transformed['rating_40_99'].min()
-                        avg_rating = df_transformed['rating_40_99'].mean()
-                        over_90 = (df_transformed['rating_40_99'] > 90).sum()
-                        over_85 = (df_transformed['rating_40_99'] > 85).sum()
-                        over_80 = (df_transformed['rating_40_99'] > 80).sum()
-                        
-                        # Top 10 jugadores
-                        if 'Name' in df_transformed.columns:
-                            top_10 = df_transformed.nlargest(10, 'rating_40_99')
-                            top_names = ", ".join(top_10['Name'].head(5).tolist())
-                            
-                            st.success(f"""
-✅ **Reescalado Gaussiano Completado!**
+# (Eliminar todo el bloque 'with st.sidebar: ... with st.expander("🚀 Estado del Cache", ...): ...')
 
-📊 **Distribución Final:**
-- Rango: {min_rating}-{max_rating}
-- Media: {avg_rating:.1f}
-- >90 rating: {over_90} jugadores
-- >85 rating: {over_85} jugadores  
-- >80 rating: {over_80} jugadores
-
-🌟 **Top 5:** {top_names}
-
-💡 **Refresca la página** para ver los nuevos ratings en la tabla principal.
-                            """)
-                        else:
-                            st.success(f"✅ Transformación aplicada: {min_rating}-{max_rating} (media: {avg_rating:.1f})")
-                    else:
-                        st.error("❌ Error en la transformación gaussiana")
-                        
-                except Exception as e:
-                    st.error(f"❌ Error aplicando reescalado: {str(e)}")
-            else:
-                st.error("❌ No se pudieron cargar los datos")
-        

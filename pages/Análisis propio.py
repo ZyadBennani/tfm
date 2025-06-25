@@ -6,7 +6,12 @@ import sys
 import base64
 
 # Configuración de la página
-st.set_page_config(page_title="Tablas Comparativas Liga", page_icon="📊", layout="wide")
+st.set_page_config(
+    page_title="Análisis Propio",
+    page_icon=None,
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
 # Importar funciones de navegación
 sys.path.append('..')
@@ -14,6 +19,9 @@ from utils.navigation import show_home_button, show_page_header
 
 # Mostrar botón de volver al inicio
 show_home_button()
+
+# Mostrar header de la página
+show_page_header("Análisis propio")
 
 # CSS personalizado para tema oscuro español y tablas como la imagen
 st.markdown("""
@@ -149,24 +157,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Header principal con gradiente blaugrana
-st.markdown("""
-    <div style="
-        background: linear-gradient(135deg, #004D98, #a5001c);
-        padding: 2rem;
-        border-radius: 20px;
-        text-align: center;
-        margin-bottom: 2rem;
-        box-shadow: 0 8px 25px rgba(0, 77, 152, 0.3);
-        ">
-        <h1 class="header-title">📊 Tablas Comparativas Liga Española</h1>
-        <p style="
-            color: rgba(255,255,255,0.9);
-            font-size: 1.2rem;
-            margin: 10px 0 0 0;
-        ">Análisis comparativo de equipos de La Liga</p>
-    </div>
-""", unsafe_allow_html=True)
 
 # Lista de equipos de LaLiga
 laliga_teams = [
