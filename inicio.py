@@ -597,8 +597,32 @@ def mostrar_equipos(liga):
     else:
         team_names = [name for name, _ in LALIGA_TEAMS]
     
+    # Div para scroll robusto
+    st.markdown('<div id="scroll-analisis"></div>', unsafe_allow_html=True)
     # Selector de equipo global (idéntico a Analisis Propio)
-    selected_team = st.selectbox("🎯 Equipo a resaltar en análisis", team_names, index=0, key="team_selector")
+    if 'equipo_seleccionado' in st.session_state and st.session_state.equipo_seleccionado in team_names:
+        selected_index = team_names.index(st.session_state.equipo_seleccionado)
+    else:
+        selected_index = 0
+    selected_team = st.selectbox("🎯 Equipo a resaltar en análisis", team_names, index=selected_index, key="team_selector")
+    # Scroll automático si se viene de 'Ver equipo' (con retry)
+    if st.session_state.get('scroll_to_selector', False):
+        st.markdown("""
+            <script>
+                let retries = 0;
+                function scrollToAnalisis() {
+                    var el = document.getElementById('scroll-analisis');
+                    if (el) {
+                        el.scrollIntoView({behavior: 'smooth', block: 'center'});
+                    } else if (retries < 15) {
+                        retries++;
+                        setTimeout(scrollToAnalisis, 200);
+                    }
+                }
+                setTimeout(scrollToAnalisis, 300);
+            </script>
+        """, unsafe_allow_html=True)
+        st.session_state.scroll_to_selector = False
     
     # Mostrar el ranking
     mostrar_rankings_liga(selected_team, liga)
@@ -632,6 +656,7 @@ def mostrar_grid_equipos(liga):
                     st.markdown(f'<div class="team-name">{equipo}</div>', unsafe_allow_html=True)
                     if st.button(f"Ver {equipo}", key=f"btn_{equipo}"):
                         st.session_state.equipo_seleccionado = equipo
+                        st.session_state.scroll_to_selector = True
                         st.rerun()
 
 # Función para convertir imagen a base64
