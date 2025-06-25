@@ -264,3 +264,54 @@ def show_fcb_lab_brand():
             </div>
         </div>
     """, unsafe_allow_html=True) 
+
+def show_navbar_switch_page():
+    """Navbar superior con navegación robusta usando st.switch_page()"""
+    st.markdown("""
+        <style>
+        .navbar-switch {
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            background: linear-gradient(90deg, #004D98 80%, #a5001c 100%);
+            padding: 0.5rem 0 0.5rem 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2.5rem;
+        }
+        .navbar-switch .stButton > button {
+            color: #fff;
+            font-weight: 600;
+            font-size: 1.08em;
+            text-decoration: none;
+            padding: 0.4rem 1.2rem;
+            border-radius: 0.5rem;
+            background: transparent;
+            border: none;
+            transition: background 0.2s, color 0.2s;
+        }
+        .navbar-switch .stButton > button:hover {
+            background: #a5001c;
+            color: #fff;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    pages = [
+        ("Inicio", "Inicio.py"),
+        ("Scouting", "pages/Scouting.py"),
+        ("Plantilla", "pages/Plantilla.py"),
+        ("Peak Age Analytics", "pages/Peak Age Analytics.py"),
+        ("Modelos de Juego", "pages/Modelos de Juego.py"),
+        ("Análisis propio", "pages/Análisis propio.py"),
+        ("Comparativa equipos", "pages/Análisis y comparativa de equipos.py"),
+        ("Barça VS Bayern", "pages/Barça VS Bayern.py"),
+    ]
+    
+    cols = st.columns(len(pages), gap="small")
+    for i, (label, page_path) in enumerate(pages):
+        with cols[i]:
+            if st.button(label, key=f"navbar_{label}"):
+                st.switch_page(page_path) 

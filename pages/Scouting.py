@@ -55,7 +55,7 @@ st.set_page_config(
 # Importar funciones de navegación
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.navigation import show_home_button, show_page_header
+from utils.navigation import show_home_button, show_page_header, show_navbar_switch_page
 
 # Mostrar botón de volver al inicio
 show_home_button()
@@ -1640,4 +1640,6 @@ st.download_button(
 
 # ⭐ PANEL DE INFORMACIÓN DEL CACHE (en sidebar)
 # (Eliminar todo el bloque 'with st.sidebar: ... with st.expander("🚀 Estado del Cache", ...): ...')
+
+show_navbar_switch_page()
 

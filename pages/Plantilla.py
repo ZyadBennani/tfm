@@ -18,7 +18,7 @@ from utils.rating_calculator import RatingCalculator
 
 # Importar funciones de navegación
 sys.path.append('..')
-from utils.navigation import show_home_button, show_page_header
+from utils.navigation import show_home_button, show_page_header, show_navbar_switch_page
 
 # Configuración de la página
 st.set_page_config(page_title="Campograma FC Barcelona", page_icon="🔵🔴", layout="wide")
@@ -29,135 +29,9 @@ show_home_button()
 # Mostrar header de la página
 show_page_header("Plantilla FC Barcelona 2024-2025")
 
-# --- BLOQUE DE CSS GLOBAL FCB.LAB ---
-st.markdown('''
-    <!-- Importar fuentes Google Fonts clásicas y elegantes -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&family=Source+Sans+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-    :root {
-        --font-title: 'Playfair Display', serif;
-        --font-subtitle: 'Montserrat', sans-serif;
-        --font-body: 'Source Sans Pro', sans-serif;
-        --barca-primary: #004D98;
-        --barca-secondary: #a5001c;
-    }
-    .liga-card, .team-card, .centered-header, .main-content {
-        box-shadow: 0 8px 32px 0 rgba(0,77,152,0.18), 0 1.5px 8px 0 rgba(165,0,28,0.10);
-        backdrop-filter: blur(8px) saturate(120%);
-        background: linear-gradient(135deg, rgba(255,255,255,0.85) 60%, rgba(0,77,152,0.08) 100%);
-        border: 1.5px solid rgba(0,77,152,0.10);
-    }
-    .centered-header {
-        background: linear-gradient(135deg, #004D98 60%, #a5001c 100%);
-        color: #fff;
-    }
-    .liga-card, .team-card {
-        border-radius: 18px;
-        margin: 15px;
-        transition: box-shadow 0.3s, transform 0.3s;
-    }
-    .liga-card:hover, .team-card:hover {
-        box-shadow: 0 16px 40px 0 rgba(0,77,152,0.22), 0 2px 12px 0 rgba(165,0,28,0.13);
-        transform: translateY(-6px) scale(1.02);
-        border-color: #004D98;
-    }
-    .stButton button {
-        background: linear-gradient(135deg, #004D98 60%, #a5001c 100%);
-        color: #fff;
-        border: none;
-        border-radius: 30px;
-        padding: 12px 28px;
-        font-family: var(--font-subtitle) !important;
-        font-weight: 600;
-        font-size: 1.08em;
-        box-shadow: 0 2px 12px rgba(0,77,152,0.10);
-        transition: background 0.25s, box-shadow 0.25s, transform 0.15s;
-        outline: none;
-        cursor: pointer;
-        letter-spacing: 0.5px;
-    }
-    .stButton button:hover {
-        background: linear-gradient(135deg, #003366 60%, #a5001c 100%);
-        box-shadow: 0 6px 20px rgba(0,77,152,0.18);
-        transform: translateY(-2px) scale(1.03);
-    }
-    .stButton button:active {
-        background: linear-gradient(135deg, #002244 60%, #7a0010 100%);
-        box-shadow: 0 2px 8px rgba(0,77,152,0.10);
-        transform: scale(0.98);
-    }
-    .stButton button:disabled {
-        background: #e0e0e0;
-        color: #aaa;
-        cursor: not-allowed;
-        box-shadow: none;
-    }
-    .stSelectbox > div > div, .stTextInput > div > input, .stNumberInput > div > input, .stSlider > div {
-        background: rgba(255,255,255,0.85) !important;
-        border: 2px solid #004D98 !important;
-        border-radius: 12px !important;
-        color: #2c3e50 !important;
-        box-shadow: 0 2px 8px rgba(0,77,152,0.08);
-        font-family: var(--font-body) !important;
-        font-size: 1.05em !important;
-        transition: border 0.2s, box-shadow 0.2s;
-    }
-    .stSelectbox > div > div:focus-within, .stTextInput > div > input:focus, .stNumberInput > div > input:focus, .stSlider > div:focus-within {
-        border: 2.5px solid #a5001c !important;
-        box-shadow: 0 0 0 3px rgba(165,0,28,0.13);
-        outline: none !important;
-    }
-    .stSelectbox > div > div::placeholder, .stTextInput > div > input::placeholder, .stNumberInput > div > input::placeholder {
-        color: #888 !important;
-        opacity: 1 !important;
-        font-style: italic;
-    }
-    .stSlider > div [role=slider] {
-        background: linear-gradient(90deg, #004D98 0%, #a5001c 100%) !important;
-        border-radius: 8px !important;
-        box-shadow: 0 2px 8px rgba(0,77,152,0.10);
-    }
-    .stSlider > div [role=slider]:focus {
-        outline: 2.5px solid #a5001c !important;
-        box-shadow: 0 0 0 3px rgba(165,0,28,0.13) !important;
-    }
-    body, .main-content, .stApp {
-        font-family: var(--font-body) !important;
-    }
-    h1 {
-        font-family: var(--font-title) !important;
-        font-weight: 600 !important;
-        letter-spacing: 1px !important;
-    }
-    h2, h3 {
-        font-family: var(--font-subtitle) !important;
-        font-weight: 500 !important;
-        letter-spacing: 0.5px !important;
-    }
-    h4, h5, h6 {
-        font-family: var(--font-subtitle) !important;
-        font-weight: 400 !important;
-    }
-    p, .stMarkdown, .stText, div, span {
-        font-family: var(--font-body) !important;
-        line-height: 1.6 !important;
-    }
-    .stButton button {
-        font-family: var(--font-subtitle) !important;
-        font-weight: 500 !important;
-        letter-spacing: 0.5px !important;
-    }
-    .team-name {
-        font-family: var(--font-subtitle) !important;
-        font-weight: 500 !important;
-        letter-spacing: 0.5px !important;
-    }
-    .stSelectbox, .stSlider, .stNumberInput {
-        font-family: var(--font-body) !important;
-    }
-    </style>
-''', unsafe_allow_html=True)
-# --- FIN BLOQUE CSS GLOBAL ---
+# ... existing code ...
+
+show_navbar_switch_page()
 
 # CSS personalizado para las métricas y player cards
 st.markdown("""

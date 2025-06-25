@@ -12,7 +12,7 @@ st.set_page_config(page_title="Peak Age Analytics", page_icon="📊", layout="wi
 
 # Importar funciones de navegación
 sys.path.append('..')
-from utils.navigation import show_home_button, show_page_header
+from utils.navigation import show_home_button, show_page_header, show_navbar_switch_page
 
 # Mostrar botón de volver al inicio
 show_home_button()
@@ -525,3 +525,5 @@ st.markdown('''
     </style>
 ''', unsafe_allow_html=True)
 # --- FIN BLOQUE CSS GLOBAL ---
+
+show_navbar_switch_page()

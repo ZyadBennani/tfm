@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 import pandas as pd
-from utils.navigation import show_home_button, show_page_header
+from utils.navigation import show_home_button, show_page_header, show_navbar_switch_page
 import plotly.graph_objects as go
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
@@ -12,6 +12,8 @@ show_home_button()
 
 # Mostrar header de la página
 show_page_header("Modelos de Juego")
+
+show_navbar_switch_page()
 
 # Definición de métricas por modelo
 MODELOS_JUEGO = {

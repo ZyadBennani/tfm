@@ -15,7 +15,7 @@ st.set_page_config(
 
 # Importar funciones de navegación
 sys.path.append('..')
-from utils.navigation import show_home_button, show_page_header
+from utils.navigation import show_home_button, show_page_header, show_navbar_switch_page
 
 # Mostrar botón de volver al inicio
 show_home_button()
@@ -154,9 +154,36 @@ st.markdown("""
     .stSelectbox, .stSlider, .stNumberInput {
         font-family: var(--font-body) !important;
     }
+    .stSidebar {display: none !important;}
+    .navbar {
+        position: sticky;
+        top: 0;
+        z-index: 9999;
+        background: linear-gradient(90deg, #004D98 80%, #a5001c 100%);
+        padding: 0.5rem 0 0.5rem 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2.5rem;
+    }
+    .navbar a {
+        color: #fff;
+        font-weight: 600;
+        font-size: 1.08em;
+        text-decoration: none;
+        padding: 0.4rem 1.2rem;
+        border-radius: 0.5rem;
+        transition: background 0.2s, color 0.2s;
+    }
+    .navbar a:hover {
+        background: #a5001c;
+        color: #fff;
+    }
     </style>
 """, unsafe_allow_html=True)
 
+show_navbar_switch_page()
 
 # Lista de equipos de LaLiga
 laliga_teams = [
