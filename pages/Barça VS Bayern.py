@@ -274,29 +274,34 @@ def create_radar_chart(barca_player: str, bayern_player: str, position: str, cha
         # Completar datos faltantes con 0 para cada jugador
         barca_values = [metrics_barca.get(cat, 0) for cat in categories]
         bayern_values = [metrics_bayern.get(cat, 0) for cat in categories]
-        
+
+        # 🔒 Repetir el primer valor y categoría al final para cerrar el polígono
+        barca_values.append(barca_values[0])
+        bayern_values.append(bayern_values[0])
+        categories_closed = categories + [categories[0]]
+
         fig = go.Figure()
         
         # Datos Barcelona - usando los valores alineados
         fig.add_trace(go.Scatterpolar(
             r=barca_values,
-            theta=categories,
+            theta=categories_closed,
             fill='toself',
             name=barca_player,
             line_color='#004D98',  # Azul Barça
-            fillcolor='rgba(0, 77, 152, 0.3)',
+            fillcolor='rgba(0, 77, 152, 0.3)',  # Azul Barça con transparencia
             connectgaps=True,  # Conectar gaps entre puntos
             line=dict(color='#004D98', width=2)  # Línea más definida
         ))
-        
+
         # Datos Bayern - usando los valores alineados
         fig.add_trace(go.Scatterpolar(
             r=bayern_values,
-            theta=categories,
+            theta=categories_closed,
             fill='toself',
             name=bayern_player,
             line_color='#DC052D',  # Rojo Bayern
-            fillcolor='rgba(220, 5, 45, 0.3)',
+            fillcolor='rgba(220, 5, 45, 0.3)',  # Rojo Bayern con transparencia
             connectgaps=True,  # Conectar gaps entre puntos
             line=dict(color='#DC052D', width=2)  # Línea más definida
         ))
