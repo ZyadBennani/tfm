@@ -15,7 +15,7 @@ st.set_page_config(
 
 # Importar funciones de navegación
 sys.path.append('..')
-from utils.navigation import show_home_button, show_page_header, show_navbar_switch_page
+from utils.navigation import show_home_button, show_page_header
 
 # Mostrar botón de volver al inicio
 show_home_button()
@@ -25,6 +25,9 @@ show_page_header("Análisis propio")
 
 # CSS personalizado para tema oscuro español y tablas como la imagen
 st.markdown("""
+    <style>
+    [data-testid='stSidebarNav'] {display: none !important;}
+    </style>
     <!-- Importar fuentes Google Fonts clásicas y elegantes -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&family=Source+Sans+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
     
@@ -182,8 +185,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
-show_navbar_switch_page()
 
 # Lista de equipos de LaLiga
 laliga_teams = [

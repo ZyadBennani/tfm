@@ -49,7 +49,8 @@ except SyntaxError as e:
 st.set_page_config(
     page_title="Player Scouting",
     page_icon="🔍",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # Importar funciones de navegación
@@ -338,6 +339,7 @@ st.markdown("""
             background: transparent !important;
             box-shadow: none !important;
         }
+        [data-testid='stSidebarNav'] {display: none !important;}
     </style>
 """, unsafe_allow_html=True)
 
@@ -1640,6 +1642,4 @@ st.download_button(
 
 # ⭐ PANEL DE INFORMACIÓN DEL CACHE (en sidebar)
 # (Eliminar todo el bloque 'with st.sidebar: ... with st.expander("🚀 Estado del Cache", ...): ...')
-
-show_navbar_switch_page()
 

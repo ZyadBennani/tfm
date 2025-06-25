@@ -184,6 +184,12 @@ st.markdown('''
 ''', unsafe_allow_html=True)
 # --- FIN BLOQUE CSS GLOBAL ---
 
+st.markdown("""
+    <style>
+    [data-testid='stSidebarNav'] {display: none !important;}
+    </style>
+""", unsafe_allow_html=True)
+
 # Función para cargar imágenes
 def load_image(image_path):
     try:
@@ -689,8 +695,6 @@ st.subheader("📊 Análisis de Fases de Juego")
 
 # Mostrar las 4 gráficas
 mostrar_analisis_fases(selected_team, "La Liga Española")
-
-show_navbar_switch_page()
 
 
 

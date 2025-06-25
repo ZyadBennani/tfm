@@ -1,7 +1,13 @@
 import streamlit as st
+st.set_page_config(
+    page_title="Modelos de Juego",
+    page_icon=None,
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 import os
 import pandas as pd
-from utils.navigation import show_home_button, show_page_header, show_navbar_switch_page
+from utils.navigation import show_home_button, show_page_header
 import plotly.graph_objects as go
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
@@ -13,7 +19,11 @@ show_home_button()
 # Mostrar header de la página
 show_page_header("Modelos de Juego")
 
-show_navbar_switch_page()
+st.markdown("""
+    <style>
+    [data-testid='stSidebarNav'] {display: none !important;}
+    </style>
+""", unsafe_allow_html=True)
 
 # Definición de métricas por modelo
 MODELOS_JUEGO = {

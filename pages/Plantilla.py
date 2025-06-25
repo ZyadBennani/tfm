@@ -21,21 +21,15 @@ sys.path.append('..')
 from utils.navigation import show_home_button, show_page_header, show_navbar_switch_page
 
 # Configuración de la página
-st.set_page_config(page_title="Campograma FC Barcelona", page_icon="🔵🔴", layout="wide")
-
-# Mostrar botón de volver al inicio
-show_home_button()
-
-# Mostrar header de la página
-show_page_header("Plantilla FC Barcelona 2024-2025")
-
-# ... existing code ...
-
-show_navbar_switch_page()
-
-# CSS personalizado para las métricas y player cards
+st.set_page_config(
+    page_title="Plantilla",
+    page_icon=None,
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 st.markdown("""
     <style>
+    [data-testid='stSidebarNav'] {display: none !important;}
     /* Estilo especial para la métrica de valor de mercado */
     div[data-testid="metric-container"] {
         background-color: #f0f2f6;
@@ -85,6 +79,7 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+show_home_button()
 
 
 # Definición completa de la plantilla del Barça organizada por posiciones

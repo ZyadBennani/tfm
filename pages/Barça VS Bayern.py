@@ -686,4 +686,8 @@ for pos, barca_player, bayern_player in comparisons:
     
     st.write("---")  # Separador
 
-show_navbar_switch_page()
+st.markdown("""
+    <style>
+    [data-testid='stSidebarNav'] {display: none !important;}
+    </style>
+""", unsafe_allow_html=True)

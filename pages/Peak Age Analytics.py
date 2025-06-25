@@ -8,11 +8,16 @@ from scipy import stats
 import sys
 
 # Configuración de la página
-st.set_page_config(page_title="Peak Age Analytics", page_icon="📊", layout="wide")
+st.set_page_config(
+    page_title="Peak Age Analytics",
+    page_icon=None,
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
 # Importar funciones de navegación
 sys.path.append('..')
-from utils.navigation import show_home_button, show_page_header, show_navbar_switch_page
+from utils.navigation import show_home_button, show_page_header
 
 # Mostrar botón de volver al inicio
 show_home_button()
@@ -228,6 +233,11 @@ st.markdown('''
 </div>
 ''', unsafe_allow_html=True)
 
+st.markdown("""
+    <style>
+    [data-testid='stSidebarNav'] {display: none !important;}
+    </style>
+""", unsafe_allow_html=True)
 
 # --- REDISEÑO UNIFORME ---
 # Título y explicación arriba (ya está, solo mejoro el espaciado)
@@ -525,5 +535,3 @@ st.markdown('''
     </style>
 ''', unsafe_allow_html=True)
 # --- FIN BLOQUE CSS GLOBAL ---
-
-show_navbar_switch_page()
