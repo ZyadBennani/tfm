@@ -49,14 +49,14 @@ node_modules/
 *.swo
 
 # Data files (large CSV files y archivos pesados)
-*.csv
+# *.csv
 data/raw/
 Datos/raw/
 Datos/.cache/
 Datos/processed/
 Datos/fbref_test/
-*.xlsx
-*.xls
+# *.xlsx
+# *.xls
 
 # IDE files
 .vscode/
