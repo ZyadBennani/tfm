@@ -49,7 +49,7 @@ MODELOS_JUEGO = {
 EQUIPO_LOGO_MAP = {
     'Barcelona': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Barcelona.png',
     'Real Madrid': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Real_Madrid.png',
-    'Atlético Madrid': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Atlético_de_Madrid.png',
+    'Atlético Madrid': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/atletico_madrid.png',
     'Athletic Bilbao': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Athletic_Club.png',
     'Real Sociedad': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Real_Sociedad.png',
     'Sevilla': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Sevilla.png',
@@ -57,16 +57,16 @@ EQUIPO_LOGO_MAP = {
     'Real Betis': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Real_Betis.png',
     'Villarreal': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Villareal.png',
     'Girona': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Girona.png',
-    'Celta de Vigo': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Celta_de_Vigo.png',
+    'Celta de Vigo': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Celta_Vigo.png',
     'Rayo Vallecano': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Rayo_Vallecano.png',
     'Osasuna': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Osasuna.png',
     'Getafe': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Getafe.png',
-    'Deportivo Alavés': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Alavés.png',
+    'Deportivo Alavés': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Deportivo_Alaves.png',
     'Espanyol': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Espanyol.png',
     'Las Palmas': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Las_Palmas.png',
     'Mallorca': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Mallorca.png',
-    'Leganés': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Leganés.png',
-    'Real Valladolid': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Real_Valladolid.png',
+    'Leganés': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Leganés.png',
+    'Real Valladolid': 'static/wetransfer_players_2025-06-18_1752/LOGHI_PNG/LA_LIGA/SQUADRE/Valladolid.png',
 }
 
 def get_logo_path(equipo):
