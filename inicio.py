@@ -688,6 +688,96 @@ st.markdown("""
         to { opacity: 1; transform: translateY(0); }
     }
 
+    /* ====== EFECTOS VISUALES Y COMPONENTES ELEGANTES FCB.LAB ====== */
+    
+    /* Sombras profundas y glassmorphism */
+    .liga-card, .team-card, .centered-header, .main-content {
+        box-shadow: 0 8px 32px 0 rgba(0,77,152,0.18), 0 1.5px 8px 0 rgba(165,0,28,0.10);
+        backdrop-filter: blur(8px) saturate(120%);
+        background: linear-gradient(135deg, rgba(255,255,255,0.85) 60%, rgba(0,77,152,0.08) 100%);
+        border: 1.5px solid rgba(0,77,152,0.10);
+    }
+    .centered-header {
+        background: linear-gradient(135deg, #004D98 60%, #a5001c 100%);
+        color: var(--text-light);
+    }
+    .liga-card, .team-card {
+        border-radius: 18px;
+        margin: 15px;
+        transition: box-shadow 0.3s, transform 0.3s;
+    }
+    .liga-card:hover, .team-card:hover {
+        box-shadow: 0 16px 40px 0 rgba(0,77,152,0.22), 0 2px 12px 0 rgba(165,0,28,0.13);
+        transform: translateY(-6px) scale(1.02);
+        border-color: #004D98;
+    }
+    
+    /* Botones elegantes con estados */
+    .stButton button {
+        background: linear-gradient(135deg, #004D98 60%, #a5001c 100%);
+        color: #fff;
+        border: none;
+        border-radius: 30px;
+        padding: 12px 28px;
+        font-family: var(--font-subtitle) !important;
+        font-weight: 600;
+        font-size: 1.08em;
+        box-shadow: 0 2px 12px rgba(0,77,152,0.10);
+        transition: background 0.25s, box-shadow 0.25s, transform 0.15s;
+        outline: none;
+        cursor: pointer;
+        letter-spacing: 0.5px;
+    }
+    .stButton button:hover {
+        background: linear-gradient(135deg, #003366 60%, #a5001c 100%);
+        box-shadow: 0 6px 20px rgba(0,77,152,0.18);
+        transform: translateY(-2px) scale(1.03);
+    }
+    .stButton button:active {
+        background: linear-gradient(135deg, #002244 60%, #7a0010 100%);
+        box-shadow: 0 2px 8px rgba(0,77,152,0.10);
+        transform: scale(0.98);
+    }
+    .stButton button:disabled {
+        background: #e0e0e0;
+        color: #aaa;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+    
+    /* Controles de formulario sofisticados */
+    .stSelectbox > div > div, .stTextInput > div > input, .stNumberInput > div > input, .stSlider > div {
+        background: rgba(255,255,255,0.85) !important;
+        border: 2px solid #004D98 !important;
+        border-radius: 12px !important;
+        color: #2c3e50 !important;
+        box-shadow: 0 2px 8px rgba(0,77,152,0.08);
+        font-family: var(--font-body) !important;
+        font-size: 1.05em !important;
+        transition: border 0.2s, box-shadow 0.2s;
+    }
+    .stSelectbox > div > div:focus-within, .stTextInput > div > input:focus, .stNumberInput > div > input:focus, .stSlider > div:focus-within {
+        border: 2.5px solid #a5001c !important;
+        box-shadow: 0 0 0 3px rgba(165,0,28,0.13);
+        outline: none !important;
+    }
+    .stSelectbox > div > div::placeholder, .stTextInput > div > input::placeholder, .stNumberInput > div > input::placeholder {
+        color: #888 !important;
+        opacity: 1 !important;
+        font-style: italic;
+    }
+    /* Slider track y thumb personalizados */
+    .stSlider > div [role=slider] {
+        background: linear-gradient(90deg, #004D98 0%, #a5001c 100%) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 8px rgba(0,77,152,0.10);
+    }
+    .stSlider > div [role=slider]:focus {
+        outline: 2.5px solid #a5001c !important;
+        box-shadow: 0 0 0 3px rgba(165,0,28,0.13) !important;
+    }
+    /* Fin de efectos visuales y componentes elegantes */
+
     /* Tarjetas mejoradas */
     .liga-card {
         border: none;
@@ -709,7 +799,6 @@ st.markdown("""
     .liga-card:hover {
         transform: translateY(-8px);
         box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
-        border-color: #e3f2fd;
     }
 
     .team-card {
@@ -867,13 +956,6 @@ st.markdown("""
     p, .stMarkdown, .stText, div, span {
         font-family: var(--font-body) !important;
         line-height: 1.6 !important;
-    }
-    
-    /* Botones con fuente elegante */
-    .stButton button {
-        font-family: var(--font-subtitle) !important;
-        font-weight: 500 !important;
-        letter-spacing: 0.5px !important;
     }
     
     /* Nombres de equipos en tarjetas */

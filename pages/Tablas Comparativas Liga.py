@@ -21,217 +21,128 @@ st.markdown("""
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&family=Source+Sans+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <style>
-    /* Variables de fuentes */
     :root {
         --font-title: 'Playfair Display', serif;
         --font-subtitle: 'Montserrat', sans-serif;
         --font-body: 'Source Sans Pro', sans-serif;
+        --barca-primary: #004D98;
+        --barca-secondary: #a5001c;
     }
-    
-    <style>
-    /* Tema Blaugrana Uniforme */
-    .main > div {
-        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 50%, #f8f9fa 100%);
-        color: #2c3e50;
+    /* ====== EFECTOS VISUALES Y COMPONENTES ELEGANTES FCB.LAB ====== */
+    .liga-card, .team-card, .centered-header, .main-content {
+        box-shadow: 0 8px 32px 0 rgba(0,77,152,0.18), 0 1.5px 8px 0 rgba(165,0,28,0.10);
+        backdrop-filter: blur(8px) saturate(120%);
+        background: linear-gradient(135deg, rgba(255,255,255,0.85) 60%, rgba(0,77,152,0.08) 100%);
+        border: 1.5px solid rgba(0,77,152,0.10);
     }
-    
-    /* Asegurar que los títulos sean visibles */
-    h1, h2, h3, h4, h5, h6 {
-        color: #004D98 !important;
+    .centered-header {
+        background: linear-gradient(135deg, #004D98 60%, #a5001c 100%);
+        color: #fff;
     }
-    
-    /* Título específico del header - debe ser blanco */
-    .header-title {
-        color: white !important;
-        font-size: 2.5rem !important;
-        font-weight: bold !important;
-        margin: 0 !important;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+    .liga-card, .team-card {
+        border-radius: 18px;
+        margin: 15px;
+        transition: box-shadow 0.3s, transform 0.3s;
     }
-    
-    /* Forzar título blanco con máxima especificidad */
-    div h1.header-title {
-        color: white !important;
+    .liga-card:hover, .team-card:hover {
+        box-shadow: 0 16px 40px 0 rgba(0,77,152,0.22), 0 2px 12px 0 rgba(165,0,28,0.13);
+        transform: translateY(-6px) scale(1.02);
+        border-color: #004D98;
     }
-    
-    /* Contenedor de tabla */
-    .table-container {
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        border: 2px solid #004D98;
-        border-radius: 15px;
-        padding: 2rem;
-        margin: 1rem 0;
-        box-shadow: 0 8px 32px rgba(0, 77, 152, 0.2);
-        backdrop-filter: blur(10px);
+    /* Botones elegantes con estados */
+    .stButton button {
+        background: linear-gradient(135deg, #004D98 60%, #a5001c 100%);
+        color: #fff;
+        border: none;
+        border-radius: 30px;
+        padding: 12px 28px;
+        font-family: var(--font-subtitle) !important;
+        font-weight: 600;
+        font-size: 1.08em;
+        box-shadow: 0 2px 12px rgba(0,77,152,0.10);
+        transition: background 0.25s, box-shadow 0.25s, transform 0.15s;
+        outline: none;
+        cursor: pointer;
+        letter-spacing: 0.5px;
     }
-    
-    /* Título de sección */
-    .section-title {
-        text-align: center;
-        font-size: 1.8rem;
-        font-weight: bold;
-        color: #a5001c;
-        margin-bottom: 2rem;
-        text-transform: uppercase;
-        letter-spacing: 2px;
+    .stButton button:hover {
+        background: linear-gradient(135deg, #003366 60%, #a5001c 100%);
+        box-shadow: 0 6px 20px rgba(0,77,152,0.18);
+        transform: translateY(-2px) scale(1.03);
     }
-    
-    /* Tabla personalizada como la imagen */
-    .comparison-table {
-        width: 100%;
-        background-color: rgba(248, 249, 250, 0.9);
-        border-radius: 10px;
-        overflow: hidden;
-        border: 1px solid #004D98;
+    .stButton button:active {
+        background: linear-gradient(135deg, #002244 60%, #7a0010 100%);
+        box-shadow: 0 2px 8px rgba(0,77,152,0.10);
+        transform: scale(0.98);
     }
-    
-    /* Header de tabla */
-    .table-header {
-        background: linear-gradient(90deg, #004D98, #a5001c);
-        color: white;
-        padding: 15px;
-        font-weight: bold;
-        text-align: center;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+    .stButton button:disabled {
+        background: #e0e0e0;
+        color: #aaa;
+        cursor: not-allowed;
+        box-shadow: none;
     }
-    
-    /* Fila de tabla */
-    .table-row {
-        display: grid;
-        grid-template-columns: 2fr 1fr 1fr 3fr 1.5fr 1fr;
-        border-bottom: 1px solid rgba(0, 77, 152, 0.3);
-        background-color: rgba(255, 255, 255, 0.8);
-        padding: 12px 15px;
-        align-items: center;
-    }
-    
-    .table-row:hover {
-        background-color: rgba(0, 77, 152, 0.1);
-        transition: background-color 0.3s ease;
-    }
-    
-    /* Celdas de tabla */
-    .table-cell {
-        color: #2c3e50;
-        font-size: 0.9rem;
-        text-align: center;
-    }
-    
-    .table-cell.metric-name {
-        text-align: left;
-        font-weight: 500;
-        color: #2c3e50;
-    }
-    
-    .table-cell.ranking {
-        font-weight: bold;
-        color: #d6c700;
-        background: rgba(214, 199, 0, 0.1);
-        border-radius: 20px;
-        padding: 5px 10px;
-        display: inline-block;
-    }
-    
-    .table-cell.value {
-        font-weight: bold;
-        color: #a5001c;
-    }
-    
-    /* Barra de progreso como la imagen */
-    .progress-container {
-        background-color: rgba(240, 240, 240, 0.8);
-        border-radius: 10px;
-        height: 20px;
-        position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(0, 77, 152, 0.2);
-    }
-    
-    .progress-bar {
-        background: linear-gradient(90deg, #004D98, #a5001c);
-        height: 100%;
-        border-radius: 10px;
-        transition: width 0.5s ease;
-        position: relative;
-    }
-    
-    .progress-bar::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        animation: shine 2s infinite;
-    }
-    
-    @keyframes shine {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(100%); }
-    }
-    
-    /* Selectores de equipos */
-    .stSelectbox > div > div {
-        background-color: #ffffff;
-        border: 2px solid #004D98;
-        border-radius: 10px;
-        color: #2c3e50;
-    }
-    
-    /* Ocultar elementos de Streamlit */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    
-    /* Colores de texto */
-    .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6 {
+    /* Controles de formulario sofisticados */
+    .stSelectbox > div > div, .stTextInput > div > input, .stNumberInput > div > input, .stSlider > div {
+        background: rgba(255,255,255,0.85) !important;
+        border: 2px solid #004D98 !important;
+        border-radius: 12px !important;
         color: #2c3e50 !important;
+        box-shadow: 0 2px 8px rgba(0,77,152,0.08);
+        font-family: var(--font-body) !important;
+        font-size: 1.05em !important;
+        transition: border 0.2s, box-shadow 0.2s;
     }
-    
-    /* ====== TIPOGRAFÍA CLÁSICA Y ELEGANTE ====== */
-    
-    /* Aplicar fuentes a elementos generales */
+    .stSelectbox > div > div:focus-within, .stTextInput > div > input:focus, .stNumberInput > div > input:focus, .stSlider > div:focus-within {
+        border: 2.5px solid #a5001c !important;
+        box-shadow: 0 0 0 3px rgba(165,0,28,0.13);
+        outline: none !important;
+    }
+    .stSelectbox > div > div::placeholder, .stTextInput > div > input::placeholder, .stNumberInput > div > input::placeholder {
+        color: #888 !important;
+        opacity: 1 !important;
+        font-style: italic;
+    }
+    .stSlider > div [role=slider] {
+        background: linear-gradient(90deg, #004D98 0%, #a5001c 100%) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 8px rgba(0,77,152,0.10);
+    }
+    .stSlider > div [role=slider]:focus {
+        outline: 2.5px solid #a5001c !important;
+        box-shadow: 0 0 0 3px rgba(165,0,28,0.13) !important;
+    }
+    /* Tipografía global */
     body, .main-content, .stApp {
         font-family: var(--font-body) !important;
     }
-    
-    /* Títulos principales */
     h1 {
         font-family: var(--font-title) !important;
         font-weight: 600 !important;
         letter-spacing: 1px !important;
     }
-    
-    /* Subtítulos */
     h2, h3 {
         font-family: var(--font-subtitle) !important;
         font-weight: 500 !important;
         letter-spacing: 0.5px !important;
     }
-    
-    /* Títulos menores */
     h4, h5, h6 {
         font-family: var(--font-subtitle) !important;
         font-weight: 400 !important;
     }
-    
-    /* Texto de cuerpo y párrafos */
     p, .stMarkdown, .stText, div, span {
         font-family: var(--font-body) !important;
         line-height: 1.6 !important;
     }
-    
-    /* Botones con fuente elegante */
     .stButton button {
         font-family: var(--font-subtitle) !important;
         font-weight: 500 !important;
         letter-spacing: 0.5px !important;
     }
-    
-    /* Selectores y controles */
+    .team-name {
+        font-family: var(--font-subtitle) !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.5px !important;
+    }
     .stSelectbox, .stSlider, .stNumberInput {
         font-family: var(--font-body) !important;
     }
