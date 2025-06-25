@@ -18,15 +18,12 @@ from utils.navigation import show_home_button, show_page_header
 show_home_button()
 
 # Mostrar header de la página
-show_page_header("Peak Age Analytics", "Análisis de rendimiento por edad basado en metodología de Anselmo Ruiz", "📊")
-
-# Separador visual
-st.markdown("---")
+show_page_header("Peak Age Analytics")
 
 # Construcción del DataFrame (solo para cálculos internos)
 # DataFrame con los datos
 data = {
-    "Posición": ["Portero", "Defensa central", "Lateral / Interior", "Mediocentro", "Extremo / Delantero"],
+    "Posición": ["GK", "DC", "RB-LB", "CM-C", "W-ST"],
     "Edad_min": [29, 27, 26, 26, 24],
     "Edad_max": [33, 29, 28, 28, 26]
 }
@@ -146,10 +143,8 @@ def plot_peak_age(df):
         ax.plot(peak_range_x, peak_range_y, 
                 color='white', linewidth=4, zorder=9, alpha=0.9)
         
-        # Etiqueta de la posición
-        ax.text(17, y_base + 0.4, row['Posición'], 
-                fontsize=12, fontweight='bold', color='white',
-                ha='right', va='center')
+        # Etiqueta de la posición a la izquierda de la curva (más a la izquierda)
+        ax.text(15.2, y_base + 0.4, row['Posición'], fontsize=13, fontweight='bold', color=text_color, ha='right', va='center')
         
         # Etiqueta del rango de edad pico
         rango_text = f"{int(row['Edad_min'])}-{int(row['Edad_max'])}"
@@ -162,10 +157,13 @@ def plot_peak_age(df):
         y_offset += spacing
     
     # Configuración de ejes
-    ax.set_xlim(18, 40)  # Mover más a la derecha para dar espacio
+    ax.set_xlim(14, 40)
     ax.set_ylim(-0.4, y_offset + 0.5)
+    # Eliminar título del eje Y para evitar solapamiento
+    ax.set_ylabel('')
+    # Añadir título centrado arriba de la gráfica, desplazado a la derecha
+    # ax.set_title('Rendimiento Relativo', fontsize=18, fontweight='bold', color='#003366', loc='center', pad=25, x=0.28)
     ax.set_xlabel('Edad (años)', fontsize=14, fontweight='bold', color=text_color)
-    ax.set_ylabel('Rendimiento Relativo', fontsize=14, fontweight='bold', color=text_color, labelpad=20)
     
     # Grid sutil
     ax.grid(True, axis='x', alpha=0.2, linestyle='-', color=grid_color)
@@ -210,71 +208,193 @@ def plot_peak_age(df):
     return fig
 
 # Visualización principal
-st.markdown("## 1. Visualización: Curvas de rendimiento por posición y edad")
+st.markdown('''
+<div style="text-align: center; margin: 40px 0 30px 0;">
+    <h2 style="
+        font-size: 2.5em;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        letter-spacing: 1px;">
+        Análisis de rendimiento por edad
+    </h2>
+    <h3 style="
+            font-size: 1.5em;
+            font-weight: 400;
+            color: #7f8c8d;
+            margin-top: 0;
+            letter-spacing: 0.5px;
+        ">Metodología Anselmo Ruiz</h3>
+</div>
+''', unsafe_allow_html=True)
 
-# Crear y mostrar el gráfico
-fig = plot_peak_age(df_prime)
 
-# Mostrar en Streamlit
-st.pyplot(fig)
+# --- REDISEÑO UNIFORME ---
+# Título y explicación arriba (ya está, solo mejoro el espaciado)
+st.markdown("""
+<style>
+.tabla-peak {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0;
+    margin-top: 12px;
+    font-family: Arial, sans-serif;
+}
+.tabla-peak th {
+    background: linear-gradient(90deg, #004D98 60%, #b50a2e 100%);
+    color: #fff;
+    padding: 16px 8px 12px 8px;
+    font-size: 1.1em;
+    border-radius: 18px 18px 0 0;
+    font-weight: bold;
+}
+.tabla-peak td {
+    background: #fff;
+    color: #003366;
+    padding: 14px 12px;
+    vertical-align: middle;
+    font-size: 1.05em;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: center;
+}
+.tabla-peak tr:last-child td {
+    border-radius: 0 0 18px 18px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-# Análisis e interpretación
-st.markdown("---")
-st.markdown("## 2. Análisis e Interpretación")
-
-col1, col2, col3 = st.columns(3)
+# Fila con dos columnas: izquierda tabla, derecha gráfica
+col1, col2 = st.columns([1, 2.7], gap="medium")
 
 with col1:
-    st.markdown("### 🥅 Porteros")
     st.markdown("""
-    **Rango: 29-33 años**
-    
-    - Mayor longevidad deportiva
-    - Experiencia y lectura del juego crucial
-    - Menor desgaste físico
-    - Madurez mental determinante
-    """)
+    <table class='tabla-peak'>
+        <tr>
+            <th>Posición</th>
+            <th>Edad mínima</th>
+            <th>Edad máxima</th>
+        </tr>
+        <tr>
+            <td>Portero</td><td>29</td><td>33</td>
+        </tr>
+        <tr>
+            <td>Defensa central</td><td>27</td><td>29</td>
+        </tr>
+        <tr>
+            <td>Lateral / Interior</td><td>26</td><td>28</td>
+        </tr>
+        <tr>
+            <td>Mediocentro</td><td>26</td><td>28</td>
+        </tr>
+        <tr>
+            <td>Extremo / Delantero</td><td>24</td><td>26</td>
+        </tr>
+    </table>
+    """, unsafe_allow_html=True)
+    st.markdown("""
+    <div style='margin-top:18px; color:#003366; font-size:0.98em;'>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col2:
-    st.markdown("### 🛡️ Defensas")
-    st.markdown("""
-    **Centrales: 27-29 años**
-    **Laterales: 26-28 años**
-    
-    - Equilibrio entre físico y experiencia
-    - Liderazgo defensivo
-    - Capacidad de anticipación
-    """)
+    # Gráfica con fondo blanco y ejes/líneas en negro
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    def plot_peak_age_big(df):
+        plt.style.use('dark_background')
+        fig, ax = plt.subplots(figsize=(18, 10))
+        fig.patch.set_facecolor('#fff')
+        ax.set_facecolor('#fff')
+        colors = ['#FF4B4B', '#00D4FF', '#FFD93D', '#6BCF7F', '#FF6B6B']
+        text_color = '#222'
+        grid_color = '#333333'
+        edad_range = np.linspace(14, 40, 200)
+        y_offset = 0
+        spacing = 1.5
+        for i, (_, row) in enumerate(df.iterrows()):
+            edad_pico = (row['Edad_min'] + row['Edad_max']) / 2
+            rendimiento = np.zeros_like(edad_range)
+            for j, edad in enumerate(edad_range):
+                if edad <= edad_pico:
+                    sigma_up = 3.5
+                    rendimiento[j] = np.exp(-0.5 * ((edad - edad_pico) / sigma_up) ** 2)
+                else:
+                    sigma_down = 3.0
+                    rendimiento[j] = np.exp(-0.5 * ((edad - edad_pico) / sigma_down) ** 2)
+            rendimiento_min = 0.08
+            rendimiento_max = 1.0
+            rendimiento_normalizado = rendimiento * (rendimiento_max - rendimiento_min) + rendimiento_min
+            rendimiento_normalizado = rendimiento_normalizado * 0.8
+            y_base = y_offset
+            y_values = y_base + rendimiento_normalizado
+            color_desarrollo = '#FFD93D'
+            color_prime = '#6BCF7F'
+            color_declive = '#FF6B6B'
+            mask_desarrollo = edad_range <= row['Edad_min']
+            if np.any(mask_desarrollo):
+                ax.fill_between(edad_range[mask_desarrollo], y_base, y_values[mask_desarrollo], color=color_desarrollo, alpha=0.8)
+                ax.plot(edad_range[mask_desarrollo], y_values[mask_desarrollo], color=color_desarrollo, linewidth=3, alpha=0.9)
+            mask_prime = (edad_range >= row['Edad_min']) & (edad_range <= row['Edad_max'])
+            if np.any(mask_prime):
+                ax.fill_between(edad_range[mask_prime], y_base, y_values[mask_prime], color=color_prime, alpha=0.8)
+                ax.plot(edad_range[mask_prime], y_values[mask_prime], color=color_prime, linewidth=3, alpha=0.9)
+            mask_declive = edad_range >= row['Edad_max']
+            if np.any(mask_declive):
+                ax.fill_between(edad_range[mask_declive], y_base, y_values[mask_declive], color=color_declive, alpha=0.8)
+                ax.plot(edad_range[mask_declive], y_values[mask_declive], color=color_declive, linewidth=3, alpha=0.9)
+            edad_min_idx = np.argmin(np.abs(edad_range - row['Edad_min']))
+            edad_max_idx = np.argmin(np.abs(edad_range - row['Edad_max']))
+            ax.scatter([edad_range[edad_min_idx], edad_range[edad_max_idx]], [y_values[edad_min_idx], y_values[edad_max_idx]], color='white', s=120, zorder=10, edgecolors='#6BCF7F', linewidths=3)
+            peak_range_x = edad_range[edad_min_idx:edad_max_idx+1]
+            peak_range_y = y_values[edad_min_idx:edad_max_idx+1]
+            ax.plot(peak_range_x, peak_range_y, color='white', linewidth=4, zorder=9, alpha=0.9)
+            ax.text(15.2, y_base + 0.4, row['Posición'], fontsize=13, fontweight='bold', color=text_color, ha='right', va='center')
+            rango_text = f"{int(row['Edad_min'])}-{int(row['Edad_max'])}"
+            ax.text(edad_pico, y_base + 0.9, rango_text, fontsize=10, fontweight='bold', color='white', ha='center', va='bottom', bbox=dict(boxstyle="round,pad=0.2", facecolor='#6BCF7F', alpha=0.8))
+            y_offset += spacing
+        ax.set_xlim(14, 40)
+        ax.set_ylim(-0.4, y_offset + 0.5)
+        ax.set_xlabel('Edad (años)', fontsize=14, fontweight='bold', color=text_color)
+        # ax.set_ylabel('Rendimiento Relativo', fontsize=14, fontweight='bold', color=text_color, labelpad=-50)
+        ax.grid(True, axis='x', alpha=0.2, linestyle='-', color=grid_color)
+        ax.set_axisbelow(True)
+        for age in [20, 25, 30, 35]:
+            ax.axvline(x=age, color=grid_color, alpha=0.3, linestyle='--', linewidth=1)
+            ax.text(age, y_offset + 0.3, f'{age}', ha='center', va='bottom', color=text_color, fontsize=10, alpha=0.7)
+        for spine in ax.spines.values():
+            spine.set_visible(True)
+            spine.set_color('#222')
+            spine.set_linewidth(1.2)
+        ax.xaxis.label.set_color('#222')
+        ax.yaxis.label.set_color('#222')
+        ax.tick_params(axis='x', colors='#222')
+        ax.tick_params(axis='y', colors='#222')
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_color('#222')
+        ax.set_yticks([])
+        phases_y = 0.95
+        ax.text(0.98, phases_y, '🚀 Desarrollo (Pre-Peak)', transform=ax.transAxes, ha='right', va='top', color='#FFD93D', fontsize=10, fontweight='bold')
+        ax.text(0.98, phases_y - 0.05, '⭐ Prime (Peak)', transform=ax.transAxes, ha='right', va='top', color='#6BCF7F', fontsize=10, fontweight='bold')
+        ax.text(0.98, phases_y - 0.10, '📉 Declive (Post-Peak)', transform=ax.transAxes, ha='right', va='top', color='#FF6B6B', fontsize=10, fontweight='bold')
+        return fig
+    fig = plot_peak_age_big(df_prime)
+    # Cambiar fondo a blanco y ejes/líneas en negro
+    fig.patch.set_facecolor('#fff')
+    ax = fig.axes[0]
+    ax.set_facecolor('#fff')
+    for spine in ax.spines.values():
+        spine.set_visible(True)
+        spine.set_color('#222')
+        spine.set_linewidth(1.2)
+    ax.xaxis.label.set_color('#222')
+    ax.yaxis.label.set_color('#222')
+    ax.tick_params(axis='x', colors='#222')
+    ax.tick_params(axis='y', colors='#222')
+    for label in ax.get_xticklabels() + ax.get_yticklabels():
+        label.set_color('#222')
+    st.pyplot(fig, use_container_width=True)
 
-with col3:
-    st.markdown("### ⚡ Atacantes")
-    st.markdown("""
-    **Extremos/Delanteros: 24-26 años**
-    
-    - Pico de velocidad y explosividad
-    - Menor dependencia de experiencia
-    - Máximo rendimiento físico
-    """)
 
-# Aplicaciones prácticas
-st.markdown("---")
-st.markdown("## 3. Aplicaciones Prácticas")
-
-st.markdown("""
-### 🎯 Para Directores Deportivos:
-
-1. **Fichajes estratégicos**: Identificar jugadores en su ventana de máximo rendimiento
-2. **Planificación de plantilla**: Equilibrar jugadores en diferentes fases de carrera
-3. **Valoración económica**: Ajustar ofertas según la edad y posición del jugador
-4. **Renovaciones**: Decidir la duración de contratos basándose en el pico esperado
-
-### 📊 Para Análisis de Rendimiento:
-
-1. **Expectativas realistas**: Ajustar expectativas según edad y posición
-2. **Desarrollo de cantera**: Planificar la progresión de jóvenes talentos
-3. **Transiciones de carrera**: Identificar cuándo un jugador puede cambiar de posición
-4. **Mercado de traspasos**: Evaluar el momento óptimo para vender/comprar
-""")
 
 # --- BLOQUE DE CSS GLOBAL FCB.LAB ---
 st.markdown('''
