@@ -601,7 +601,23 @@ for pos, barca_player, bayern_player in comparisons:
         # Añadir imagen del jugador del Barça
         barca_img = get_circular_player_image(barca_player, "Barcelona")
         if barca_img:
-            st.image(barca_img, width=200)  # Aumentado de 220 a 300
+            st.image(barca_img, width=200)
+        # Perfil del jugador (ejemplo)
+        perfiles = {
+            "Wojciech Szczesny": "Portero polaco, seguro bajo palos y gran experiencia internacional.",
+            "Inigo Martinez": "Central zurdo, fuerte en el juego aéreo y salida de balón.",
+            "Pau Cubarsi": "Joven central con gran proyección y lectura táctica.",
+            "Alejandro Balde": "Lateral izquierdo muy rápido y ofensivo.",
+            "Jules Kounde": "Defensa polivalente, destaca por su anticipación.",
+            "Frenkie De Jong": "Mediocentro creativo, gran conducción y visión.",
+            "Pedri": "Centrocampista técnico, clave en la creación.",
+            "Dani Olmo": "Mediapunta versátil, llegada y último pase.",
+            "Raphinha": "Extremo derecho, desborde y disparo.",
+            "Lamine Yamal": "Joven extremo con gran desborde y futuro.",
+            "Robert Lewandowski": "Delantero centro, referencia goleadora mundial."
+        }
+        perfil = perfiles.get(barca_player, "Perfil no disponible.")
+        st.markdown(f"<div style='color:#555; font-size:1.05em; margin-top:4px;'>{perfil}</div>", unsafe_allow_html=True)
         
     with col2:
         # Título de la posición centrado encima del radar
@@ -619,6 +635,22 @@ for pos, barca_player, bayern_player in comparisons:
         # Añadir imagen del jugador del Bayern
         bayern_img = get_circular_player_image(bayern_player, "Bayern")
         if bayern_img:
-            st.image(bayern_img, width=200)  # Aumentado de 220 a 300
+            st.image(bayern_img, width=200)
+        # Perfil del jugador (ejemplo)
+        perfiles_bayern = {
+            "Manuel Neuer": "Portero alemán, leyenda y pionero del 'sweeper-keeper'.",
+            "David Alaba": "Defensa polivalente, gran salida de balón y liderazgo.",
+            "Jerome Boateng": "Central potente, experiencia y buen pase largo.",
+            "Alphonso Davies": "Lateral izquierdo rapidísimo y ofensivo.",
+            "Benjamin Pavard": "Defensa derecho, seguro y con buen disparo lejano.",
+            "Joshua Kimmich": "Mediocentro total, inteligencia táctica y pase.",
+            "Leon Goretzka": "Centrocampista físico, llegada y trabajo defensivo.",
+            "Thomas Muller": "Mediapunta, especialista en encontrar espacios.",
+            "Kingsley Coman": "Extremo veloz, regateador y desequilibrante.",
+            "Serge Gnabry": "Extremo derecho, potente y con gol.",
+            "Robert Lewandowski": "Delantero centro, referencia goleadora mundial."
+        }
+        perfil_b = perfiles_bayern.get(bayern_player, "Perfil no disponible.")
+        st.markdown(f"<div style='color:#555; font-size:1.05em; margin-top:4px;'>{perfil_b}</div>", unsafe_allow_html=True)
     
     st.write("---")  # Separador

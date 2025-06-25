@@ -596,6 +596,42 @@ def get_photo_manager_barca():
     from utils.player_photo_manager import PlayerPhotoManager
     return PlayerPhotoManager()
 
+# Diccionario de traducción de perfiles español → inglés
+perfiles_es_en = {
+    # GK
+    "Portero líbero": "SWEEPER",
+    "Portero de línea": "LINE KEEPER",
+    "Portero tradicional": "TRADITIONAL",
+    # Fullbacks (LB-RB)
+    "Defensivo": "DEFENSIVE",
+    "Progresivo": "PROGRESSIVE",
+    "Ofensivo": "OFFENSIVE",
+    # CB
+    "Salida de balón": "BALL PLAYING",
+    "Marcador": "STOPPER",
+    "Líbero": "SWEEPER",
+    # CDM
+    "Pivote organizador": "DEEP LYING",
+    "Box to box destructor": "BOX TO BOX DESTROYER",
+    "Pivote defensivo": "HOLDING",
+    # CM
+    "Box to box": "BOX TO BOX",
+    "Organizador": "PLAYMAKER",
+    "Centrocampista defensivo": "DEFENSIVE",
+    # CAM
+    "Mediapunta creativo": "ADVANCED PLAYMAKER",
+    "Segundo delantero": "SHADOW STRIKER",
+    "Creador de regate": "DRIBBLING CREATOR",
+    # LW/RW
+    "Extremo creador": "WIDE PLAYMAKER",
+    "Extremo directo": "DIRECT WINGER",
+    "Híbrido": "HYBRID",
+    # ST
+    "Hombre objetivo": "TARGET MAN",
+    "Cazagoles": "POACHER",
+    "Delantero organizador": "PLAYMAKER"
+}
+
 # Función helper para crear player cards (usando las mismas imágenes del campograma)
 def create_player_card(player, position_emoji, position_name):
     rating = player_ratings.get(player, 75)
@@ -644,6 +680,9 @@ def create_player_card(player, position_emoji, position_name):
     # Obtener dorsal del jugador
     dorsal = player_dorsals.get(player, 0)
     
+    # En la cardview de cada jugador:
+    perfil = perfiles_es_en.get(player.get('Profile', ''), player.get('Profile', 'Profile not available.'))
+    
     return f"""
         <div class="player-card">
             <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 1rem;">
@@ -666,6 +705,7 @@ def create_player_card(player, position_emoji, position_name):
                     Rating: {rating}
                 </div>
             </div>
+            <p style="text-align: center; color:#555; font-size:1.05em; margin-top:-10px; margin-bottom:8px;">{perfil}</p>
         </div>
     """
 

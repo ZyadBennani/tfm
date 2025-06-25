@@ -339,8 +339,6 @@ st.markdown("""
 if 'shortlist' not in st.session_state:
     st.session_state.shortlist = []
 
-
-
 # Diccionario de perfiles por posición - ACTUALIZADO CON TODOS LOS PERFILES
 position_profiles = {
     "GK": ["Sweeper", "Line Keeper", "Traditional"],
@@ -354,6 +352,56 @@ position_profiles = {
     "LW": ["Wide Playmaker", "Direct Winger", "Hybrid"],
     "ST": ["Target Man", "Poacher", "Playmaker"],
     "All": ["All Profiles"]  # Opción por defecto
+}
+
+# Diccionario de perfiles estándar por puesto
+perfiles_por_puesto = {
+    "GK": "Shot-stopper",
+    "CB": "Sweeper",
+    "RB": "Lateral ofensivo",
+    "LB": "Lateral ofensivo",
+    "CM": "Organizador",
+    "CDM": "Pivote defensivo",
+    "CAM": "Mediapunta creativo",
+    "RW": "Extremo vertical",
+    "LW": "Extremo vertical",
+    "ST": "Delantero referencia"
+}
+
+# Diccionario de traducción de perfiles español → inglés
+perfiles_es_en = {
+    # GK
+    "Portero líbero": "SWEEPER",
+    "Portero de línea": "LINE KEEPER",
+    "Portero tradicional": "TRADITIONAL",
+    # Fullbacks (LB-RB)
+    "Defensivo": "DEFENSIVE",
+    "Progresivo": "PROGRESSIVE",
+    "Ofensivo": "OFFENSIVE",
+    # CB
+    "Salida de balón": "BALL PLAYING",
+    "Marcador": "STOPPER",
+    "Líbero": "SWEEPER",
+    # CDM
+    "Pivote organizador": "DEEP LYING",
+    "Box to box destructor": "BOX TO BOX DESTROYER",
+    "Pivote defensivo": "HOLDING",
+    # CM
+    "Box to box": "BOX TO BOX",
+    "Organizador": "PLAYMAKER",
+    "Centrocampista defensivo": "DEFENSIVE",
+    # CAM
+    "Mediapunta creativo": "ADVANCED PLAYMAKER",
+    "Segundo delantero": "SHADOW STRIKER",
+    "Creador de regate": "DRIBBLING CREATOR",
+    # LW/RW
+    "Extremo creador": "WIDE PLAYMAKER",
+    "Extremo directo": "DIRECT WINGER",
+    "Híbrido": "HYBRID",
+    # ST
+    "Hombre objetivo": "TARGET MAN",
+    "Cazagoles": "POACHER",
+    "Delantero organizador": "PLAYMAKER"
 }
 
 # Sidebar con filtros
@@ -1250,7 +1298,8 @@ with tab1:
                 
                 # Columna 4: Perfil
                 with cols[3]:
-                    st.markdown(player.get('Profile', 'TBD'))
+                    perfil = perfiles_es_en.get(player.get('Profile', ''), player.get('Profile', 'Profile not available.'))
+                    st.markdown(f"<p style='text-align: center; color:#555; font-size:1.05em; margin-top:-10px; margin-bottom:8px;'>{perfil}</p>", unsafe_allow_html=True)
                 
                 # Columna 5: Pie dominante
                 with cols[4]:
@@ -1416,6 +1465,7 @@ with tab2:
                                                 border: 3px solid #004D98; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
                                 </div>
                                 <h3 style="text-align: center; margin-bottom: 0.5rem;">{player['Name']}</h3>
+                                <p style="text-align: center; color:#555; font-size:1.05em; margin-top:-10px; margin-bottom:8px;">{player.get('Profile', 'Perfil no disponible.')}</p>
                                 <p style="text-align: center;">{position_emoji} {player['Position']} | 👤 {int(player['Age'])} años</p>
                                 <p style="text-align: center;">{player['Nationality']} |  {player['Club']}</p>
                                 <p style="text-align: center;">€{player.get('Market_Value', 0):.1f}M | {player['Height']}cm</p>
