@@ -596,7 +596,7 @@ def get_photo_manager_barca():
     from utils.player_photo_manager import PlayerPhotoManager
     return PlayerPhotoManager()
 
-# Diccionario de traducción de perfiles español → inglés
+# Diccionario de perfiles español → inglés
 perfiles_es_en = {
     # GK
     "Portero líbero": "SWEEPER",
@@ -630,6 +630,35 @@ perfiles_es_en = {
     "Hombre objetivo": "TARGET MAN",
     "Cazagoles": "POACHER",
     "Delantero organizador": "PLAYMAKER"
+}
+
+# Diccionario de perfiles de los jugadores (ejemplo, debes completarlo con los reales)
+player_profiles = {
+    "Marc Andre ter Stegen": "Portero líbero",
+    "Wojciech Szczesny": "Portero de línea",
+    "Inaki Pena": "Portero tradicional",
+    "Ronald Araujo": "Marcador",
+    "Pau Cubarsi": "Salida de balón",
+    "Andreas Christensen": "Líbero",
+    "Inigo Martinez": "Marcador",
+    "Eric Garcia": "Salida de balón",
+    "Jules Kounde": "Defensivo",
+    "Hector Fort": "Progresivo",
+    "Gerard Martin": "Ofensivo",
+    "Alejandro Balde": "Ofensivo",
+    "Marc Casado": "Pivote defensivo",
+    "Pedri": "Organizador",
+    "Frenkie de Jong": "Box to box",
+    "Gavi": "Centrocampista defensivo",
+    "Dani Olmo": "Mediapunta creativo",
+    "Fermin Lopez": "Segundo delantero",
+    "Pablo Torre": "Creador de regate",
+    "Lamine Yamal": "Extremo creador",
+    "Ferran Torres": "Extremo directo",
+    "Raphinha": "Híbrido",
+    "Ansu Fati": "Extremo directo",
+    "Robert Lewandowski": "Hombre objetivo",
+    "Pau Victor": "Cazagoles"
 }
 
 # Función helper para crear player cards (usando las mismas imágenes del campograma)
@@ -681,7 +710,8 @@ def create_player_card(player, position_emoji, position_name):
     dorsal = player_dorsals.get(player, 0)
     
     # En la cardview de cada jugador:
-    perfil = perfiles_es_en.get(player.get('Profile', ''), player.get('Profile', 'Profile not available.'))
+    perfil_es = player_profiles.get(player, "Perfil no disponible.")
+    perfil = perfiles_es_en.get(perfil_es, perfil_es)
     
     return f"""
         <div class="player-card">
@@ -705,7 +735,7 @@ def create_player_card(player, position_emoji, position_name):
                     Rating: {rating}
                 </div>
             </div>
-            <p style="text-align: center; color:#555; font-size:1.05em; margin-top:-10px; margin-bottom:8px;">{perfil}</p>
+            <p style="text-align: center; color:#555; font-size:1.05em; margin-top:18px; margin-bottom:8px;">{perfil}</p>
         </div>
     """
 

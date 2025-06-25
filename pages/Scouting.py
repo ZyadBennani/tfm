@@ -254,9 +254,10 @@ st.markdown("""
         
         /* Selectbox con borde siempre visible */
         .stSelectbox > div > div {
-            border: 2px solid #004D98 !important;
+            border: none !important;
             border-radius: 0.5rem !important;
-            background-color: white !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
         }
         
         .stSelectbox > div > div:hover {
@@ -331,6 +332,11 @@ st.markdown("""
         /* Reducir espacio en columnas */
         .element-container {
             margin-bottom: 0.5rem;
+        }
+        .stNumberInput > div > input, .stSlider > div {
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
         }
     </style>
 """, unsafe_allow_html=True)
