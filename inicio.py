@@ -1192,19 +1192,22 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Botones principales con espaciado reducido
-st.markdown('<div style="margin-top: 10px; margin-bottom: 10px;">', unsafe_allow_html=True)
-col1, col2, col3, col4, col5 = st.columns([0.5,2,2,2,0.5])
-with col2:
-    if st.button("Análisis y comparativa de equipos", key="barca_analysis", use_container_width=True):
+# Nueva sección de accesos directos (2x2)
+col1, col2 = st.columns(2, gap="large")
+col3, col4 = st.columns(2, gap="large")
+
+with col1:
+    if st.button("Análisis y comparativa de equipos", key="analisis_equipos", use_container_width=True):
         st.switch_page("pages/Análisis y comparativa de equipos.py")
-with col3:
+with col2:
     if st.button("Barça VS Bayern", key="barca_bayern", use_container_width=True):
         st.switch_page("pages/Barça VS Bayern.py")
+with col3:
+    if st.button("Análisis Propio", key="analisis_propio", use_container_width=True):
+        st.switch_page("pages/Análisis propio.py")
 with col4:
-    if st.button("Análisis Propio", key="tablas_comparativas", use_container_width=True):
-        st.switch_page("pages/Análisis Propio.py")
-st.markdown('</div>', unsafe_allow_html=True)
+    if st.button("Modelos de Juego", key="modelos_juego", use_container_width=True):
+        st.switch_page("pages/Modelos de Juego.py")
 
 # Separador visual
 st.markdown("<hr style='margin: 20px 0; opacity: 0.2;'>", unsafe_allow_html=True)

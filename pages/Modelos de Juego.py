@@ -13,13 +13,6 @@ show_home_button()
 # Mostrar header de la página
 show_page_header("Modelos de Juego")
 
-# Explicación breve
-st.markdown("""
-<p style='margin: 24px 0 32px 0; font-size: 1.15em;'>
-    En esta sección podrás visualizar cómo se posiciona cada equipo de la liga según los <b>4 grandes modelos de juego</b> del fútbol moderno, calculados a partir de métricas avanzadas de Wyscout.
-</p>
-""", unsafe_allow_html=True)
-
 # Definición de métricas por modelo
 MODELOS_JUEGO = {
     'K1': [
@@ -126,10 +119,10 @@ def plot_modelos_juego(df):
     fig.add_shape(type="line", x0=x_min, x1=x_max, y0=y_med, y1=y_med, line=dict(dash="dash", color="gray"))
     # Etiquetas de cuadrantes
     cuadrantes = [
-        (x_min + 0.04*(x_max-x_min), y_max - 0.04*(y_max-y_min), 'K1', 'Pressing & Positional Play'),
-        (x_max - 0.04*(x_max-x_min), y_max - 0.04*(y_max-y_min), 'K2', 'Low Block & Counter'),
-        (x_min + 0.04*(x_max-x_min), y_min + 0.04*(y_max-y_min), 'K3', 'High Press & Direct'),
-        (x_max - 0.04*(x_max-x_min), y_min + 0.04*(y_max-y_min), 'K4', 'Structured & Balanced'),
+        (x_min + 0.2*(x_max-x_min), y_max - 0*(y_max-y_min), 'K1', 'Pressing & Positional Play'),
+        (x_max - 0.15*(x_max-x_min), y_max - 0*(y_max-y_min), 'K2', 'Low Block & Counter'),
+        (x_min + 0.2*(x_max-x_min), y_min + 0*(y_max-y_min), 'K3', 'High Press & Direct'),
+        (x_max - 0.15*(x_max-x_min), y_min + 0*(y_max-y_min), 'K4', 'Structured & Balanced'),
     ]
     for cx, cy, k, label in cuadrantes:
         fig.add_annotation(
@@ -144,30 +137,55 @@ def plot_modelos_juego(df):
     logo_sizex = (x_max - x_min) * 0.11
     logo_sizey = (y_max - y_min) * 0.11
     for _, row in df.iterrows():
+        team = row['Team']
+        is_barca = (team == 'Barcelona')
+        # Efecto destacado igual que en la página de inicio
+        if is_barca:
+            # Dibuja un círculo grande detrás del logo (más grande)
+            fig.add_trace(go.Scatter(
+                x=[row['x']],
+                y=[row['y']],
+                mode="markers",
+                marker=dict(size=95, color="rgba(165,0,68,0.25)", line=dict(width=7, color="#A50044")),
+                hoverinfo="skip",
+                showlegend=False
+            ))
+            sizex = logo_sizex
+            sizey = logo_sizey
+        else:
+            sizex = logo_sizex
+            sizey = logo_sizey
+        # Marcador invisible para hover
         fig.add_trace(go.Scatter(
             x=[row['x']], y=[row['y']],
             mode="markers",
-            marker=dict(size=1, color='rgba(0,0,0,0)'),
-            name=row['Team'],
-            text=f"<b>{row['Team']}</b>",
+            marker=dict(size=1, color='rgba(0,0,0,0)', symbol="circle"),
+            name=team,
+            text=f"<b>{team}</b>",
             hoverinfo="text"
         ))
-        logo_path = get_logo_path(row['Team'])
+        logo_path = get_logo_path(team)
         if logo_path and os.path.exists(logo_path):
             fig.add_layout_image(
                 dict(
                     source=Image.open(logo_path),
-                    x=row['x'], y=row['y'],
-                    xref="x", yref="y",
-                    sizex=logo_sizex, sizey=logo_sizey,
-                    xanchor="center", yanchor="middle",
-                    layer="above", sizing="contain", opacity=1.0
+                    x=row['x'],
+                    y=row['y'],
+                    xref="x",
+                    yref="y",
+                    sizex=sizex,
+                    sizey=sizey,
+                    xanchor="center",
+                    yanchor="middle",
+                    layer="above",
+                    sizing="contain",
+                    opacity=1.0
                 )
             )
     fig.update_xaxes(range=[x_min, x_max], showticklabels=False, visible=False)
     fig.update_yaxes(range=[y_min, y_max], showticklabels=False, visible=False)
     fig.update_layout(
-        title="<b>Modelos de Juego: Clasificación de Equipos</b>",
+
         plot_bgcolor="#F8F9FA",
         paper_bgcolor="#FFFFFF",
         showlegend=False,
@@ -179,4 +197,128 @@ def plot_modelos_juego(df):
     return fig
 
 fig = plot_modelos_juego(df_teams)
-st.plotly_chart(fig, use_container_width=True) 
+st.plotly_chart(fig, use_container_width=True)
+
+# Tabla resumen de los modelos de juego
+st.markdown("""
+<style>
+.tabla-modelos {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0;
+    margin-top: 24px;
+    font-family: Arial, sans-serif;
+}
+.tabla-modelos th {
+    background: linear-gradient(90deg, #004D98 60%, #b50a2e 100%);
+    color: #fff;
+    padding: 18px 8px 14px 8px;
+    font-size: 1.25em;
+    border-radius: 18px 18px 0 0;
+    font-weight: bold;
+}
+.tabla-modelos td {
+    background: #fff;
+    color: #003366;
+    padding: 16px 18px;
+    vertical-align: top;
+    font-size: 1.08em;
+    border-bottom: 1px solid #e0e0e0;
+}
+.tabla-modelos tr:last-child td {
+    border-radius: 0 0 18px 18px;
+}
+</style>
+<table class='tabla-modelos'>
+    <tr>
+        <th>K1: Pressing & Positional Play</th>
+        <th>K2: Low Block & Counter</th>
+        <th>K3: High Press & Direct</th>
+        <th>K4: Structured & Balanced</th>
+    </tr>
+    <tr>
+        <td><b>Características:</b>
+            <ul>
+                <li>Recuperación alta y presión coordinada</li>
+                <li>Pases progresivos y posesión alta</li>
+                <li>Superioridad numérica en campo rival</li>
+            </ul>
+        </td>
+        <td><b>Características:</b>
+            <ul>
+                <li>Defensa compacta y bloque bajo</li>
+                <li>Contrataques rápidos y letales</li>
+                <li>Seguridad defensiva como base</li>
+            </ul>
+        </td>
+        <td><b>Características:</b>
+            <ul>
+                <li>Presión alta e intensidad defensiva</li>
+                <li>Transiciones rápidas y verticalidad</li>
+                <li>Duelo físico y ritmo elevado</li>
+            </ul>
+        </td>
+        <td><b>Características:</b>
+            <ul>
+                <li>Equilibrio entre defensa y ataque</li>
+                <li>Transiciones controladas y estructura táctica</li>
+                <li>Flexibilidad y solidez defensiva</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td><b>Definición:</b> Juego basado en el control del balón y la posesión posicional.</td>
+        <td><b>Definición:</b> Bloque bajo y transiciones rápidas, explota espacios del rival.</td>
+        <td><b>Definición:</b> Presión intensa y juego directo, superioridad física.</td>
+        <td><b>Definición:</b> Modelo híbrido, combina solidez y flexibilidad.</td>
+    </tr>
+    <tr>
+        <td><b>Tipo de plantilla:</b>
+            <ul>
+                <li>Guardiola, Flick</li>
+                <li>Jugadores inteligentes, técnicos, asociativos</li>
+                <li>Laterales que aportan amplitud</li>
+                <li>Mediocentro posicional de élite</li>
+                <li>Defensas con gran capacidad de pase</li>
+                <li>Extremos que juegan por dentro y crean juego</li>
+            </ul>
+        </td>
+        <td><b>Tipo de plantilla:</b>
+            <ul>
+                <li>Mourinho, Simeone</li>
+                <li>Centrales contundentes y bien posicionados</li>
+                <li>Lateral defensivo y lateral profundo</li>
+                <li>Delantero físico para descarga</li>
+                <li>Volantes intensos y veloces para transiciones</li>
+                <li>Portero con buen juego largo</li>
+            </ul>
+        </td>
+        <td><b>Tipo de plantilla:</b>
+            <ul>
+                <li>Klopp, Gasperini</li>
+                <li>Jugadores atléticos, agresivos, directos</li>
+                <li>Centrocampistas box-to-box</li>
+                <li>Delanteros que atacan el espacio</li>
+                <li>Centrales potentes en duelos</li>
+                <li>Extremos verticales con gran zancada</li>
+            </ul>
+        </td>
+        <td><b>Tipo de plantilla:</b>
+            <ul>
+                <li>Emery, Imanol Alguacil</li>
+                <li>Jugadores tácticamente disciplinados</li>
+                <li>Centrocampistas mixtos</li>
+                <li>Delanteros que participan en la creación</li>
+                <li>Líneas cortas entre líneas</li>
+                <li>Laterales con lectura táctica</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td><b>Filosofía:</b><br>"Si tenemos el balón, el rival no lo tiene."</td>
+        <td><b>Filosofía:</b><br>"Primero no encajar. Después, golpear."</td>
+        <td><b>Filosofía:</b><br>"El orden es enemigo del ritmo."</td>
+        <td><b>Filosofía:</b><br>"El equilibrio no es pasividad, es inteligencia colectiva."</td>
+    </tr>
+</table>
+""", unsafe_allow_html=True) 
