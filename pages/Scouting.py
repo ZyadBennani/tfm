@@ -49,14 +49,13 @@ except SyntaxError as e:
 st.set_page_config(
     page_title="Player Scouting",
     page_icon="🔍",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 # Importar funciones de navegación
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.navigation import show_home_button, show_page_header, show_navbar_switch_page
+from utils.navigation import show_home_button, show_page_header
 
 # Mostrar botón de volver al inicio
 show_home_button()
@@ -970,11 +969,11 @@ with tab1:
             'total_leagues': filtered_df[league_col].nunique() if league_col and league_col in filtered_df.columns else 0,
             'total_clubs': filtered_df['Club'].nunique() if 'Club' in filtered_df.columns else 0,
             'avg_rating': filtered_df['Rating'].mean() if 'Rating' in filtered_df.columns else 0
-        }
+        };
         
         # Obtener estadísticas del gestor de fotos
         photo_manager = get_photo_manager_cached()
-        photo_stats = photo_manager.get_stats()
+        photo_stats = photo_manager.get_stats();
         
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -1184,7 +1183,7 @@ with tab1:
                 st.session_state.sort_ascending = True
             
             # Crear encabezados de columnas como botones clicables (ajustar anchos)
-            cols = st.columns([0.3, 0.6, 1.8, 1.7, 1.2, 1.0, 1.3, 1.8, 1.2, 1.2, 1.5])
+            cols = st.columns([0.2, 0.4, 1.8, 1.7, 1.2, 1.0, 1.3, 1.8, 1.2, 1.2, 1.5])
             headers = ["", "", "Jugador", "Posición", "Perfil", "Pie", "Edad", "Club", "Sal", "Valor", "Rating"]
             sort_columns = ["", "", "Name", "Position", "Profile", "Foot", "Age", "Club", "Salary_Annual", "Market_Value", "Display_Rating"]
             
@@ -1280,26 +1279,19 @@ with tab1:
             end_idx = start_idx + players_per_page
             paginated_df = sorted_df.iloc[start_idx:end_idx].copy()
             
-            # Actualizar selección de jugadores según checkboxes ANTES de procesar el botón
-            selected_names = []
-            for idx, (_, player) in enumerate(paginated_df.iterrows()):
-                key = f"chk_{player['Name']}"
-                if st.session_state.get(key, False):
-                    selected_names.append(player['Name'])
-            st.session_state.selected_players = selected_names
-
             # Mostrar cada jugador
             for idx, (_, player) in enumerate(paginated_df.iterrows()):
-                cols = st.columns([0.3, 0.6, 1.8, 1.7, 1.2, 1.0, 1.3, 1.8, 1.2, 1.2, 1.5])
+                cols = st.columns([0.2, 0.4, 1.8, 1.7, 1.2, 1.0, 1.3, 1.8, 1.2, 1.2, 1.5])
                 
                 # Columna 0: Checkbox
                 with cols[0]:
                     checked = player['Name'] in st.session_state.selected_players
-                    # El checkbox añade o quita de la selección, pero si la selección se limpió, se desmarca
+                    # Usar un checkbox con un key único
                     if st.checkbox("", value=checked, key=f"chk_{player['Name']}"):
                         if player['Name'] not in st.session_state.selected_players:
                             st.session_state.selected_players.append(player['Name'])
-                        else:
+                    else:
+                        if player['Name'] in st.session_state.selected_players:
                             st.session_state.selected_players.remove(player['Name'])
                 
                 # Columna 1: Foto (50x50px - más grande)
@@ -1386,17 +1378,19 @@ with tab1:
         
         # Botones de acción para shortlist
         col1, col2, col3 = st.columns([2, 2, 4])
+        
         with col1:
             if st.button("➕ Añadir seleccionados a shortlist"):
                 for name in st.session_state.selected_players:
                     if name not in st.session_state.shortlist:
                         st.session_state.shortlist.append(name)
-                st.session_state.selected_players = []
-                import streamlit as st
-                st.rerun()
+                st.rerun()  # <-- Esto refresca la vista y muestra las cards
+
         with col2:
             if st.button("🗑️ Limpiar shortlist"):
                 st.session_state.shortlist = []
+                st.rerun()
+
         with col3:
             if st.session_state.shortlist:
                 shortlist_names = ", ".join(st.session_state.shortlist[:3])
@@ -1404,51 +1398,54 @@ with tab1:
                     shortlist_names += f" y {len(st.session_state.shortlist) - 3} más..."
                 st.info(f"📋 Shortlist: {shortlist_names}")
 
-# Mostrar shortlist como Card View SIEMPRE que haya jugadores, fuera de cualquier condicional de tabla
-if 'shortlist' in st.session_state and st.session_state.shortlist:
-    st.markdown("<h4 style='margin-top:2rem;'>Shortlist seleccionada</h4>", unsafe_allow_html=True)
-    cols = st.columns(min(3, len(st.session_state.shortlist)))
-    for i, name in enumerate(st.session_state.shortlist):
-        with cols[i % len(cols)]:
-            player = df[df['Name'] == name].iloc[0] if not df[df['Name'] == name].empty else None
-            if player is not None:
-                photo_manager = get_photo_manager_cached()
-                photo_base64 = photo_manager.get_player_photo_base64(player['Name'], size=(80, 80))
-                position_emoji = {
-                    'GK': '🟡', 'CB': '🔵', 'RB': '🟢', 'LB': '🟢',
-                    'CM': '⚪', 'CDM': '⚪', 'CAM': '🟠',
-                    'RW': '🟣', 'LW': '🟣', 'ST': '🔴'
-                }.get(player['Position'], '⚫')
-                display_rating = player.get('Display_Rating', player.get('Calculated_Rating', player.get('Rating', 65)))
-                display_rating = int(display_rating)
-                if display_rating >= 85:
-                    badge_color = "#22c55e"
-                elif display_rating >= 75:
-                    badge_color = "#f59e0b"
-                elif display_rating >= 65:
-                    badge_color = "#ef4444"
-                else:
-                    badge_color = "#6b7280"
-                perfil = perfiles_es_en.get(player.get('Profile', ''), player.get('Profile', 'Profile not available.'))
-                st.markdown(f"""
-                    <div class=\"player-card\">
-                        <div style=\"display: flex; justify-content: center; margin-bottom: 1rem;\">
-                            <img src=\"data:image/png;base64,{photo_base64}\" 
-                                 style=\"width: 80px; height: 80px; border-radius: 50%; object-fit: cover; 
-                                        border: 3px solid #004D98; box-shadow: 0 4px 8px rgba(0,0,0,0.2);\">
-                        </div>
-                        <h3 style=\"text-align: center; margin-bottom: 0.5rem;\">{player['Name']}</h3>
-                        <p style=\"text-align: center;\">{position_emoji} {player['Position']} | 👤 {int(player['Age'])} años</p>
-                        <p style=\"text-align: center;\">{player['Nationality']} |  {player['Club']}</p>
-                        <p style=\"text-align: center;\">€{player.get('Market_Value', 0):.1f}M | {player['Height']}cm</p>
-                        <div style=\"display: flex; justify-content: center; margin-top: 0.5rem;\">
-                            <div style=\"background-color: {badge_color}; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 1rem; font-weight: 600;\">
-                            Rating: {display_rating} ⚡
-                            </div>
-                        </div>
-                        <p style=\"text-align: center; color:#555; font-size:1.05em; margin-top:18px; margin-bottom:8px;\">{perfil}</p>
-                    </div>
-                """, unsafe_allow_html=True)
+        # Mostrar cartas de la shortlist justo debajo de los botones
+        if st.session_state.shortlist:
+            st.markdown("<h4 style='margin-top:2rem;'>Shortlist seleccionada</h4>", unsafe_allow_html=True)
+            # Mostrar en filas de 3 columnas
+            shortlist_players = [df_with_ratings[df_with_ratings['Name'] == name].iloc[0] for name in st.session_state.shortlist if not df_with_ratings[df_with_ratings['Name'] == name].empty]
+            for i in range(0, len(shortlist_players), 3):
+                cols = st.columns(3)
+                for j, col in enumerate(cols):
+                    if i + j < len(shortlist_players):
+                        player = shortlist_players[i + j]
+                        position_emoji = {
+                            'GK': '🟡', 'CB': '🔵', 'RB': '🟢', 'LB': '🟢',
+                            'CM': '⚪', 'CDM': '⚪', 'CAM': '🟠',
+                            'RW': '🟣', 'LW': '🟣', 'ST': '🔴'
+                        }.get(player['Position'], '⚫')
+                        display_rating = player.get('Display_Rating', player.get('Calculated_Rating', player.get('Rating', 65)))
+                        display_rating = int(display_rating)
+                        if display_rating >= 85:
+                            badge_color = "#22c55e"
+                        elif display_rating >= 75:
+                            badge_color = "#f59e0b"
+                        elif display_rating >= 65:
+                            badge_color = "#ef4444"
+                        else:
+                            badge_color = "#6b7280"
+                        perfil = perfiles_es_en.get(player.get('Profile', ''), player.get('Profile', 'Perfil no disponible.'))
+                        photo_manager = get_photo_manager_cached()
+                        photo_base64 = photo_manager.get_player_photo_base64(player['Name'], size=(80, 80))
+                        with col:
+                            st.markdown(f"""
+                                <div class="player-card">
+                                    <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                                        <img src="data:image/png;base64,{photo_base64}" 
+                                             style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; 
+                                                    border: 3px solid #004D98; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                    </div>
+                                    <h3 style="text-align: center; margin-bottom: 0.5rem;">{player['Name']}</h3>
+                                    <p style="text-align: center; color:#555; font-size:1.05em; margin-top:-10px; margin-bottom:8px;">{perfil}</p>
+                                    <p style="text-align: center;">{position_emoji} {player['Position']} | 👤 {int(player['Age'])} años</p>
+                                    <p style="text-align: center;">{player['Nationality']} |  {player['Club']}</p>
+                                    <p style="text-align: center;">€{player.get('Market_Value', 0):.1f}M | {player['Height']}cm</p>
+                                    <div style="display: flex; justify-content: center; margin-top: 0.5rem;">
+                                        <div style="background-color: {badge_color}; color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 1rem; font-weight: 600;">
+                                        Rating: {display_rating} ⚡
+                                        </div>
+                                    </div>
+                                </div>
+                            """, unsafe_allow_html=True)
 
     # Sección de gestión manual de shortlist
     with st.expander("📋 Gestión de Shortlist", expanded=len(st.session_state.shortlist) > 0):
@@ -1598,39 +1595,57 @@ def create_football_pitch():
 
 # Placeholder para el comparador de jugadores
 if st.button("Compare Selected Players"):
-    st.markdown("### Player Comparison")
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Radar chart placeholder
-        fig = go.Figure()
-        fig.add_trace(go.Scatterpolar(
-            r=[80, 70, 85, 75, 90],
-            theta=['Pace', 'Shooting', 'Passing', 'Dribbling', 'Physical'],
-            fill='toself',
-            name='Player 1'
-        ))
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, 100]
-                )
-            ),
-            showlegend=True,
-            paper_bgcolor='#1E293B',
-            plot_bgcolor='#1E293B',
-            font=dict(color='#E2E8F0')
-        )
-        st.plotly_chart(fig)
-    
-    with col2:
-        # Tabla comparativa placeholder
-        st.dataframe(pd.DataFrame({
-            'Metric': ['Goals', 'Assists', 'Pass %', 'Tackles'],
-            'Player 1': [15, 8, 87, 45],
-            'Player 2': [12, 12, 92, 32]
-        }))
+    selected_names = st.session_state.selected_players
+    if len(selected_names) < 2:
+        st.warning("Selecciona al menos 2 jugadores para comparar.")
+    elif len(selected_names) > 3:
+        st.warning("Solo puedes comparar hasta 3 jugadores. Por favor, selecciona máximo 3.")
+    else:
+        st.markdown("### Player Comparison")
+        col1, col2 = st.columns(2)
+        # Obtener datos de los jugadores seleccionados
+        compare_df = df_with_ratings[df_with_ratings['Name'].isin(selected_names)]
+        # Definir métricas para el radar
+        radar_metrics = ['Pace', 'Shooting', 'Passing', 'Dribbling', 'Physical']
+        # Si alguna métrica no existe, usar columnas numéricas comunes
+        available_metrics = [m for m in radar_metrics if m in compare_df.columns]
+        if not available_metrics:
+            available_metrics = compare_df.select_dtypes(include='number').columns.tolist()[1:6]
+        # Radar chart
+        with col1:
+            fig = go.Figure()
+            for _, row in compare_df.iterrows():
+                fig.add_trace(go.Scatterpolar(
+                    r=[row.get(m, 0) for m in available_metrics],
+                    theta=available_metrics,
+                    fill='toself',
+                    name=row['Name']
+                ))
+            fig.update_layout(
+                polar=dict(
+                    radialaxis=dict(
+                        visible=True,
+                        range=[0, 100]
+                    )
+                ),
+                showlegend=True,
+                paper_bgcolor='#1E293B',
+                plot_bgcolor='#1E293B',
+                font=dict(color='#E2E8F0')
+            )
+            st.plotly_chart(fig)
+        # Tabla comparativa
+        with col2:
+            table_metrics = ['Goals', 'Assists', 'Pass %', 'Tackles']
+            available_table_metrics = [m for m in table_metrics if m in compare_df.columns]
+            if not available_table_metrics:
+                available_table_metrics = compare_df.select_dtypes(include='number').columns.tolist()[1:5]
+            table = pd.DataFrame({
+                'Metric': available_table_metrics
+            })
+            for name in compare_df['Name']:
+                table[name] = compare_df[compare_df['Name'] == name][available_table_metrics].values[0]
+            st.dataframe(table)
 
 # Botón de exportar informe
 st.download_button(
@@ -1641,5 +1656,4 @@ st.download_button(
 ) 
 
 # ⭐ PANEL DE INFORMACIÓN DEL CACHE (en sidebar)
-# (Eliminar todo el bloque 'with st.sidebar: ... with st.expander("🚀 Estado del Cache", ...): ...')
-
+# (Eliminar todo el bloque 'with st.sidebar: ... with st.expander("🚀 Estado del Cache", ...): ...'
