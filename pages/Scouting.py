@@ -57,12 +57,12 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.navigation import show_home_button, show_page_header
 
-# Mostrar botón de volver al inicio
-show_home_button()
+
 
 # Añadir espacio antes del header para posicionarlo más abajo
 st.markdown("<div style='margin-top: 40px; margin-bottom: 20px;'></div>", unsafe_allow_html=True)
-
+# Mostrar botón de volver al inicio
+show_home_button()
 # Mostrar header de la página
 show_page_header("Player Scouting", "Sistema avanzado de scouting y análisis de jugadores", "🔍")
 
@@ -1183,7 +1183,7 @@ with tab1:
                 st.session_state.sort_ascending = True
             
             # Crear encabezados de columnas como botones clicables (ajustar anchos)
-            cols = st.columns([0.2, 0.4, 1.8, 1.7, 1.2, 1.0, 1.3, 1.8, 1.2, 1.2, 1.5])
+            cols = st.columns([0.2, 0.7, 1.8, 1.7, 1.2, 1.0, 1.3, 1.8, 1.2, 1.2, 1.5])
             headers = ["", "", "Jugador", "Posición", "Perfil", "Pie", "Edad", "Club", "Sal", "Valor", "Rating"]
             sort_columns = ["", "", "Name", "Position", "Profile", "Foot", "Age", "Club", "Salary_Annual", "Market_Value", "Display_Rating"]
             
@@ -1281,7 +1281,7 @@ with tab1:
             
             # Mostrar cada jugador
             for idx, (_, player) in enumerate(paginated_df.iterrows()):
-                cols = st.columns([0.2, 0.4, 1.8, 1.7, 1.2, 1.0, 1.3, 1.8, 1.2, 1.2, 1.5])
+                cols = st.columns([0.2, 0.7, 1.8, 1.7, 1.2, 1.0, 1.3, 1.8, 1.2, 1.2, 1.5])
                 
                 # Columna 0: Checkbox
                 with cols[0]:
@@ -1298,9 +1298,9 @@ with tab1:
                 with cols[1]:
                     photo_base64 = photo_manager.get_player_photo_base64(player['Name'], size=(50, 50))
                     st.markdown(f"""
-                        <div style="display: flex; justify-content: center; align-items: center; height: 50px;">
+                        <div style="display: flex; justify-content: center; align-items: center; height: 50px; min-width: 60px;">
                             <img src="data:image/png;base64,{photo_base64}" 
-                                 style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                                 style="width: 50px; height: 50px; min-width: 50px; min-height: 50px; border-radius: 50%; object-fit: cover;">
                         </div>
                     """, unsafe_allow_html=True)
                 

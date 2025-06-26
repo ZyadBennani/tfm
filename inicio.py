@@ -1115,6 +1115,21 @@ st.markdown("""
         background: #fff !important;
         caret-color: #000 !important;
     }
+    .stSelectbox div[data-baseweb="select"] [data-testid="stMarkdownContainer"] span {
+        color: #000 !important;
+        background: #fff !important;
+    }
+    .stMultiSelect div[data-baseweb="select"] span,
+    .stMultiSelect div[data-baseweb="select"] input,
+    .stMultiSelect div[data-baseweb="select"] {
+        color: #000 !important;
+        background: #fff !important;
+        caret-color: #000 !important;
+    }
+    .stMultiSelect div[data-baseweb="select"] [data-testid="stMarkdownContainer"] span {
+        color: #000 !important;
+        background: #fff !important;
+    }
     /* Fin layout y espaciado profesional */
 
     /* BLOQUE DE CSS GLOBAL PARA HEADERS Y TITULOS UNIFORMES */
@@ -1280,7 +1295,7 @@ if st.session_state.pagina_actual == 'inicio':
                 margin-bottom: 5px;
                 letter-spacing: 1px;
                 font-family: var(--font-title);
-            ">🌍 Selecciona una Liga</h2>
+            ">Selecciona una Liga</h2>
         </div>
     """, unsafe_allow_html=True)
     
@@ -1291,29 +1306,21 @@ if st.session_state.pagina_actual == 'inicio':
     for i, liga_nombre in enumerate(ligas_lista):
         with cols[i]:
             logo_path = get_league_logo_path(liga_nombre)
+            st.markdown('<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 0;">', unsafe_allow_html=True)
             if os.path.exists(logo_path):
                 # Tamaño especial para Premier League (20% más grande)
                 if liga_nombre == "Premier League":
                     logo_class = "league-logo-premier"
                 else:
                     logo_class = "league-logo"
-                
-                # Estructura HTML mejorada para que el logo aparezca DENTRO de la tarjeta
-                st.markdown(f'''
-                    <div class="liga-card">
-                        <img src="data:image/png;base64,{get_image_base64(logo_path)}" class="{logo_class}" alt="{liga_nombre}"/>
-                    </div>
-                ''', unsafe_allow_html=True)
+                st.markdown(f'<img src="data:image/png;base64,{get_image_base64(logo_path)}" class="{logo_class}" alt="{liga_nombre}"/>', unsafe_allow_html=True)
             else:
-                st.markdown(f'''
-                    <div class="liga-card">
-                        <div class="placeholder-image">Logo {liga_nombre}</div>
-                    </div>
-                ''', unsafe_allow_html=True)
-            
+                st.markdown(f'<div class="placeholder-image">Logo {liga_nombre}</div>', unsafe_allow_html=True)
+            st.markdown('<div style="margin-top: 18px; width: 100%; display: flex; justify-content: center;">', unsafe_allow_html=True)
             if st.button(f"Ver {liga_nombre}", key=f"btn_{liga_nombre}"):
                 st.session_state.liga_seleccionada = liga_nombre
                 st.rerun()
+            st.markdown('</div></div>', unsafe_allow_html=True)
     
     st.markdown('</div>', unsafe_allow_html=True)  # Cerrar el div de la cuadrícula
 

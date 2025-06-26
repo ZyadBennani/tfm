@@ -266,7 +266,7 @@ def show_fcb_lab_brand():
     """, unsafe_allow_html=True) 
 
 def show_navbar_switch_page():
-    """Navbar superior con navegación robusta usando st.switch_page()"""
+    """Navbar superior con navegación robusta usando st.switch_page(), alineada y estética."""
     st.markdown("""
         <style>
         .navbar-switch {
@@ -274,27 +274,51 @@ def show_navbar_switch_page():
             top: 0;
             z-index: 9999;
             background: linear-gradient(90deg, #004D98 80%, #a5001c 100%);
-            padding: 0.5rem 0 0.5rem 0;
+            margin: 32px auto 28px auto;
+            padding: 0.7rem 0 0.7rem 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             display: flex;
+            flex-wrap: nowrap;
             justify-content: center;
             align-items: center;
-            gap: 2.5rem;
+            gap: 1.2rem;
+            max-width: 1200px;
+            border-radius: 2.5rem;
         }
         .navbar-switch .stButton > button {
             color: #fff;
             font-weight: 600;
             font-size: 1.08em;
             text-decoration: none;
-            padding: 0.4rem 1.2rem;
-            border-radius: 0.5rem;
+            padding: 0.7rem 2.2rem;
+            border-radius: 2.5rem;
             background: transparent;
             border: none;
-            transition: background 0.2s, color 0.2s;
+            min-width: 140px;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(0,77,152,0.10);
+            margin: 0;
+            display: inline-block;
+        }
+        .navbar-switch .stButton {
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .navbar-switch .stButton > button:hover {
             background: #a5001c;
             color: #fff;
+            box-shadow: 0 4px 16px rgba(165,0,28,0.18);
+        }
+        @media (max-width: 1100px) {
+            .navbar-switch { max-width: 98vw; gap: 0.7rem; }
+            .navbar-switch .stButton > button { min-width: 90px; font-size: 0.98em; padding: 0.6rem 1.1rem; }
+        }
+        @media (max-width: 700px) {
+            .navbar-switch { flex-wrap: wrap; gap: 0.5rem; padding: 0.5rem 0; }
+            .navbar-switch .stButton > button { min-width: 80px; font-size: 0.92em; padding: 0.5rem 0.7rem; }
         }
         </style>
     """, unsafe_allow_html=True)
@@ -311,7 +335,11 @@ def show_navbar_switch_page():
     ]
     
     cols = st.columns(len(pages), gap="small")
+    st.markdown('<div class="navbar-switch">', unsafe_allow_html=True)
     for i, (label, page_path) in enumerate(pages):
         with cols[i]:
+            st.markdown('<div style="display:flex;align-items:center;justify-content:center;margin:0;padding:0;">', unsafe_allow_html=True)
             if st.button(label, key=f"navbar_{label}"):
-                st.switch_page(page_path) 
+                st.switch_page(page_path)
+            st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True) 
