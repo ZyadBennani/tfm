@@ -29,7 +29,6 @@ st.set_page_config(
 )
 st.markdown("""
     <style>
-    [data-testid='stSidebarNav'] {display: none !important;}
     /* Estilo especial para la métrica de valor de mercado */
     div[data-testid="metric-container"] {
         background-color: #f0f2f6;
@@ -80,6 +79,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 show_home_button()
+show_page_header("Plantilla")
 
 
 # Definición completa de la plantilla del Barça organizada por posiciones

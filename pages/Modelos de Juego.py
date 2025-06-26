@@ -19,12 +19,6 @@ show_home_button()
 # Mostrar header de la página
 show_page_header("Modelos de Juego")
 
-st.markdown("""
-    <style>
-    [data-testid='stSidebarNav'] {display: none !important;}
-    </style>
-""", unsafe_allow_html=True)
-
 # Definición de métricas por modelo
 MODELOS_JUEGO = {
     'K1': [
@@ -197,7 +191,6 @@ def plot_modelos_juego(df):
     fig.update_xaxes(range=[x_min, x_max], showticklabels=False, visible=False)
     fig.update_yaxes(range=[y_min, y_max], showticklabels=False, visible=False)
     fig.update_layout(
-
         plot_bgcolor="#F8F9FA",
         paper_bgcolor="#FFFFFF",
         showlegend=False,
@@ -331,6 +324,69 @@ st.markdown("""
         <td><b>Filosofía:</b><br>"Primero no encajar. Después, golpear."</td>
         <td><b>Filosofía:</b><br>"El orden es enemigo del ritmo."</td>
         <td><b>Filosofía:</b><br>"El equilibrio no es pasividad, es inteligencia colectiva."</td>
+    </tr>
+    <tr>
+        <td><b>Métricas:</b>
+            <ul>
+                <li>Passes to final third / accurate</li>
+                <li>Average passes per possession</li>
+                <li>Progressive passes / accurate</li>
+                <li>Deep completed crosses</li>
+                <li>Penalty area entries (runs / crosses)</li>
+                <li>Recoveries / Low / Medium / High</li>
+                <li>Touches in penalty area</li>
+                <li>Positional attacks / with shots</li>
+                <li>xG</li>
+            </ul>
+        </td>
+        <td><b>Métricas:</b>
+            <ul>
+                <li>PPDA</li>
+                <li>Recoveries / Low / Medium / High</li>
+                <li>Average passes per possession</li>
+                <li>Defensive duels / won</li>
+                <li>Interceptions</li>
+                <li>Losses / Low / Medium / High</li>
+                <li>Counterattacks / with shots</li>
+                <li>xG</li>
+                <li>PSxGA</li>
+                <li>Clearances</li>
+                <li>Shots / on target</li>
+            </ul>
+        </td>
+        <td><b>Métricas:</b>
+            <ul>
+                <li>PPDA</li>
+                <li>Recoveries / Low / Medium / High</li>
+                <li>Counterattacks / with shots</li>
+                <li>xG</li>
+                <li>Forward passes / accurate</li>
+                <li>Progressive passes / accurate</li>
+                <li>Defensive duels / won</li>
+                <li>Losses / Low / Medium / High</li>
+                <li>Penalty area entries (runs / crosses)</li>
+                <li>Aerial duels / won</li>
+                <li>Goals</li>
+            </ul>
+        </td>
+        <td><b>Métricas:</b>
+            <ul>
+                <li>Possession, %</li>
+                <li>Average passes per possession</li>
+                <li>xG</li>
+                <li>Counterattacks / with shots</li>
+                <li>Positional attacks / with shots</li>
+                <li>Defensive duels / won</li>
+                <li>Recoveries / Low / Medium / High</li>
+                <li>Progressive passes / accurate</li>
+                <li>Shots / on target</li>
+                <li>Losses / Low / Medium / High</li>
+                <li>Crosses / accurate</li>
+                <li>Long passes / accurate</li>
+                <li>Passes / accurate</li>
+                <li>PPDA</li>
+            </ul>
+        </td>
     </tr>
 </table>
 """, unsafe_allow_html=True) 

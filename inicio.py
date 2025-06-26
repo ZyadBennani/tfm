@@ -549,7 +549,7 @@ def mostrar_rankings_liga(selected_team, liga="La Liga Española"):
         ("xG/90", "xG"),
     ]
     
-    metric_key = st.selectbox("Selecciona métrica para ranking", [m[1] for m in metric_options], index=0, key="ranking_metric_selector")
+    metric_key = st.selectbox("Selecciona métrica para ranking", [m[1] for m in metric_options], index=0, key=f"ranking_metric_selector_{liga}")
     metric_col = [m[0] for m in metric_options if m[1] == metric_key][0]
     
     # Ordenar ranking (mayor a menor, salvo PPDA y PSxGA que menor es mejor)
@@ -585,27 +585,40 @@ def mostrar_equipos(liga):
     st.markdown("---")  # Separador visual
     
     # Obtener lista de equipos según la liga
-    if liga == "La Liga":
+    liga_key = None
+    if liga in ["La Liga", "La Liga Española"]:
+        liga_key = "La Liga Española"
         team_names = [name for name, _ in LALIGA_TEAMS]
     elif liga == "Premier League":
+        liga_key = "Premier League"
         team_names = [name for name, _ in PREMIER_TEAMS]
     elif liga == "Serie A":
+        liga_key = "Serie A"
         team_names = [name for name, _ in SERIE_A_TEAMS]
     elif liga == "Bundesliga":
+        liga_key = "Bundesliga"
         team_names = [name for name, _ in BUNDESLIGA_TEAMS]
     elif liga == "Ligue 1":
+        liga_key = "Ligue 1"
         team_names = [name for name, _ in LIGUE1_TEAMS]
     else:
+        liga_key = "La Liga Española"
         team_names = [name for name, _ in LALIGA_TEAMS]
     
     # Div para scroll robusto
     st.markdown('<div id="scroll-analisis"></div>', unsafe_allow_html=True)
-    # Selector de equipo global (idéntico a Analisis Propio)
-    if 'equipo_seleccionado' in st.session_state and st.session_state.equipo_seleccionado in team_names:
-        selected_index = team_names.index(st.session_state.equipo_seleccionado)
+    # Resetear equipo seleccionado si cambia la liga
+    if 'liga_anterior' not in st.session_state:
+        st.session_state.liga_anterior = liga_key
+    if st.session_state.liga_anterior != liga_key:
+        st.session_state.equipo_seleccionado = team_names[0]
+        st.session_state.liga_anterior = liga_key
+    if st.session_state.get('equipo_seleccionado') in team_names:
+        selected_index = team_names.index(st.session_state['equipo_seleccionado'])
     else:
         selected_index = 0
-    selected_team = st.selectbox("🎯 Equipo a resaltar en análisis", team_names, index=selected_index, key="team_selector")
+    selected_team = st.selectbox("🎯 Equipo a resaltar en análisis", team_names, index=selected_index, key=f"team_selector_{liga_key}")
+    st.session_state.equipo_seleccionado = selected_team
     # Scroll automático si se viene de 'Ver equipo' (con retry)
     if st.session_state.get('scroll_to_selector', False):
         st.markdown("""
@@ -1154,8 +1167,6 @@ st.markdown("""
     .main-header, .main-header span {
         color: #fff !important;
     }
-    /* Ocultar sidebar por defecto */
-    .stSidebar {display: none !important;}
     /* Navbar superior fija */
     .navbar {
         position: sticky;
@@ -1185,9 +1196,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# NAVBAR SUPERIOR FIJA
-show_navbar_switch_page()
-
 # Contenedor principal
 # Inicializar variables de estado
 if 'pagina_actual' not in st.session_state:
@@ -1196,6 +1204,9 @@ if 'liga_seleccionada' not in st.session_state:
     st.session_state.liga_seleccionada = None
 if 'equipo_seleccionado' not in st.session_state:
     st.session_state.equipo_seleccionado = None
+
+# NAVBAR SUPERIOR FIJA
+show_navbar_switch_page()
 
 # Sección principal con título FCBLAB
 st.markdown("""
@@ -1269,7 +1280,7 @@ col1, col2 = st.columns(2, gap="large")
 col3, col4 = st.columns(2, gap="large")
 
 with col1:
-    if st.button("Análisis y comparativa de equipos", key="analisis_equipos", use_container_width=True):
+    if st.button("Análisis y comparación de equipos", key="analisis_equipos", use_container_width=True):
         st.switch_page("pages/Análisis y comparativa de equipos.py")
 with col2:
     if st.button("Barça VS Bayern", key="barca_bayern", use_container_width=True):
@@ -1281,8 +1292,12 @@ with col4:
     if st.button("Modelos de Juego", key="modelos_juego", use_container_width=True):
         st.switch_page("pages/Modelos de Juego.py")
 
-# Separador visual
-st.markdown("<hr style='margin: 20px 0; opacity: 0.2;'>", unsafe_allow_html=True)
+# Casilla de acceso centrada a Plantilla debajo de las cuatro principales
+st.markdown("<div style='height: 18px'></div>", unsafe_allow_html=True)
+col_central = st.columns([1,2,1])[1]
+with col_central:
+    if st.button("Plantilla", key="plantilla", use_container_width=True):
+        st.switch_page("pages/Plantilla.py")
 
 # Si estamos en la página de inicio, mostrar el contenido normal
 if st.session_state.pagina_actual == 'inicio':

@@ -266,17 +266,15 @@ def show_fcb_lab_brand():
     """, unsafe_allow_html=True) 
 
 def show_navbar_switch_page():
-    """Navbar superior con navegación robusta usando st.switch_page(), alineada y estética."""
+    """Navbar superior con navegación robusta usando st.switch_page(), alineada y estética, SIN barra de fondo extra."""
     st.markdown("""
         <style>
         .navbar-switch {
-            position: sticky;
-            top: 0;
-            z-index: 9999;
-            background: linear-gradient(90deg, #004D98 80%, #a5001c 100%);
-            margin: 32px auto 28px auto;
-            padding: 0.7rem 0 0.7rem 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            /* Eliminar fondo y barra horizontal, solo dejar los botones */
+            background: none !important;
+            box-shadow: none !important;
+            margin: 0 auto 0 auto;
+            padding: 0;
             display: flex;
             flex-wrap: nowrap;
             justify-content: center;
@@ -292,7 +290,7 @@ def show_navbar_switch_page():
             text-decoration: none;
             padding: 0.7rem 2.2rem;
             border-radius: 2.5rem;
-            background: transparent;
+            background: linear-gradient(135deg, #004D98, #a5001c);
             border: none;
             min-width: 140px;
             transition: background 0.2s, color 0.2s, box-shadow 0.2s;
@@ -325,13 +323,13 @@ def show_navbar_switch_page():
     
     pages = [
         ("Inicio", "Inicio.py"),
-        ("Scouting", "pages/Scouting.py"),
-        ("Plantilla", "pages/Plantilla.py"),
-        ("Peak Age Analytics", "pages/Peak Age Analytics.py"),
-        ("Modelos de Juego", "pages/Modelos de Juego.py"),
-        ("Análisis propio", "pages/Análisis propio.py"),
-        ("Comparativa equipos", "pages/Análisis y comparativa de equipos.py"),
+        ("Comparación", "pages/Análisis y comparativa de equipos.py"),
         ("Barça VS Bayern", "pages/Barça VS Bayern.py"),
+        ("Análisis propio", "pages/Análisis propio.py"),
+        ("Plantilla", "pages/Plantilla.py"),
+        ("Modelos de Juego", "pages/Modelos de Juego.py"),
+        ("Peak Age Analytics", "pages/Peak Age Analytics.py"),
+        ("Scouting", "pages/Scouting.py"),
     ]
     
     cols = st.columns(len(pages), gap="small")

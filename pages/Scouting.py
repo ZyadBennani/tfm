@@ -49,7 +49,8 @@ except SyntaxError as e:
 st.set_page_config(
     page_title="Player Scouting",
     page_icon="🔍",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # Importar funciones de navegación
