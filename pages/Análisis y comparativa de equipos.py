@@ -10,6 +10,7 @@ import itertools
 import glob
 import sys
 
+
 # Configuración de la página
 st.set_page_config(
     page_title="Análisis y comparativa de equipos",

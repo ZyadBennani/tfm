@@ -647,8 +647,6 @@ def create_comparison_table(team_name, all_teams_data, metrics_extractor, table_
     
     return table_html
 
-
-
 selected_team = st.selectbox(
     "Equipo:",
     laliga_teams,

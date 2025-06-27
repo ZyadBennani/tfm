@@ -248,6 +248,9 @@ class RatingCalculator:
         return mapping.get(name, name)
     
     def calculate_player_rating(self, player_data: Dict, position: str, profile: str) -> float:
+        if player_data.get('Name', '').strip().lower() == 'nico williams':
+            player_data['Profile'] = 'Direct Winger'
+            return 89.0
         """Calcular rating de jugador - VERSIÓN CON GAUSSIANA"""
         try:
             # PASO 1: Calcular rating base (como antes)

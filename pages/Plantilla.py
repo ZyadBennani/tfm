@@ -81,7 +81,6 @@ st.markdown("""
 show_home_button()
 show_page_header("Plantilla")
 
-
 # Definición completa de la plantilla del Barça organizada por posiciones
 barca_full_squad = {
     # Porteros
@@ -151,8 +150,8 @@ barca_positions_campograma = {
     "Ferran Torres": (65, 5),
     "Raphinha": (77, 60),
     "Ansu Fati": (65, 60),
-    "Robert Lewandowski": (95, 40),
-    "Pau Victor": (95, 25),
+    "Robert Lewandowski": (90, 40),
+    "Pau Victor": (90, 25),
 }
 
 # Función para crear un degradado blaugrana

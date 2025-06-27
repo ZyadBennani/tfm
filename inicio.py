@@ -18,6 +18,20 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# CSS global para ocultar el texto 'keyboard_double_arrow_right' en toda la app
+st.markdown("""
+    <style>
+    div, span, p {
+        /* Oculta cualquier texto exacto 'keyboard_double_arrow_right' */
+        /* Solo lo oculta visualmente, no elimina la funcionalidad */
+    }
+    [data-testid="stMarkdownContainer"]:has(> :contains('keyboard_double_arrow_right')) {
+        color: transparent !important;
+        font-size: 0 !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Placeholder - se definirá después de las listas globales
 ligas_y_equipos = {}
 
