@@ -766,17 +766,10 @@ def display_table_with_streamlit(team_name, all_teams_data, metrics_extractor, t
         sorted_values = sorted([(v, team) for team, v in [(t, teams_metrics[t][metric]) for t in teams_metrics.keys()]], reverse=True)
         ranking = next(i+1 for i, (v, t) in enumerate(sorted_values) if t == team_name)
         
-        # Calcular porcentaje para la barra de progreso
-        if stats['max'] - stats['min'] > 0:
-            progress_percent = ((value - stats['min']) / (stats['max'] - stats['min'])) * 100
-        else:
-            progress_percent = 50
-        
         table_data.append({
             'Métrica': metric,
             'Ranking': f"#{ranking}",
             'Valor': f"{value:.2f}",
-            'Progreso (%)': f"{progress_percent:.0f}%",
             'Min / Max': f"{stats['min']:.2f} / {stats['max']:.2f}",
             'Promedio Liga': f"{stats['avg']:.2f}"
         })
@@ -796,33 +789,27 @@ def display_table_with_streamlit(team_name, all_teams_data, metrics_extractor, t
         height=dynamic_height,  # Altura dinámica basada en contenido
         column_config={
             "Métrica": st.column_config.TextColumn(
-                "📊 Métrica", 
+                "Métrica", 
                 width="large",
                 help="Indicador clave de rendimiento"
             ),
             "Ranking": st.column_config.TextColumn(
-                "🏆 Ranking", 
+                "Ranking", 
                 width="small",
                 help="Posición en La Liga (1-20)"
             ),
             "Valor": st.column_config.TextColumn(
-                "📈 Valor", 
+                "Valor", 
                 width="medium",
                 help="Valor del equipo seleccionado"
             ),
-            "Progreso (%)": st.column_config.ProgressColumn(
-                "📊 Progreso", 
-                min_value=0, 
-                max_value=100,
-                help="Posición relativa entre min y max de la liga"
-            ),
             "Min / Max": st.column_config.TextColumn(
-                "📏 Min/Max", 
+                "Min/Max", 
                 width="medium",
                 help="Valores mínimo y máximo de la liga"
             ),
             "Promedio Liga": st.column_config.TextColumn(
-                "⚖️ Promedio", 
+                "Promedio", 
                 width="medium",
                 help="Promedio de todos los equipos de La Liga"
             )
@@ -835,15 +822,15 @@ st.markdown("<br>", unsafe_allow_html=True)
 # TÍTULO 1: FASE DE CONSTRUCCIÓN
 st.markdown("""
 <div style="
-    background: linear-gradient(90deg, #1f4e79, #2980b9);
+    background: #004D98;
     padding: 15px 25px;
     border-radius: 10px;
     margin: 20px 0;
     text-align: center;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 ">
-    <h2 style="color: white; margin: 0; font-weight: bold; font-size: 1.5rem;">
-        🏗️ FASE DE CONSTRUCCIÓN
+    <h2 style="color: #fff; margin: 0; font-weight: bold; font-size: 1.5rem;">
+         FASE DE CONSTRUCCIÓN
     </h2>
 </div>
 """, unsafe_allow_html=True)
@@ -859,15 +846,15 @@ display_table_with_streamlit(
 # TÍTULO 2: FASE OFENSIVA
 st.markdown("""
 <div style="
-    background: linear-gradient(90deg, #c0392b, #e74c3c);
+    background: #A50044;
     padding: 15px 25px;
     border-radius: 10px;
     margin: 20px 0;
     text-align: center;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 ">
-    <h2 style="color: white; margin: 0; font-weight: bold; font-size: 1.5rem;">
-        ⚔️ FASE OFENSIVA
+    <h2 style="color: #fff; margin: 0; font-weight: bold; font-size: 1.5rem;">
+         FASE OFENSIVA
     </h2>
 </div>
 """, unsafe_allow_html=True)
@@ -883,15 +870,15 @@ display_table_with_streamlit(
 # TÍTULO 3: FASE DEFENSIVA
 st.markdown("""
 <div style="
-    background: linear-gradient(90deg, #27ae60, #2ecc71);
+    background: #EDBB00;
     padding: 15px 25px;
     border-radius: 10px;
     margin: 20px 0;
     text-align: center;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 ">
-    <h2 style="color: white; margin: 0; font-weight: bold; font-size: 1.5rem;">
-        🛡️ FASE DEFENSIVA
+    <h2 style="color: #003366; margin: 0; font-weight: bold; font-size: 1.5rem;">
+         FASE DEFENSIVA
     </h2>
 </div>
 """, unsafe_allow_html=True)
@@ -907,15 +894,15 @@ display_table_with_streamlit(
 # TÍTULO 4: BALÓN PARADO
 st.markdown("""
 <div style="
-    background: linear-gradient(90deg, #f39c12, #e67e22);
+    background: #635b5b;
     padding: 15px 25px;
     border-radius: 10px;
     margin: 20px 0;
     text-align: center;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 ">
-    <h2 style="color: white; margin: 0; font-weight: bold; font-size: 1.5rem;">
-        ⚽ BALÓN PARADO
+    <h2 style="color: #fff; margin: 0; font-weight: bold; font-size: 1.5rem;">
+         BALÓN PARADO
     </h2>
 </div>
 """, unsafe_allow_html=True)
