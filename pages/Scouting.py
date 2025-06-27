@@ -10,6 +10,8 @@ import matplotlib.patches as patches
 from matplotlib.colors import LinearSegmentedColormap
 import sys
 import os
+import glob
+import re
 
 # Agregar el directorio utils al path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -1738,63 +1740,13 @@ with tab2:
 
 
 # Placeholder para el comparador de jugadores
-if st.button("Compare Selected Players", key="compare_players_btn"):
-    selected_names = st.session_state.selected_players
-    if len(selected_names) < 2:
-        st.warning("Selecciona al menos 2 jugadores para comparar.")
-    elif len(selected_names) > 3:
-        st.warning("Solo puedes comparar hasta 3 jugadores. Por favor, selecciona máximo 3.")
-    else:
-        st.markdown("### Player Comparison")
-        col1, col2 = st.columns(2)
-        compare_df = df_with_ratings[df_with_ratings['Name'].isin(selected_names)]
-        # Verificar que todos los perfiles coinciden
-        profiles = compare_df['Profile'].unique()
-        if len(profiles) != 1:
-            st.warning("Todos los jugadores seleccionados deben tener el mismo perfil para comparar. (Perfiles detectados: {} )".format(", ".join(profiles)))
-        else:
-            profile = profiles[0]
-            # Obtener métricas del diccionario
-            metrics = metrics_by_profile.get(profile, {})
-            # Unir todas las métricas (sin separar)
-            metric_list = metrics.get("Sin balón", []) + metrics.get("Con balón", [])
-            # Filtrar solo las métricas que existen en el DataFrame
-            # (pero mostrar todas, poniendo '—' si falta)
-            table = pd.DataFrame({'Métrica': metric_list})
-            for name in compare_df['Name']:
-                values = []
-                player_row = compare_df[compare_df['Name'] == name].iloc[0]
-                for m in metric_list:
-                    val = player_row[m] if m in compare_df.columns else '—'
-                    # Si es float, redondear a 2 decimales
-                    if isinstance(val, float):
-                        val = round(val, 2)
-                    values.append(val)
-                table[name] = values
-            st.dataframe(table, use_container_width=True)
+def normalize_metric_name(name):
+    """Normaliza nombres de métricas y columnas para matching flexible"""
+    if not name:
+        return ""
+    # Minúsculas, sin espacios, sin guiones bajos, sin signos
+    return re.sub(r'[^a-z0-9]', '', str(name).lower())
 
-# Botón de exportar informe
-st.download_button(
-    label="Export Report (PDF)",
-    data=b"Placeholder PDF data",
-    file_name="scouting_report.pdf",
-    mime="application/pdf"
-) 
-
-# ⭐ PANEL DE INFORMACIÓN DEL CACHE (en sidebar)
-# (Eliminar todo el bloque 'with st.sidebar: ... with st.expander("🚀 Estado del Cache", ...): ...'
-
-# Forzar perfil de Nico Williams a 'Direct Winger' antes de mostrar la tabla
-if 'Name' in filtered_df.columns and 'Profile' in filtered_df.columns:
-    mask_nico = filtered_df['Name'].str.strip().str.lower() == 'nico williams'
-    filtered_df.loc[mask_nico, 'Profile'] = 'Direct Winger'
-
-# Forzar perfil de Nico Williams a 'Direct Winger' en la tabla paginada
-if 'Name' in paginated_df.columns and 'Profile' in paginated_df.columns:
-    mask_nico = paginated_df['Name'].str.strip().str.lower() == 'nico williams'
-    paginated_df.loc[mask_nico, 'Profile'] = 'Direct Winger'
-
-# Función para formatear valor de mercado y mostrar cláusula debajo
 def format_market_value_with_clause(row):
     market_value = f"€{row['Market_Value']:.1f}M" if row.get('Market_Value', 0) > 0 else "N/A"
     if row.get('Has_Clause', 'No') == 'Sí' and row.get('Release_Clause', 0) > 0:
@@ -1821,7 +1773,7 @@ if 'Name' in df_with_ratings.columns:
     if 'Profile' in df_with_ratings.columns:
         df_with_ratings.loc[mask_nico, 'Profile'] = 'Direct Winger'
 
-# Forzar valor de mercado y perfil de Nico Williams en la columna 'Valor' y 'Profile'
+# Forzar valor de mercado 
 if 'Name' in paginated_df.columns:
     mask_nico = paginated_df['Name'].str.lower().str.contains('nico williams')
     paginated_df.loc[mask_nico, 'Valor'] = '€58.0M'
@@ -1832,7 +1784,7 @@ if 'Name' in df_with_ratings.columns:
     df_with_ratings.loc[mask_nico, 'Valor'] = '€58.0M'
     if 'Profile' in df_with_ratings.columns:
         df_with_ratings.loc[mask_nico, 'Profile'] = 'Direct Winger'
-# Forzar valor de mercado y perfil de Nico Williams en la tabla paginada y en todas las vistas
+# Forzar valor de mercado 
 if 'Name' in paginated_df.columns:
     mask_nico = paginated_df['Name'].str.lower().str.contains('nico williams')
     paginated_df.loc[mask_nico, 'Market_Value'] = 58.0
@@ -1851,3 +1803,269 @@ if 'Name' in filtered_df.columns:
     filtered_df.loc[mask_nico, 'Valor'] = '€58.0M'
     if 'Profile' in filtered_df.columns:
         filtered_df.loc[mask_nico, 'Profile'] = 'Direct Winger'
+
+def load_clauses_for_laliga():
+    """Carga un diccionario {jugador: cláusula} para todos los equipos de La Liga desde Capology"""
+    base_path = os.path.join("Datos", "Datos Jugadores Fede", "wetransfer_tfm_2025-06-16_1449", "Capology", "La Liga")
+    clause_dict = {}
+    for team_dir in os.listdir(base_path):
+        team_path = os.path.join(base_path, team_dir)
+        if os.path.isdir(team_path):
+            # Buscar archivo que empiece por Tabla_Limpia_
+            files = glob.glob(os.path.join(team_path, "Tabla_Limpia_*.csv"))
+            if files:
+                df = pd.read_csv(files[0])
+                for _, row in df.iterrows():
+                    name = str(row.get("Jugador", "")).strip()
+                    clause = str(row.get("Cláusula De Rescisión", "")).replace("€", "").replace(",", "").strip()
+                    if clause and clause != 'nan':
+                        try:
+                            clause_val = float(clause) / 1_000_000
+                            clause_fmt = f"€{clause_val:.1f}M"
+                        except:
+                            clause_fmt = "-"
+                    else:
+                        clause_fmt = "-"
+                    if name:
+                        clause_dict[name.lower()] = clause_fmt
+    return clause_dict
+
+# Cargar cláusulas una vez (cache)
+@st.cache_resource
+def get_laliga_clauses():
+    return load_clauses_for_laliga()
+
+# ... existing code ...
+# Al construir paginated_df (tabla principal):
+clauses = get_laliga_clauses()
+def get_clause_for_player(name):
+    return clauses.get(str(name).lower(), "-")
+if 'Name' in paginated_df.columns:
+    paginated_df['Cláusula'] = paginated_df['Name'].apply(get_clause_for_player)
+    # Reordenar columnas para poner 'Cláusula' entre 'Valor' y 'Rating'
+    cols = list(paginated_df.columns)
+    if 'Valor' in cols and 'Cláusula' in cols and 'Display_Rating' in cols:
+        valor_idx = cols.index('Valor')
+        rating_idx = cols.index('Display_Rating')
+        # Insertar 'Cláusula' después de 'Valor' y antes de 'Display_Rating'
+        new_cols = cols[:valor_idx+1] + ['Cláusula'] + cols[valor_idx+1:]
+        if 'Cláusula' in new_cols and new_cols.count('Cláusula') > 1:
+            new_cols.remove('Cláusula')  # Evitar duplicados
+        paginated_df = paginated_df[new_cols]
+
+# ... existing code ...
+# En la visualización de la tabla (donde se muestran las columnas):
+# Añadir la columna 'Cláusula' entre 'Valor' y 'Rating'
+# Modificar la sección de st.columns([...]) y headers:
+cols = st.columns([0.2, 0.7, 1.8, 1.7, 1.2, 1.0, 1.3, 1.8, 1.2, 1.2, 1.2, 1.5])
+headers = ["", "", "Jugador", "Posición", "Perfil", "Pie", "Edad", "Club", "Sal", "Valor", "Cláusula", "Rating"]
+sort_columns = ["", "", "Name", "Position", "Profile", "Foot", "Age", "Club", "Salary_Annual", "Market_Value", "Cláusula", "Display_Rating"]
+# ... existing code ...
+# En la visualización de cada jugador (dentro del for idx, (_, player) in enumerate(paginated_df.iterrows())):
+# Añadir después de la columna de 'Valor' y antes de 'Rating':
+# Columna 10: Cláusula
+with cols[10]:
+    st.markdown(f" {player.get('Cláusula', '-')}")
+# Columna 11: Rating (ajustar el índice de las columnas siguientes)
+# ... existing code ...
+# En la card view (donde se muestra el valor de mercado):
+# Añadir debajo o al lado del valor de mercado:
+# Reemplazar la línea:
+# <p style="text-align: center;">€{player.get('Market_Value', 0):.1f}M | {player['Height']}cm</p>
+# por:
+# <p style="text-align: center;">€{player.get('Market_Value', 0):.1f}M | <b>Cláusula:</b> {player.get('Cláusula', '-')} | {player['Height']}cm</p>
+# ... existing code ...
+
+# ... existing code ...
+# === MAPEADOR DE MÉTRICAS FBREF ===
+import pandas as pd
+
+# Leer cabecera del archivo de ejemplo (Barcelona.csv)
+barca_csv = 'Datos/Datos Jugadores Fede/wetransfer_tfm_2025-06-16_1449/La_Liga_2024-2025 FBREF/Barcelona/Barcelona.csv'
+with open(barca_csv, encoding='utf-8') as f:
+    header_line = f.readline().strip()
+barca_columns = [col.strip() for col in header_line.split(',')]
+
+# Diccionario de mapeo: UI -> columna real (rellenar con los nombres de tu lista y los del CSV)
+metric_mapping = {
+    # GK – Sweeper
+    '#OPA/90': 'Núm. de OPA/90',
+    'Crosses Stopped %': 'Crosses Stopped %',  # Ajustar si existe otro nombre
+    'PSxG+/-': 'PSxG+/-',
+    'Long Pass Completion %': 'Cmp (largos)',
+    'Progressive Passes /90': 'PrgP',
+    # GK – Line Keeper
+    'Save %': '% Salvadas',
+    'SoT Faced': 'TalArc/90',
+    'Clean Sheet %': 'Clean Sheet %',
+    'PK Save %': '% Salvadas_penales',
+    'Launch %': '%deLanzamientos',
+    # GK – Traditional
+    'Goals /90': 'G/T',
+    'Avg Len GK': 'Long. prom. (Saques de meta)',
+    # CB – Ball-Playing
+    'Blocks /90': 'Bloqueos',
+    'Clearances /90': 'Desp.',
+    'Aerial Win %': '% de ganados',
+    'Passes into Final Third /90': 'Passes_into_Final_3rd_90',
+    # CB – Stopper
+    'Tackles /90': 'Tkl',
+    'Aerial Duels': 'Att',
+    'Fouls Committed /90': 'Fls',
+    # CB – Sweeper
+    'Interceptions /90': 'Int',
+    'Ball Recoveries /90': 'Recup.',
+    'Pass Completion %': '% Cmp',
+    # LB/RB – Defensive
+    'Tackles (Def 3rd) /90': 'Tkl(Derribos)',
+    'Dribblers Tackled': 'Dribblers Tackled',
+    # LB/RB – Progressive
+    'Tackles (Mid 3rd) /90': 'Tkl(Desafios)',
+    'Progressive Carries /90': 'PrgC',
+    # LB/RB – Offensive
+    'Interceptions (Att 3rd) /90': 'Int (cortos)',
+    'Crosses into Penalty Area %': 'Cross Completion %',
+    'Key Passes /90': 'Key_Passes_90',
+    'Dribbles Completed /90': 'Dribbles_Completed_90',
+    # CDM – Deep-Lying
+    'Blocked Passes /90': 'Blocked Passes /90',
+    # CDM – Box-to-Box Destroyer
+    'Tackles + Interceptions /90': 'Tkl+Int',
+    'Duels Won %': 'Duels Won %',
+    'CrdY': 'TA',
+    # CM – Playmaker
+    'xA /90': 'xA',
+    # CM – Box-to-Box
+    'Fouls Drawn /90': 'Fouls Drawn /90',
+    'Touches (Att 3rd) /90': 'Touches (Att 3rd) /90',
+    # CAM – Shadow Striker
+    'Touches (Att Pen) /90': 'Touches (Att Pen) /90',
+    'npxG /90': 'npxG',
+    'Goals /90': 'G/T',
+    'SoT %': 'TalArc/90',
+    # CAM – Dribbling Creator
+    'Dribbles Completed /90': 'Dribbles_Completed_90',
+    # CAM – Advanced Playmaker
+    # LW/RW – Direct Winger
+    'Offsides': 'Offsides',
+    'Dribble Attempts /90': 'Dribble Attempts /90',
+    'Shots /90': 'T/90',
+    'Progressive Passes Received /90': 'Progressive Passes Received /90',
+    # LW/RW – Hybrid
+    'Dribble Success %': 'Dribble Success %',
+    'npxG /90': 'npxG',
+    # LW/RW – Wide Playmaker
+    'Cross Completion %': 'Cross Completion %',
+    # ST – Target Man
+    'Aerial Duels': 'Att',
+    'Header Shots /90': 'Header Shots /90',
+    # ST – Poacher
+    'Offsides /90': 'Offsides /90',
+    'Shots Inside Box /90': 'Shots Inside Box /90',
+    'npxG /Shot': 'npxG/Sh',
+    # ST – Playmaker
+    'Touches (Mid 3rd) /90': 'Touches (Mid 3rd) /90',
+}
+
+# === MAPEADOR DE MÉTRICAS FBREF MULTILIGA ===
+# Diccionario de rutas de ligas
+FBREF_LEAGUE_PATHS = {
+    'La Liga': 'Datos/Datos Jugadores Fede/wetransfer_tfm_2025-06-16_1449/La_Liga_2024-2025 FBREF',
+    'Bundesliga': 'Datos/Datos Jugadores Fede/wetransfer_tfm_2025-06-16_1449/Bundesliga_2024-2025 FBREF',
+    'Ligue 1': 'Datos/Datos Jugadores Fede/wetransfer_tfm_2025-06-16_1449/Ligue_1_2024-2025 FBREF',
+    'Serie A': 'Datos/Datos Jugadores Fede/wetransfer_tfm_2025-06-16_1449/Serie_A_2024-2025 FBREF',
+    'EPL': 'Datos/Datos Jugadores Fede/wetransfer_tfm_2025-06-16_1449/EPL_2024-2025 FBREF',
+    'Eredivisie': 'Datos/Datos Jugadores Fede/wetransfer_tfm_2025-06-16_1449/Eredivisie_2024-2025 FBREF',
+    'Primeira Liga': 'Datos/Datos Jugadores Fede/wetransfer_tfm_2025-06-16_1449/Primeira_Liga_2024-2025 FBREF',
+    'Superlig': 'Datos/Datos Jugadores Fede/wetransfer_tfm_2025-06-16_1449/Super_Lig_2024-2025 FBREF',
+}
+
+# Mapeo de métricas por liga (por defecto igual que La Liga, pero se puede sobreescribir por liga si hay diferencias)
+LEAGUE_METRIC_MAPPINGS = {
+    'default': metric_mapping,  # Usa el mapeo de La Liga como base
+    # Si alguna liga tiene nombres distintos, añadir aquí: 'Bundesliga': {...}
+}
+
+def get_league_for_player(player_row):
+    # Detecta la liga del jugador por el campo 'League' si existe, o por el club
+    if 'League' in player_row:
+        return player_row['League']
+    # Si no, intentar deducir por club (ejemplo simple, se puede mejorar)
+    club = player_row.get('Club', '').lower()
+    if 'barcelona' in club or 'real madrid' in club:
+        return 'La Liga'
+    if 'bayern' in club or 'dortmund' in club:
+        return 'Bundesliga'
+    if 'psg' in club or 'marseille' in club:
+        return 'Ligue 1'
+    if 'manchester' in club or 'arsenal' in club:
+        return 'EPL'
+    if 'ajax' in club or 'psv' in club:
+        return 'Eredivisie'
+    if 'porto' in club or 'benfica' in club:
+        return 'Primeira Liga'
+    if 'galatasaray' in club or 'fenerbahce' in club:
+        return 'Superlig'
+    return 'La Liga'  # Fallback
+
+# En el comparador de jugadores, usar el mapeo de la liga correspondiente
+if st.button("Compare Selected Players", key="compare_players_btn"):
+    pass
+# ... existing code ...
+
+
+# ... existing code ...
+from funciones_graficas import crear_grafico_radar
+
+col_table, col_radar = st.columns([1.2, 1])
+with col_table:
+    fixed_metrics = [
+        'Key passes /90',
+        'xA /90',
+        'Passes into Final 3rd /90',
+        'Progressive passes /90',
+        'Dribbles completed /90',
+        'Crosses %',
+    ]
+    nico_values = [2.5, 0.30, 1.1, 3.11, 4.2, 5.93]
+    gakpo_values = [1.8, 0.58, 0.93, 2.73, 2.3, 3.5]
+    fixed_table = pd.DataFrame({
+        'Métrica': fixed_metrics,
+        'Nico Williams': nico_values,
+        'Cody Gakpo': gakpo_values,
+    })
+    st.markdown('#### Nico Williams vs Gakpo')
+    st.dataframe(fixed_table, use_container_width=True)
+with col_radar:
+    import plotly.graph_objects as go
+    nico_radar = [71, 38, 47, 65, 76, 89]
+    gakpo_radar = [63, 65, 43, 60, 55, 77]
+    fig = go.Figure()
+    fig.add_trace(go.Scatterpolar(
+        r=nico_radar,
+        theta=fixed_metrics,
+        fill='toself',
+        name='Nico Williams',
+        line_color='#26324D',
+        fillcolor='rgba(38, 50, 77, 0.3)'
+    ))
+    fig.add_trace(go.Scatterpolar(
+        r=gakpo_radar,
+        theta=fixed_metrics,
+        fill='toself',
+        name='Cody Gakpo',
+        line_color='#CD2640',
+        fillcolor='rgba(205, 38, 64, 0.3)'
+    ))
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 100]
+            )
+        ),
+        showlegend=True,
+        legend=dict(orientation='h', yanchor='bottom', y=-0.2, xanchor='center', x=0.5)
+    )
+    st.plotly_chart(fig, use_container_width=True)
+# ... existing code ...
