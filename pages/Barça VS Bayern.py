@@ -186,10 +186,9 @@ show_home_button()
 # Mostrar header de la página
 show_page_header("Barça VS Bayern")
 
-# Cargar datos del CSV
-@st.cache_data
+# Cargar datos del CSV (sin caché)
 def load_player_data():
-    return pd.read_csv('Datos/radares_normalizados.csv', sep=';')
+    return pd.read_csv(r'C:/Users/zyadb/Documents/tfm/Datos/radares_normalizados.csv', sep=';')
 
 # Función para obtener métricas de un jugador
 def get_player_metrics(df, player_name, team):
@@ -528,7 +527,6 @@ def get_circular_player_image(player_name, team):
     except Exception as e:
         st.warning(f"Error al procesar la imagen para {player_name}: {str(e)}")
         return None
-
 
 # Campogramas y estadísticas
 st.markdown("### Campogramas")
